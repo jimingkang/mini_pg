@@ -1,0 +1,428 @@
+#include "minidb.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <zlib.h>
+#include "wal.h"
+// 初始化数据库
+void init_db(MiniDB *db, const char *data_dir) {
+    // 设置数据目录
+    strncpy(db->data_dir, data_dir, sizeof(db->data_dir));
+    mkdir(data_dir, 0755);
+    
+    // 初始化系统目录
+    init_system_catalog(&db->catalog);
+    
+    // 初始化事务管理器
+    txmgr_init(&db->tx_mgr);
+    
+    // 初始无活动事务
+    db->current_xid = INVALID_XID;
+    
+    // 初始化WAL
+    init_wal();
+    
+    // 从WAL恢复
+   // recover_from_wal(db);
+}
+
+// 开始事务
+uint32_t begin_transaction(MiniDB *db) {
+    if (db->current_xid != INVALID_XID) {
+        fprintf(stderr, "Error: Transaction already in progress\n");
+        return INVALID_XID;
+    }
+    
+    db->current_xid = txmgr_start_transaction(&db->tx_mgr);
+    return db->current_xid;
+}
+
+// 提交事务
+int commit_transaction(MiniDB *db) {
+    if (db->current_xid == INVALID_XID) {
+        fprintf(stderr, "Error: No active transaction\n");
+        return -1;
+    }
+    
+    txmgr_commit_transaction(&db->tx_mgr, db->current_xid);
+    wal_log_commit(db->current_xid);
+    db->current_xid = INVALID_XID;
+    return 0;
+}
+
+// 回滚事务
+int rollback_transaction(MiniDB *db) {
+    if (db->current_xid == INVALID_XID) {
+        fprintf(stderr, "Error: No active transaction\n");
+        return -1;
+    }
+    
+    txmgr_abort_transaction(&db->tx_mgr, db->current_xid);
+    wal_log_abort(db->current_xid);
+    db->current_xid = INVALID_XID;
+    return 0;
+}
+
+// 创建表
+int db_create_table(MiniDB *db, const char *table_name, ColumnDef *columns, uint8_t col_count) {
+    if (db->current_xid == INVALID_XID) {
+        fprintf(stderr, "Error: No active transaction\n");
+        return -1;
+    }
+    
+    // 在系统目录中创建表
+    int oid = create_table(&db->catalog, table_name, columns, col_count);
+    if (oid < 0) {
+        fprintf(stderr, "Error: Failed to create table '%s'\n", table_name);
+        return -1;
+    }
+    
+    // 获取表元数据
+    TableMeta *meta = find_table(&db->catalog, table_name);
+    if (!meta) {
+        fprintf(stderr, "Error: Failed to find table '%s' after creation\n", table_name);
+        return -1;
+    }
+    
+    // 创建数据文件
+    char path[256];
+    snprintf(path, sizeof(path), "%s/%s", db->data_dir, meta->filename);
+    int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd == -1) {
+        perror("Error: Failed to create table file");
+        return -1;
+    }
+    close(fd);
+    
+    // 记录WAL
+    wal_log_create_table(meta, db->current_xid);
+    
+    return oid;
+}
+
+// 插入数据
+int db_insert(MiniDB *db, const char *table_name, Tuple *tuple) {
+    if (db->current_xid == INVALID_XID) {
+        fprintf(stderr, "Error: No active transaction\n");
+        return -1;
+    }
+    
+    TableMeta *meta = find_table(&db->catalog, table_name);
+    if (!meta) {
+        fprintf(stderr, "Error: Table '%s' not found\n", table_name);
+        return -1;
+    }
+    
+    // 设置元组的MVCC信息和OID
+    tuple->header.xmin = db->current_xid;
+    tuple->header.xmax = INVALID_XID;
+    tuple->oid = db->catalog.next_oid++;
+    tuple->col_count = meta->col_count;
+    tuple->deleted = 0;
+    
+    // 记录WAL
+    wal_log_insert(db->current_xid, meta->oid, tuple);
+    
+    // 写入数据文件
+    char path[256];
+    snprintf(path, sizeof(path), "%s/%s", db->data_dir, meta->filename);
+    
+    DataPage page;
+    // 尝试读取现有页面
+    if (read_data_page(path, &page) < 0) {
+        // 文件不存在或读取失败，初始化新页面
+        init_page_header(&page.header);
+        page.tuple_count = 0;
+    }
+    
+    // 检查页面是否有空闲槽位
+    if (page.tuple_count >= 64) {
+        fprintf(stderr, "Error: Page is full\n");
+        return -1;
+    }
+    
+    // 添加元组
+    page.tuples[page.tuple_count] = *tuple;
+    page.tuple_count++;
+    
+    // 写回页面
+    if (write_data_page(path, &page) < 0) {
+        perror("Error: Failed to write page");
+        return -1;
+    }
+    
+    return 0;
+}
+
+// 查询数据
+int db_query(MiniDB *db, const char *table_name, Tuple *results, int max_results) {
+    if (db->current_xid == INVALID_XID) {
+        fprintf(stderr, "Error: No active transaction\n");
+        return -1;
+    }
+    
+    TableMeta *meta = find_table(&db->catalog, table_name);
+    if (!meta) {
+        fprintf(stderr, "Error: Table '%s' not found\n", table_name);
+        return -1;
+    }
+    
+    char path[256];
+    snprintf(path, sizeof(path), "%s/%s", db->data_dir, meta->filename);
+    
+    DataPage page;
+    if (read_data_page(path, &page) < 0) {
+        return 0; // 没有数据或读取失败
+    }
+    
+    int result_count = 0;
+    for (int i = 0; i < page.tuple_count && result_count < max_results; i++) {
+        Tuple *t = &page.tuples[i];
+        
+        // 检查元组是否对当前事务可见
+        if (!t->deleted && 
+            txmgr_is_visible(&db->tx_mgr, db->current_xid, 
+                            t->header.xmin, t->header.xmax)) {
+            results[result_count++] = *t;
+        }
+    }
+    
+    return result_count;
+}
+
+// 创建检查点
+void db_create_checkpoint(MiniDB *db) {
+    wal_log_checkpoint();
+}
+
+// 打印数据库状态
+void print_db_status(const MiniDB *db) {
+    printf("\n===== Database Status =====\n");
+    printf("Data Directory: %s\n", db->data_dir);
+    printf("Current Transaction ID: %u\n", db->current_xid);
+    
+    // 打印系统目录状态
+    printf("\nSystem Catalog:\n");
+    printf("  Tables: %d\n", db->catalog.table_count);
+    for (int i = 0; i < db->catalog.table_count; i++) {
+        const TableMeta *meta = &db->catalog.tables[i];
+        printf("  - %s (OID: %u, File: %s)\n", 
+               meta->name, meta->oid, meta->filename);
+        printf("    Columns: %d\n", meta->col_count);
+        for (int j = 0; j < meta->col_count; j++) {
+            printf("      %s: %s\n", 
+                   meta->cols[j].name,
+                   meta->cols[j].type == INT4_TYPE ? "INT" : "TEXT");
+        }
+    }
+    
+    // 打印事务管理器状态
+    txmgr_print_status(&db->tx_mgr);
+}
+
+// ================== 辅助函数实现 ==================
+
+// 初始化页面头部
+void init_page_header(PageHeader *header) {
+    header->checksum = 0;
+    header->lsn = 0;
+    header->lower = HEADER_SIZE;
+    header->upper = PAGE_SIZE;
+    header->special = PAGE_SIZE;
+    header->flags = 0;
+}
+
+// 写入数据页到文件
+int write_data_page(const char *filename, const DataPage *page) {
+    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd == -1) return -1;
+    
+    // 写入页头
+    if (write(fd, &page->header, sizeof(PageHeader)) != sizeof(PageHeader)) {
+        close(fd);
+        return -1;
+    }
+    
+    // 写入元组
+    for (int i = 0; i < page->tuple_count; i++) {
+        uint8_t buffer[PAGE_SIZE];
+        int len = serialize_tuple(&page->tuples[i], buffer);
+        
+        if (write(fd, buffer, len) != len) {
+            close(fd);
+            return -1;
+        }
+    }
+    
+    // 填充页面剩余空间
+    off_t current = lseek(fd, 0, SEEK_CUR);
+    if (current < PAGE_SIZE) {
+        uint8_t zero = 0;
+        for (off_t i = current; i < PAGE_SIZE; i++) {
+            if (write(fd, &zero, 1) != 1) {
+                close(fd);
+                return -1;
+            }
+        }
+    }
+    
+    close(fd);
+    return 0;
+}
+
+// 从文件读取数据页
+int read_data_page(const char *filename, DataPage *page) {
+    int fd = open(filename, O_RDONLY);
+    if (fd == -1) return -1;
+    
+    // 读取页头
+    if (read(fd, &page->header, sizeof(PageHeader)) != sizeof(PageHeader)) {
+        close(fd);
+        return -1;
+    }
+    
+    page->tuple_count = 0;
+    uint8_t buffer[PAGE_SIZE];
+    ssize_t bytes_read;
+    
+    // 读取元组直到页面结束
+    while ((bytes_read = read(fd, buffer, PAGE_SIZE - sizeof(PageHeader))) > 0) {
+        Tuple tuple;
+        int consumed = deserialize_tuple(&tuple, buffer, NULL);
+        
+        if (consumed <= 0 || page->tuple_count >= 64) break;
+        
+        page->tuples[page->tuple_count++] = tuple;
+        
+        // 移动到下一个元组
+        lseek(fd, consumed - bytes_read, SEEK_CUR);
+    }
+    
+    close(fd);
+    return page->tuple_count;
+}
+
+// 序列化元组
+int serialize_tuple(const Tuple *tuple, uint8_t *buffer) {
+    uint8_t *ptr = buffer;
+    
+    // 写入MVCC头
+    *((uint32_t *)ptr) = tuple->header.xmin;
+    ptr += 4;
+    *((uint32_t *)ptr) = tuple->header.xmax;
+    ptr += 4;
+    
+    // 写入OID和列数
+    *((uint32_t *)ptr) = tuple->oid;
+    ptr += 4;
+    *ptr++ = tuple->col_count;
+    *ptr++ = tuple->deleted;
+    
+    // 写入每列数据
+    for (int i = 0; i < tuple->col_count; i++) {
+        *ptr++ = (uint8_t)tuple->columns[i].type;
+        
+        if (tuple->columns[i].type == INT4_TYPE) {
+            *((int32_t *)ptr) = tuple->columns[i].value.int_val;
+            ptr += 4;
+        } else if (tuple->columns[i].type == TEXT_TYPE) {
+            const char *str = tuple->columns[i].value.str_val;
+            size_t len = strlen(str);
+            *ptr++ = (uint8_t)len;
+            memcpy(ptr, str, len);
+            ptr += len;
+        }
+    }
+    
+    return ptr - buffer;
+}
+
+// 反序列化元组
+int deserialize_tuple(Tuple *tuple, const uint8_t *buffer, const TableMeta *meta) {
+    const uint8_t *ptr = buffer;
+    
+    // 读取MVCC头
+    tuple->header.xmin = *((uint32_t *)ptr);
+    ptr += 4;
+    tuple->header.xmax = *((uint32_t *)ptr);
+    ptr += 4;
+    
+    // 读取OID和列数
+    tuple->oid = *((uint32_t *)ptr);
+    ptr += 4;
+    tuple->col_count = *ptr++;
+    tuple->deleted = *ptr++;
+    
+    for (int i = 0; i < tuple->col_count; i++) {
+        tuple->columns[i].type = (DataType)*ptr++;
+        
+        if (tuple->columns[i].type == INT4_TYPE) {
+            tuple->columns[i].value.int_val = *((int32_t *)ptr);
+            ptr += 4;
+        } else if (tuple->columns[i].type == TEXT_TYPE) {
+            uint8_t len = *ptr++;
+            memcpy(tuple->columns[i].value.str_val, ptr, len);
+            tuple->columns[i].value.str_val[len] = '\0';
+            ptr += len;
+        }
+    }
+    
+    return ptr - buffer;
+}
+
+// 打印元组
+void print_tuple(const Tuple *tuple) {
+    printf("OID: %u\n", tuple->oid);
+    printf("xmin: %u, xmax: %u\n", tuple->header.xmin, tuple->header.xmax);
+    printf("Deleted: %s\n", tuple->deleted ? "true" : "false");
+    
+    for (int i = 0; i < tuple->col_count; i++) {
+        printf("Column %d: ", i+1);
+        if (tuple->columns[i].type == INT4_TYPE) {
+            printf("%d\n", tuple->columns[i].value.int_val);
+        } else {
+            printf("%s\n", tuple->columns[i].value.str_val);
+        }
+    }
+    printf("\n");
+}
+
+// 初始化系统目录
+void init_system_catalog(SystemCatalog *catalog) {
+    catalog->table_count = 0;
+    catalog->next_oid = 1000;
+}
+
+// 创建新表
+int create_table(SystemCatalog *catalog, const char *table_name, ColumnDef *columns, uint8_t col_count) {
+    if (catalog->table_count >= MAX_TABLES) {
+        return -1;
+    }
+    
+    TableMeta *meta = &catalog->tables[catalog->table_count];
+    meta->oid = catalog->next_oid++;
+    strncpy(meta->name, table_name, MAX_NAME_LEN);
+    snprintf(meta->filename, MAX_NAME_LEN, "%u.dat", meta->oid);
+    meta->col_count = col_count;
+    
+    for (int i = 0; i < col_count; i++) {
+        meta->cols[i] = columns[i];
+    }
+    
+    catalog->table_count++;
+    return meta->oid;
+}
+
+// 按名称查找表
+TableMeta *find_table(SystemCatalog *catalog, const char *table_name) {
+    for (int i = 0; i < catalog->table_count; i++) {
+        if (strcmp(catalog->tables[i].name, table_name) == 0) {
+            return &catalog->tables[i];
+        }
+    }
+    return NULL;
+}

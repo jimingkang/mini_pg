@@ -1,0 +1,49 @@
+#ifndef TUPLE_H
+
+#define TUPLE_H
+
+#include "catalog.h"
+
+// 元组结构（固定大小）
+
+// 元组值
+typedef union {
+    int32_t int_val;
+    char str_val[MAX_STRING_LEN];
+} TupleValue;
+
+// 元组列
+typedef struct {
+    DataType type;
+    TupleValue value;
+} TupleColumn;
+
+// MVCC元组头
+typedef struct {
+    uint32_t xmin;           // 创建事务ID
+    uint32_t xmax;           // 删除事务ID
+} TupleHeader;
+
+// 元组结构
+typedef struct {
+    TupleHeader header;      // MVCC头
+    uint32_t oid;
+    uint8_t col_count;
+    TupleColumn columns[MAX_COLS];
+    uint8_t deleted;
+} Tuple;
+
+// 序列化元组：将Tuple结构序列化为字节流
+// 参数：tuple - 元组指针，buffer - 输出缓冲区（至少要有tuple_size大小）
+// 返回：序列化后的字节数（即tuple_size）
+//int serialize_tuple(const Tuple *tuple, uint8_t *buffer, uint16_t tuple_size);
+int serialize_tuple(const Tuple *tuple, uint8_t *buffer)
+// 反序列化元组：从字节流构建Tuple结构
+// 参数：buffer - 输入缓冲区，tuple_size - 元组大小（由表定义决定）
+// 返回：Tuple结构指针（需要调用者释放），失败返回NULL
+//Tuple* deserialize_tuple(const uint8_t *buffer, uint16_t tuple_size);
+int deserialize_tuple(Tuple *tuple, const uint8_t *buffer, const TableMeta *meta) ;
+// 计算元组大小（根据表定义）
+uint16_t calculate_tuple_size(const TableMeta *meta);
+
+#endif // TUPLE_H

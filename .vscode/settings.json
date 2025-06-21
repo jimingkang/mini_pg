@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "limits.h": "c",
+        "stat.h": "c",
+        "fcntl.h": "c",
+        "txmgr.h": "c",
+        "*.c_old": "c",
+        "*.h_old": "cpp",
+        "minidb.h": "c",
+        "tuple.h": "c",
+        "algorithm": "c",
+        "types.h": "c",
+        "string.h": "c",
+        "stddef.h": "c",
+        "*.c_old2": "c"
+    }
+}

@@ -1,0 +1,72 @@
+
+#include "tuple.h"
+// 序列化元组
+int serialize_tuple(const Tuple *tuple, uint8_t *buffer) {
+    uint8_t *ptr = buffer;
+    
+    // 写入OID和列数
+    *((uint32_t *)ptr) = tuple->oid;
+    ptr += 4;
+    *ptr++ = tuple->col_count;
+    *ptr++ = tuple->deleted;
+    
+    // 写入每列数据
+    for (int i = 0; i < tuple->col_count; i++) {
+        *ptr++ = (uint8_t)tuple->columns[i].type;
+        
+        if (tuple->columns[i].type == INT4_TYPE) {
+            *((int32_t *)ptr) = tuple->columns[i].value.int_val;
+            ptr += 4;
+        } else if (tuple->columns[i].type == TEXT_TYPE) {
+            const char *str = tuple->columns[i].value.str_val;
+            size_t len = strlen(str);
+            *ptr++ = (uint8_t)len;
+            memcpy(ptr, str, len);
+            ptr += len;
+        }
+    }
+    
+    return ptr - buffer;
+}
+
+// 反序列化元组
+int deserialize_tuple(Tuple *tuple, const uint8_t *buffer, const TableMeta *meta) {
+    const uint8_t *ptr = buffer;
+    
+    tuple->oid = *((uint32_t *)ptr);
+    ptr += 4;
+    tuple->col_count = *ptr++;
+    tuple->deleted = *ptr++;
+    
+    for (int i = 0; i < tuple->col_count; i++) {
+        tuple->columns[i].type = (DataType)*ptr++;
+        
+        if (tuple->columns[i].type == INT4_TYPE) {
+            tuple->columns[i].value.int_val = *((int32_t *)ptr);
+            ptr += 4;
+        } else if (tuple->columns[i].type == TEXT_TYPE) {
+            uint8_t len = *ptr++;
+            memcpy(tuple->columns[i].value.str_val, ptr, len);
+            tuple->columns[i].value.str_val[len] = '\0';
+            ptr += len;
+        }
+    }
+    
+    return ptr - buffer;
+}
+
+// 打印元组
+void print_tuple(const Tuple *tuple) {
+    printf("OID: %u\n", tuple->oid);
+    printf("Deleted: %s\n", tuple->deleted ? "true" : "false");
+    
+    for (int i = 0; i < tuple->col_count; i++) {
+        printf("Column %d: ", i+1);
+        if (tuple->columns[i].type == INT4_TYPE) {
+            printf("%d\n", tuple->columns[i].value.int_val);
+        } else {
+            printf("%s\n", tuple->columns[i].value.str_val);
+        }
+    }
+    printf("\n");
+}
