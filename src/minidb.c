@@ -288,7 +288,7 @@ bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Sessio
         free_tuple(new_tuple);
         return false;
     }
-    
+     fflush(table_file);
     fclose(table_file);
    // free_tuple(new_tuple);
     return true;

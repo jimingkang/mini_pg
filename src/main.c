@@ -90,7 +90,7 @@ user1.columns = (Column *)malloc(col_count * sizeof(Column));
     printf("Inserted user1\n");
     free(user1.columns[1].value.str_val);
 free(user1.columns);
-    
+        print_db_status(&db);
     /*   */
     // 插入用户2
     Tuple user2 = {0};

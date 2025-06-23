@@ -113,7 +113,7 @@ bool page_insert_tuple(Page* page, const Tuple* tuple, uint16_t* slot_out) {
     // 设置槽位信息
     new_slot->offset = data_offset;
     new_slot->length = tuple_size;
-    new_slot->flags = SLOT_OCCUPIED;
+    new_slot->flags |= SLOT_OCCUPIED;
     
     // 复制元组数据到页面
     memcpy(page->data + data_offset, buffer, tuple_size);
