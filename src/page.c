@@ -6,24 +6,42 @@
 #include <assert.h>
 #include <stddef.h> // 添加这行以支持ptrdiff_t
 
+#define PAGE_DATA_OFFSET offsetof(Page, data)
+
+
 // 计算槽位数组起始位置
-static Slot* page_slots(Page* page) {
-    return (Slot*)(page->data);
-}
+//static Slot* page_slots(Page* page) {
+ //   return (Slot*)(page->data);
+//}
 
 // 计算槽位数组结束位置
-static uint8_t* page_slots_end(Page* page) {
-    return (uint8_t*)(page_slots(page) + page->header.slot_count);
+//static uint8_t* page_slots_end(Page* page) {
+//    return (uint8_t*)(page_slots(page) + page->header.slot_count);
+//}
+static Slot* page_slots(Page* page) {
+    return page->slots;
 }
 
-// 计算数据区起始位置
-static uint8_t* page_data_start(Page* page) {
-    return page->data + page->header.free_start;
+// 计算槽位数组结束位置（固定为 slots + MAX_SLOTS）
+static uint8_t* page_slots_end(Page* page) {
+    return (uint8_t*)(page->slots + MAX_SLOTS);
 }
+
+
+static uint8_t* page_data_start(Page* page) {
+    return ((uint8_t*)page) + PAGE_DATA_OFFSET + page->header.free_start;
+}
+// 计算数据区起始位置
+//static uint8_t* page_data_start(Page* page) {
+//    return page->data + page->header.free_start;
+//}
 
 // 计算数据区结束位置
+//static uint8_t* page_data_end(Page* page) {
+ //   return page->data + page->header.free_end;
+//}
 static uint8_t* page_data_end(Page* page) {
-    return page->data + page->header.free_end;
+    return ((uint8_t*)page) + PAGE_DATA_OFFSET + page->header.free_end;
 }
 
 // 初始化页面
@@ -113,7 +131,7 @@ bool page_insert_tuple(Page* page, const Tuple* tuple, uint16_t* slot_out) {
     // 设置槽位信息
     new_slot->offset = data_offset;
     new_slot->length = tuple_size;
-    new_slot->flags |= SLOT_OCCUPIED;
+    new_slot->flags = SLOT_OCCUPIED;
     
     // 复制元组数据到页面
     memcpy(page->data + data_offset, buffer, tuple_size);

@@ -10,7 +10,7 @@
 // 页面ID类型
 #define PAGE_SIZE 4096   // 4KB
 #define PAGE_HEADER_SIZE 32
-#define INVALID_PAGE_ID 0
+#define INVALID_PAGE_ID 0xFFFFFFFF
 
 #define MAX_NAME_LEN 50
 #define MAX_TABLES 100

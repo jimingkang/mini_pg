@@ -340,12 +340,12 @@ Tuple** db_query(MiniDB *db, const char *table_name, int *result_count,Session s
         page_count++;
         
         // 验证页面
-        if (page.header.page_id == -1) {
+        if (page.header.page_id == INVALID_PAGE_ID) {
             continue;
         }
         
         // 获取槽位数组
-        Slot* slots = (Slot*)page.data;
+        Slot* slots = page.slots;//(Slot*)page.data;
         
         // 遍历所有槽位
         for (int i = 0; i < page.header.slot_count; i++) {

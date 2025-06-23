@@ -12,8 +12,8 @@ int main() {
     
     // 初始化数据库
     printf("Initializing database...\n");
-    init_db(&db, "/home/rlk/Downloads/mini_pg/build/bin/");
-    print_db_status(&db);
+    init_db(&db, "/home/rlk/Downloads/mini_pg/build/");
+   // print_db_status(&db);
     Session session;
 
 
@@ -48,7 +48,7 @@ int main() {
     }
     
     // 打印中间状态
-    print_db_status(&db);
+   // print_db_status(&db);
     
     // 提交事务
     if (session_commit_transaction(&session) ){
@@ -71,27 +71,25 @@ int main() {
     
     // 插入用户1
     Tuple user1 = {0};
-  
-
     uint8_t col_count = 3;
-user1.col_count = col_count;
-user1.columns = (Column *)malloc(col_count * sizeof(Column));
+    user1.col_count = col_count;
+    user1.columns = (Column *)malloc(col_count * sizeof(Column));
 
 
     user1.columns[0].type = INT4_TYPE; user1.columns[0].value.int_val = 1;
     user1.columns[1].type = TEXT_TYPE; user1.columns[1].value.str_val = strdup("Mesi");
     user1.columns[2].type = INT4_TYPE; user1.columns[2].value.int_val = 30;
 
-    if (db_insert(&db, "users", &user1,    session) < 0) {
+    if (db_insert(&db, "users", &user1,session) < 0) {
         fprintf(stderr, "Error: Failed to insert user1\n");
         session_rollback_transaction(&session);
         return 1;
     }
     printf("Inserted user1\n");
     free(user1.columns[1].value.str_val);
-free(user1.columns);
+    free(user1.columns);
         print_db_status(&db);
-    /*   */
+    /*  */
     // 插入用户2
     Tuple user2 = {0};
     user2.col_count = col_count;
@@ -111,8 +109,8 @@ free(user1.columns);
    
 
     // 打印中间状态
-    print_db_status(&db);
-    
+ //   print_db_status(&db);
+     
     // 提交事务
     if (session_commit_transaction(&session)) {
         fprintf(stderr, "Error: Failed to commit transaction %u\n", tx2);
@@ -180,7 +178,7 @@ free(user1.columns);
     printf("Inserted user3 (will be rolled back)\n");
     
     // 回滚事务
-    if (session_rollback_transaction(&session)) {
+    if (session_commit_transaction(&session)) {
         fprintf(stderr, "Error: Failed to rollback transaction %u\n", tx4);
         return 1;
     }
