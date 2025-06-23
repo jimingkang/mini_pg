@@ -55,7 +55,7 @@ void handle_client(int client_fd) {
             session_begin_transaction(&session);
             write(client_fd, "Transaction started\n", 21);
         } else if (strncmp(buffer, "COMMIT", 6) == 0) {
-            session_commit_transaction(&session);
+            session_commit_transaction(&global_db,&session);
             write(client_fd, "Transaction committed\n", 23);
         } else {
             // 执行 SQL 语句（使用 session.current_xid 绑定事务）
@@ -71,7 +71,7 @@ void handle_client(int client_fd) {
 int main_server() {
     signal(SIGCHLD, sigchld_handler);
     
-    init_db(&global_db, "./");
+    init_db(&global_db, "/home/rlk/Downloads/mini_pg/build/bin");
 
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addr = {0};
@@ -125,7 +125,7 @@ int main_server() {
                 write(client_fd, msg, strlen(msg));
               //  write(client_fd, "Started transaction\n", 20);
             } else if (strcmp(buffer, "COMMIT") == 0) {
-                session_commit_transaction(&session);
+                session_commit_transaction(&global_db,&session);
                 const char* msg = "Committed\r\n";
                 write(client_fd, msg, strlen(msg));
              //   write(client_fd, "Committed\n", 10);

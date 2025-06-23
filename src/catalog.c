@@ -3,41 +3,7 @@
 #include <fnmatch.h>
 #define MAX_COLUMNS 10
 // 初始化系统目录
-//void init_system_catalog(SystemCatalog *catalog) {
-void Old_init_system_catalog(SystemCatalog *catalog, const char *db_path) {
-    char path[256];
-    snprintf(path, sizeof(path), "%s/catalog.meta", db_path);
-   // catalog->table_count = 0;
-    //catalog->next_oid = 1000;
 
-     FILE* fp = fopen(path, "rb");
-    if (!fp) {
-        // 第一次启动，没有 meta 文件，初始化空目录
-        catalog->table_count = 0;
-        catalog->next_oid = 1000;
-        return;
-    }
-
-    fread(&catalog->table_count, sizeof(uint16_t), 1, fp);
-    fread(&catalog->next_oid, sizeof(uint32_t), 1, fp);
-
-    for (int i = 0; i < catalog->table_count; i++) {
-        TableMeta* meta = &catalog->tables[i];
-        fread(meta->name, MAX_NAME_LEN, 1, fp);
-        fread(meta->filename, MAX_NAME_LEN, 1, fp);
-        fread(&meta->oid, sizeof(uint32_t), 1, fp);
-        fread(&meta->col_count, sizeof(uint8_t), 1, fp);
-        fread(meta->cols, sizeof(ColumnDef), MAX_COLS, fp);
-        fread(&meta->first_page, sizeof(PageID), 1, fp);
-        fread(&meta->last_page, sizeof(PageID), 1, fp);
-
-
-
-        printf("read for table %s, filename=%s\n", meta->name, meta->filename);
-    }
-
-    fclose(fp);
-}
 
 void _dir_init_system_catalog(SystemCatalog *catalog, const char *db_path) {
     catalog->table_count = 0;
@@ -135,6 +101,7 @@ void init_system_catalog(SystemCatalog *catalog, const char *db_path) {
                 meta->cols[i].name[col_name_len] = '\0';
                 fread(&meta->cols[i].type, sizeof(DataType), 1, fp);
             }
+            fread(&meta->max_row_oid, sizeof(uint32_t), 1, fp);
 
             fclose(fp);
 
@@ -157,7 +124,7 @@ void init_system_catalog(SystemCatalog *catalog, const char *db_path) {
 #include "catalog.h"
 
 // 保存表元数据到文件
-static bool save_table_meta_to_file(const TableMeta *meta, const char *db_path) {
+ bool save_table_meta_to_file(const TableMeta *meta, const char *db_path) {
     // 构建元数据文件路径
     char meta_path[MAX_NAME_LEN * 2];
     snprintf(meta_path, sizeof(meta_path), "%s/%s.meta", db_path, meta->name);
@@ -204,7 +171,7 @@ static bool save_table_meta_to_file(const TableMeta *meta, const char *db_path) 
             return false;
         }
     }
-    
+    fwrite(&meta->max_row_oid, sizeof(uint32_t), 1, file);
     fclose(file);
     return true;
 }

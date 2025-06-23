@@ -266,3 +266,35 @@ void txmgr_print_status(TransactionManager *txmgr) {
     
     printf("\n");
 }
+bool load_tx_state(TransactionManager* txmgr, const char* db_path) {
+    char path[256];
+    snprintf(path, sizeof(path), "%s/tx_state.tx", db_path);
+
+    FILE* fp = fopen(path, "rb");
+    if (!fp) {
+        // 如果没有文件，初始化为默认值
+        txmgr->next_xid = 1;
+        txmgr->oldest_xid = 1;
+        return false;
+    }
+
+    fread(&txmgr->next_xid, sizeof(uint32_t), 1, fp);
+    fread(&txmgr->oldest_xid, sizeof(uint32_t), 1, fp);
+    fclose(fp);
+    return true;
+}
+bool save_tx_state(const TransactionManager* txmgr, const char* db_path) {
+    char path[256];
+    snprintf(path, sizeof(path), "%s/tx_state.tx", db_path);
+
+    FILE* fp = fopen(path, "wb");
+    if (!fp) {
+        perror("save_tx_state: fopen failed");
+        return false;
+    }
+
+    fwrite(&txmgr->next_xid, sizeof(uint32_t), 1, fp);
+    fwrite(&txmgr->oldest_xid, sizeof(uint32_t), 1, fp);
+    fclose(fp);
+    return true;
+}

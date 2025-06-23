@@ -55,9 +55,9 @@ uint32_t begin_transaction(MiniDB *db);
 int commit_transaction(MiniDB *db);
 int rollback_transaction(MiniDB *db);
 
-int session_commit_transaction(Session* session);
+int session_commit_transaction(MiniDB *db,Session* session) ;
 uint32_t session_begin_transaction(Session* session); 
-int session_rollback_transaction(Session* session);
+int session_rollback_transaction(MiniDB *db,Session* session);
 
 int db_create_table(MiniDB *db, const char *table_name, ColumnDef *columns, uint8_t col_count,Session session);
 

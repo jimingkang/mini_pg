@@ -134,6 +134,8 @@ typedef struct {
     PageID first_page;   // 表的第一个页面ID
 PageID last_page;    // 表的最后一个页面ID
 
+  // ✅ 新增：元组的最大 OID
+    uint32_t max_row_oid;
 } TableMeta;
 
 

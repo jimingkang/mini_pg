@@ -19,7 +19,7 @@ void init_db(MiniDB *db, const char *data_dir) {
     
     // 初始化事务管理器
     txmgr_init(&db->tx_mgr);
-    
+    load_tx_state(&db->tx_mgr, data_dir);
     // 初始无活动事务
     db->current_xid = INVALID_XID;
     
@@ -53,6 +53,8 @@ int commit_transaction(MiniDB *db) {
     txmgr_commit_transaction(&db->tx_mgr, db->current_xid);
     wal_log_commit(db->current_xid);
     db->current_xid = INVALID_XID;
+
+    save_tx_state(&db->tx_mgr, db->data_dir);
     return 0;
 }
 
@@ -66,6 +68,7 @@ int rollback_transaction(MiniDB *db) {
     txmgr_abort_transaction(&db->tx_mgr, db->current_xid);
     wal_log_abort(db->current_xid);
     db->current_xid = INVALID_XID;
+    save_tx_state(&db->tx_mgr, db->data_dir);
     return 0;
 }
 
@@ -79,7 +82,7 @@ uint32_t session_begin_transaction(Session* session) {
     return session->current_xid;
 }
 
-int session_commit_transaction(Session* session) {
+int session_commit_transaction(MiniDB *db,Session* session) {
     if (session->current_xid == INVALID_XID) {
         fprintf(stderr, "Error: no active transaction\n");
         return -1;
@@ -88,26 +91,18 @@ int session_commit_transaction(Session* session) {
     txmgr_commit_transaction(&session->db->tx_mgr, session->current_xid);
     wal_log_commit(session->current_xid);
     session->current_xid = INVALID_XID;
+
+    save_tx_state(&db->tx_mgr, db->data_dir);
     return 0;
 }
-int Old_session_rollback_transaction(Session* session) {
+
+int session_rollback_transaction(MiniDB *db,Session* session) {
     if (!session || session->current_xid == INVALID_XID) {
         fprintf(stderr, "[session] No active transaction to rollback\n");
         return -1;
     }
 
-    txmgr_abort_transaction(&session->db->tx_mgr, session->current_xid);
-    session->current_xid = INVALID_XID;
-    printf("[session] Rolled back transaction\n");
-    return 0;
-}
-int session_rollback_transaction(Session* session) {
-    if (!session || session->current_xid == INVALID_XID) {
-        fprintf(stderr, "[session] No active transaction to rollback\n");
-        return -1;
-    }
-
-    MiniDB* db = session->db;
+    //MiniDB* db = session->db;
     uint32_t xid = session->current_xid;
 
     // 遍历每张表
@@ -149,7 +144,7 @@ int session_rollback_transaction(Session* session) {
 
     txmgr_abort_transaction(&db->tx_mgr, xid);
     session->current_xid = INVALID_XID;
-
+    save_tx_state(&db->tx_mgr, db->data_dir);
     printf("[session] Rolled back transaction %u\n", xid);
     return 0;
 }
@@ -228,8 +223,10 @@ bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Sessio
     }
     
     // 分配新OID
-    static uint32_t next_oid = 1;
-    new_tuple->oid = next_oid++;
+    //static uint32_t next_oid = 1;
+    //new_tuple->oid = next_oid++;
+
+    new_tuple->oid = ++meta->max_row_oid;
 
 
     new_tuple->xmin=session.current_xid;
@@ -291,6 +288,8 @@ bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Sessio
      fflush(table_file);
     fclose(table_file);
    // free_tuple(new_tuple);
+
+   save_table_meta_to_file(meta, db->data_dir);
     return true;
 }
 /**
