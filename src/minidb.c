@@ -12,10 +12,10 @@
 void init_db(MiniDB *db, const char *data_dir) {
     // 设置数据目录
     strncpy(db->data_dir, data_dir, sizeof(db->data_dir));
-    mkdir(data_dir, 0755);
+    //mkdir(data_dir, 0755);
     
     // 初始化系统目录
-    init_system_catalog(&db->catalog);
+    init_system_catalog(&db->catalog,db->data_dir);
     
     // 初始化事务管理器
     txmgr_init(&db->tx_mgr);
@@ -29,6 +29,8 @@ void init_db(MiniDB *db, const char *data_dir) {
     // 从WAL恢复
    // recover_from_wal(db);
 }
+
+
 
 // 开始事务
 uint32_t begin_transaction(MiniDB *db) {
@@ -67,10 +69,45 @@ int rollback_transaction(MiniDB *db) {
     return 0;
 }
 
+uint32_t session_begin_transaction(Session* session) {
+    if (session->current_xid != INVALID_XID) {
+        fprintf(stderr, "Error: transaction already started\n");
+        return INVALID_XID;
+    }
+
+    session->current_xid = txmgr_start_transaction(&session->db->tx_mgr);
+    return session->current_xid;
+}
+
+int session_commit_transaction(Session* session) {
+    if (session->current_xid == INVALID_XID) {
+        fprintf(stderr, "Error: no active transaction\n");
+        return -1;
+    }
+
+    txmgr_commit_transaction(&session->db->tx_mgr, session->current_xid);
+    wal_log_commit(session->current_xid);
+    session->current_xid = INVALID_XID;
+    return 0;
+}
+int session_rollback_transaction(Session* session) {
+    if (!session || session->current_xid == INVALID_XID) {
+        fprintf(stderr, "[session] No active transaction to rollback\n");
+        return -1;
+    }
+
+    txmgr_abort_transaction(&session->db->tx_mgr, session->current_xid);
+    session->current_xid = INVALID_XID;
+    printf("[session] Rolled back transaction\n");
+    return 0;
+}
+
+
 // 创建表
-int db_create_table(MiniDB *db, const char *table_name, ColumnDef *columns, uint8_t col_count) {
-    if (db->current_xid == INVALID_XID) {
-        fprintf(stderr, "Error: No active transaction\n");
+int db_create_table(MiniDB *db, const char *table_name, ColumnDef *columns, uint8_t col_count,Session session) {
+    //db->current_xid=xid;
+    if (session.current_xid == INVALID_XID) {
+        fprintf(stderr, "Error: No active transaction in db_create_table\n");
         return -1;
     }
     
@@ -112,9 +149,13 @@ int db_create_table(MiniDB *db, const char *table_name, ColumnDef *columns, uint
  * @param values 列值数组
  * @return 是否成功
  */
-bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values) {
+bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Session session) {
     if (!db || !table_name || !values) {
         return false;
+    }
+        if (session.current_xid == INVALID_XID) {
+        fprintf(stderr, "Error: No active transaction in db_create_table\n");
+        return -1;
     }
     
     // 查找表元数据
@@ -211,11 +252,13 @@ Tuple** db_query(MiniDB *db, const char *table_name, int *result_count) {
     *result_count = 0;
     
     // 查找表元数据
-    TableMeta *meta = find_table_meta(db, table_name);
+  int idx= find_table(&db->catalog, table_name);
+    TableMeta *meta =&(db->catalog.tables[idx]);
     if (!meta) {
         fprintf(stderr, "Table '%s' not found\n", table_name);
         return NULL;
     }
+    fprintf(stderr, "for Table '%s',file  found:%s\n", table_name,meta->filename);
     
     // 打开表文件
     FILE *table_file = fopen(meta->filename, "rb");

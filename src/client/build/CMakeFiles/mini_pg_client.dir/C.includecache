@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/rlk/Downloads/mini_pg/src/client/client.c
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+unistd.h
+-
+arpa/inet.h
+-
+

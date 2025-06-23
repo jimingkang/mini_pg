@@ -1,9 +1,95 @@
 #include "minidb.h"
+#include <dirent.h>
+#include <fnmatch.h>
 #define MAX_COLUMNS 10
 // 初始化系统目录
-void init_system_catalog(SystemCatalog *catalog) {
+//void init_system_catalog(SystemCatalog *catalog) {
+void Old_init_system_catalog(SystemCatalog *catalog, const char *db_path) {
+    char path[256];
+    snprintf(path, sizeof(path), "%s/catalog.meta", db_path);
+   // catalog->table_count = 0;
+    //catalog->next_oid = 1000;
+
+     FILE* fp = fopen(path, "rb");
+    if (!fp) {
+        // 第一次启动，没有 meta 文件，初始化空目录
+        catalog->table_count = 0;
+        catalog->next_oid = 1000;
+        return;
+    }
+
+    fread(&catalog->table_count, sizeof(uint16_t), 1, fp);
+    fread(&catalog->next_oid, sizeof(uint32_t), 1, fp);
+
+    for (int i = 0; i < catalog->table_count; i++) {
+        TableMeta* meta = &catalog->tables[i];
+        fread(meta->name, MAX_NAME_LEN, 1, fp);
+        fread(meta->filename, MAX_NAME_LEN, 1, fp);
+        fread(&meta->oid, sizeof(uint32_t), 1, fp);
+        fread(&meta->col_count, sizeof(uint8_t), 1, fp);
+        fread(meta->cols, sizeof(ColumnDef), MAX_COLS, fp);
+        fread(&meta->first_page, sizeof(PageID), 1, fp);
+        fread(&meta->last_page, sizeof(PageID), 1, fp);
+
+
+
+        printf("read for table %s, filename=%s\n", meta->name, meta->filename);
+    }
+
+    fclose(fp);
+}
+
+void init_system_catalog(SystemCatalog *catalog, const char *db_path) {
     catalog->table_count = 0;
     catalog->next_oid = 1000;
+
+    DIR *dir = opendir(db_path);
+    if (!dir) {
+        perror("Failed to open data directory");
+        return;
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type != DT_REG) continue;
+        if (!fnmatch("*.meta", entry->d_name, 0)) {
+            if (strcmp(entry->d_name, "catalog.meta") == 0) continue;
+
+            char full_path[256];
+            snprintf(full_path, sizeof(full_path), "%s/%s", db_path, entry->d_name);
+
+            FILE *fp = fopen(full_path, "rb");
+            if (!fp) continue;
+
+            TableMeta *meta = &catalog->tables[catalog->table_count];
+            memset(meta, 0, sizeof(TableMeta));
+
+            // 提取表名（去掉 .meta）
+            strncpy(meta->name, entry->d_name, MAX_NAME_LEN);
+            char *dot = strstr(meta->name, ".meta");
+            if (dot) *dot = '\0';
+
+            snprintf(meta->filename, MAX_NAME_LEN, "%s.tbl", meta->name);
+
+            // 加载字段
+            fread(&meta->oid, sizeof(uint32_t), 1, fp);
+            fread(&meta->col_count, sizeof(uint8_t), 1, fp);
+            fread(meta->cols, sizeof(ColumnDef), MAX_COLS, fp);
+            fread(&meta->first_page, sizeof(PageID), 1, fp);
+            fread(&meta->last_page, sizeof(PageID), 1, fp);
+
+            fclose(fp);
+
+            catalog->table_count++;
+            if (meta->oid >= catalog->next_oid) {
+                catalog->next_oid = meta->oid + 1;
+            }
+
+             printf("read for table %s, filename=%s,&meta->oid=%d\n", meta->name, meta->filename,meta->oid);
+        }
+    }
+
+    closedir(dir);
 }
 
 // 创建新表
@@ -126,8 +212,9 @@ int create_table(SystemCatalog *catalog, const char *table_name, ColumnDef *colu
         // 可选：删除已创建的元数据文件
         return -1;
     }
-    
+ 
     catalog->table_count++;
+   //    save_system_catalog(catalog);
     return meta->oid;
 }
 
@@ -157,4 +244,30 @@ TableMeta* find_table_meta(MiniDB* db, const char* table_name) {
 
     return NULL;
 
+}
+
+void save_system_catalog(const SystemCatalog* catalog) {
+    FILE* fp = fopen("catalog.meta", "wb");
+    if (!fp) {
+        perror("Failed to save system catalog");
+        return;
+    }
+
+    fwrite(&catalog->table_count, sizeof(uint16_t), 1, fp);
+    fwrite(&catalog->next_oid, sizeof(uint32_t), 1, fp);
+
+    for (int i = 0; i < catalog->table_count; i++) {
+        const TableMeta* meta = &catalog->tables[i];
+        fwrite(meta->name, MAX_NAME_LEN, 1, fp);
+        fwrite(meta->filename, MAX_NAME_LEN, 1, fp);
+        fwrite(&meta->oid, sizeof(uint32_t), 1, fp);
+        fwrite(&meta->col_count, sizeof(uint8_t), 1, fp);
+        fwrite(meta->cols, sizeof(ColumnDef), MAX_COLS, fp);
+        fwrite(&meta->first_page, sizeof(PageID), 1, fp);
+        fwrite(&meta->last_page, sizeof(PageID), 1, fp);
+        
+        printf("save for table %s, filename=%s\n", meta->name, meta->filename);
+    }
+
+    fclose(fp);
 }

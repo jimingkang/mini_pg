@@ -3,35 +3,13 @@
 
 #include <stdint.h>
 #include <time.h>
-
+#include "types.h"
+//typedef struct MiniDB MiniDB;
 // 最大并发事务数
-#define MAX_CONCURRENT_TRANS 10
 
-// 无效事务ID
-#define INVALID_XID 0
 
-// 事务状态
-typedef enum {
-    TRANS_ACTIVE,     // 事务进行中
-    TRANS_COMMITTED,  // 事务已提交
-    TRANS_ABORTED     // 事务已中止
-} TransactionState;
 
-// 事务结构
-typedef struct {
-    uint32_t xid;             // 事务ID
-    TransactionState state;    // 事务状态
-    uint64_t start_time;      // 开始时间（微秒精度）
-    uint32_t snapshot;        // 快照时间（最老活动事务ID）
-    uint32_t lsn;             // 最后LSN（日志序列号）
-} Transaction;
 
-// 事务管理器
-typedef struct {
-    Transaction transactions[MAX_CONCURRENT_TRANS]; // 事务数组
-    uint32_t next_xid;         // 下一个可用事务ID
-    uint32_t oldest_xid;       // 最老活动事务ID
-} TransactionManager;
 
 /**
  * @brief 初始化事务管理器
@@ -107,5 +85,8 @@ uint32_t txmgr_get_oldest_xid(const TransactionManager *txmgr);
  * @return uint32_t 下一个可用事务ID
  */
 uint32_t txmgr_get_next_xid(const TransactionManager *txmgr);
+
+
+
 
 #endif // TRANSACTION_MANAGER_H

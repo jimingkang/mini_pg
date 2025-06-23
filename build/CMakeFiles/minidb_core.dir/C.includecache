@@ -6,6 +6,14 @@
 
 #IncludeRegexTransform: 
 
+../include/catalog.h
+stdint.h
+-
+minidb.h
+../include/minidb.h
+tuple.h
+../include/tuple.h
+
 ../include/minidb.h
 stdio.h
 -
@@ -35,28 +43,28 @@ types.h
 ../include/page.h
 stdint.h
 -
+stddef.h
+-
 types.h
 ../include/types.h
 
-../include/server/executor.h
+../include/tuple.h
+catalog.h
+../include/catalog.h
+stdint.h
+-
 stdbool.h
 -
-minidb.h
-../include/server/minidb.h
-parser.h
-../include/server/parser.h
-
-../include/server/parser.h
-stdbool.h
--
-minidb.h
-../include/server/minidb.h
+types.h
+../include/types.h
 
 ../include/txmgr.h
 stdint.h
 -
 time.h
 -
+types.h
+../include/types.h
 
 ../include/types.h
 stdint.h
@@ -64,29 +72,19 @@ stdint.h
 stdbool.h
 -
 
-/home/rlk/Downloads/mini_pg/src/server/server.c
+/home/rlk/Downloads/mini_pg/src/catalog.c
+minidb.h
+/home/rlk/Downloads/mini_pg/src/minidb.h
+dirent.h
+-
+fnmatch.h
+-
 stdio.h
 -
 stdlib.h
 -
 string.h
 -
-unistd.h
--
-netinet/in.h
--
-sys/socket.h
--
-sys/types.h
--
-sys/wait.h
--
-signal.h
--
-minidb.h
-/home/rlk/Downloads/mini_pg/src/server/minidb.h
-server/parser.h
-/home/rlk/Downloads/mini_pg/src/server/server/parser.h
-server/executor.h
-/home/rlk/Downloads/mini_pg/src/server/server/executor.h
+catalog.h
+/home/rlk/Downloads/mini_pg/src/catalog.h
 

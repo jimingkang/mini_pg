@@ -1,0 +1,1 @@
+/usr/bin/cc    CMakeFiles/mini_pg_client.dir/client.c.o  -o mini_pg_client 

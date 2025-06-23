@@ -24,10 +24,12 @@ CMakeFiles/minidb_core.dir/src/page.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/page.c.o: ../include/types.h
 CMakeFiles/minidb_core.dir/src/page.c.o: ../src/page.c
 
+CMakeFiles/minidb_core.dir/src/server/executor.c.o: ../include/catalog.h
 CMakeFiles/minidb_core.dir/src/server/executor.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/server/executor.c.o: ../include/page.h
 CMakeFiles/minidb_core.dir/src/server/executor.c.o: ../include/server/executor.h
 CMakeFiles/minidb_core.dir/src/server/executor.c.o: ../include/server/parser.h
+CMakeFiles/minidb_core.dir/src/server/executor.c.o: ../include/tuple.h
 CMakeFiles/minidb_core.dir/src/server/executor.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/server/executor.c.o: ../include/types.h
 CMakeFiles/minidb_core.dir/src/server/executor.c.o: ../src/server/executor.c

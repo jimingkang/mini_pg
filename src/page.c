@@ -49,6 +49,9 @@ size_t page_free_space(const Page* page) {
     return data_space + slot_space;
 }
 
+void free_page(Page* page) {
+    if (page) free(page);
+}
 // 压缩页面（回收删除的空间）
 void page_compact(Page* page) {
     uint8_t* new_data_start = page_slots_end(page);
@@ -269,4 +272,33 @@ void page_print_info(const Page* page) {
                slots[i].offset,
                slots[i].length);
     }
+}
+
+// ========== 新增：从文件中读取页面 ==========
+// ========== 新增：从文件中读取页面（使用路径） ==========
+Page* read_page(const char* table_path, PageID page_id) {
+    if (!table_path) return NULL;
+    FILE* file = fopen(table_path, "rb");
+    if (!file) return NULL;
+
+    size_t page_size = sizeof(Page);
+    if (fseek(file, page_id * page_size, SEEK_SET) != 0) {
+        fclose(file);
+        return NULL;
+    }
+
+    Page* page = malloc(page_size);
+    if (!page) {
+        fclose(file);
+        return NULL;
+    }
+
+    if (fread(page, 1, page_size, file) != page_size) {
+        free(page);
+        fclose(file);
+        return NULL;
+    }
+
+    fclose(file);
+    return page;
 }

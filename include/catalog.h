@@ -19,8 +19,10 @@ typedef struct {
 
 
 // 函数声明
-void init_catalog(Catalog *catalog);
-//int create_table(Catalog *catalog, const char *table_name, ColumnDef *columns, uint8_t col_count);
+//void init_system_catalog(SystemCatalog *catalog);
+void init_system_catalog(SystemCatalog *catalog, const char *db_path);
+
+void save_system_catalog(const SystemCatalog* catalog);
 //int create_table(SystemCatalog *catalog, const char *table_name, ColumnDef *columns, uint8_t col_count);
 int create_table(SystemCatalog *catalog, const char *table_name, ColumnDef *columns, uint8_t col_count, const char *db_path);
 //TableMeta* find_table(Catalog *catalog, const char *table_name);

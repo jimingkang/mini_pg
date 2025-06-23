@@ -35,6 +35,8 @@ types.h
 ../include/page.h
 stdint.h
 -
+stddef.h
+-
 types.h
 ../include/types.h
 
@@ -43,6 +45,8 @@ stdint.h
 -
 time.h
 -
+types.h
+../include/types.h
 
 ../include/types.h
 stdint.h

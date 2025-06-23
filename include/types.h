@@ -20,7 +20,7 @@
 
 
 #define MAX_TUPLES_PER_PAGE 64
-#define INVALID_PAGE_ID UINT32_MAX
+//#define INVALID_PAGE_ID UINT32_MAX
 #define MAX_RESULTS 1000  // 添加 MAX_RESULTS 定义
 typedef uint32_t PageID;
 
@@ -135,5 +135,63 @@ typedef struct {
 PageID last_page;    // 表的最后一个页面ID
 
 } TableMeta;
+
+
+#define MAX_CONCURRENT_TRANS 10
+
+// 无效事务ID
+#define INVALID_XID 0
+
+// 事务状态
+typedef enum {
+    TRANS_ACTIVE,     // 事务进行中
+    TRANS_COMMITTED,  // 事务已提交
+    TRANS_ABORTED     // 事务已中止
+} TransactionState;
+
+// 事务结构
+typedef struct {
+    uint32_t xid;             // 事务ID
+    TransactionState state;    // 事务状态
+    uint64_t start_time;      // 开始时间（微秒精度）
+    uint32_t snapshot;        // 快照时间（最老活动事务ID）
+    uint32_t lsn;             // 最后LSN（日志序列号）
+} Transaction;
+
+// 事务管理器
+typedef struct {
+    Transaction transactions[MAX_CONCURRENT_TRANS]; // 事务数组
+    uint32_t next_xid;         // 下一个可用事务ID
+    uint32_t oldest_xid;       // 最老活动事务ID
+} TransactionManager;
+
+// 系统目录
+typedef struct {
+    TableMeta tables[MAX_TABLES];
+    uint16_t table_count;
+    uint32_t next_oid;       // 下一个对象ID
+} SystemCatalog;
+
+// 数据库状态
+typedef struct {
+    SystemCatalog catalog;   // 系统目录
+    TransactionManager tx_mgr; // 事务管理器
+    char data_dir[256];      // 数据目录
+    uint32_t current_xid;    // 当前活动事务ID
+    PageID next_page_id; // 用于分配新页面ID
+
+    TableMeta* tables;      // 表元数据数组
+
+int table_count;        // 表数量
+char* db_name;          // 数据库名称
+char* db_path;          // 数据库路径
+} MiniDB;
+
+typedef struct {
+    int client_fd;             // 客户端 socket fd
+    MiniDB* db;                // 指向数据库
+    uint32_t current_xid;      // 当前连接的事务 ID
+} Session;
+
 
 #endif // TYPES_H

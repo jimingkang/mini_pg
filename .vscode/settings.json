@@ -12,6 +12,11 @@
         "types.h": "c",
         "string.h": "c",
         "stddef.h": "c",
-        "*.c_old2": "c"
+        "*.c_old2": "c",
+        "executor.h": "c",
+        "stdbool.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c"
     }
 }

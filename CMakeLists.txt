@@ -24,6 +24,7 @@ find_package(ZLIB REQUIRED)
 # 包含目录
 include_directories(
     include
+    include/server
     ${ZLIB_INCLUDE_DIRS}
 )
 
@@ -35,6 +36,11 @@ add_library(minidb_core STATIC
     src/catalog.c
     src/page.c
    src/tuple.c
+   src/server/server.c
+   src/server/executor.c
+   src/server/sql_exec.c
+   src/server/parser.c
+   #src/client/client.c
 
 )
 
