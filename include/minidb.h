@@ -65,9 +65,8 @@ int db_create_table(MiniDB *db, const char *table_name, ColumnDef *columns, uint
 bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Session session);
 
 //int db_query(MiniDB *db, const char *table_name, Tuple *results, int max_results);
-Tuple** db_query(MiniDB *db, const char *table_name, int *result_count);
+Tuple** db_query(MiniDB *db, const char *table_name, int *result_count,Session session);
 void db_create_checkpoint(MiniDB *db);
 void print_db_status(const MiniDB *db);
 
-char* execute_select_to_string(MiniDB* db, const char* sql);
 #endif // MINIDB_H

@@ -248,7 +248,7 @@ void txmgr_print_status(TransactionManager *txmgr) {
     printf("Next XID: %u\n", txmgr->next_xid);
     printf("Oldest XID: %u\n", txmgr->oldest_xid);
     
-    printf("\nActive Transactions:\n");
+    printf("\nActive Transactions list:\n");
     for (int i = 0; i < MAX_CONCURRENT_TRANS; i++) {
         if (txmgr->transactions[i].state == TRANS_ACTIVE) {
             time_t start_sec = txmgr->transactions[i].start_time / 1000000;

@@ -39,7 +39,7 @@ void Old_init_system_catalog(SystemCatalog *catalog, const char *db_path) {
     fclose(fp);
 }
 
-void init_system_catalog(SystemCatalog *catalog, const char *db_path) {
+void _dir_init_system_catalog(SystemCatalog *catalog, const char *db_path) {
     catalog->table_count = 0;
     catalog->next_oid = 1000;
 
@@ -85,7 +85,64 @@ void init_system_catalog(SystemCatalog *catalog, const char *db_path) {
                 catalog->next_oid = meta->oid + 1;
             }
 
-             printf("read for table %s, filename=%s,&meta->oid=%d\n", meta->name, meta->filename,meta->oid);
+             printf("read for table %s, filename=%s,meta->oid=%d\n", meta->name, meta->filename,meta->oid);
+        }
+    }
+
+    closedir(dir);
+}
+void init_system_catalog(SystemCatalog *catalog, const char *db_path) {
+    catalog->table_count = 0;
+    catalog->next_oid = 1000;
+
+    DIR *dir = opendir(db_path);
+    if (!dir) {
+        perror("Failed to open data directory");
+        return;
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type != DT_REG) continue;
+        if (!fnmatch("*.meta", entry->d_name, 0)) {
+            if (strcmp(entry->d_name, "catalog.meta") == 0) continue;
+
+            char full_path[256];
+            snprintf(full_path, sizeof(full_path), "%s/%s", db_path, entry->d_name);
+
+            FILE *fp = fopen(full_path, "rb");
+            if (!fp) continue;
+
+            TableMeta *meta = &catalog->tables[catalog->table_count];
+            memset(meta, 0, sizeof(TableMeta));
+
+            // 读取表名长度和表名
+            uint8_t name_len;
+            fread(&name_len, sizeof(uint8_t), 1, fp);
+            fread(meta->name, 1, name_len, fp);
+            meta->name[name_len] = '\0';
+
+            snprintf(meta->filename, MAX_NAME_LEN, "%s.tbl", meta->name);
+
+            // 读取列数
+            fread(&meta->col_count, sizeof(uint8_t), 1, fp);
+
+            // 读取列定义
+            for (int i = 0; i < meta->col_count; i++) {
+                uint8_t col_name_len;
+                fread(&col_name_len, sizeof(uint8_t), 1, fp);
+                fread(meta->cols[i].name, 1, col_name_len, fp);
+                meta->cols[i].name[col_name_len] = '\0';
+                fread(&meta->cols[i].type, sizeof(DataType), 1, fp);
+            }
+
+            fclose(fp);
+
+            meta->oid = catalog->next_oid++;
+            meta->first_page = INVALID_PAGE_ID;
+            meta->last_page = INVALID_PAGE_ID;
+
+            catalog->table_count++;
         }
     }
 

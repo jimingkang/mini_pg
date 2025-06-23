@@ -186,10 +186,10 @@ bool page_db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result) {
 }
 
 
-bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result) {
+bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result, Session session) {
     int count = 0;
     printf("[debug] select %d columns from table %s\n", stmt->num_columns, stmt->table_name);
-    Tuple** tuples = db_query(db, stmt->table_name, &count);
+    Tuple** tuples = db_query(db, stmt->table_name, &count,session);
     if (!tuples || count == 0) return false;
 
     //TableMeta* meta = find_table_meta(db, stmt->table_name);

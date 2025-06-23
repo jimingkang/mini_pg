@@ -83,7 +83,7 @@ bool execute_insert(MiniDB* db, const char* sql,Session session) {
     //return db_insert(db, stmt.table_name, stmt.values);
 }
 
-char* execute_select_to_string(MiniDB* db, const char* sql) {
+char* execute_select_to_string(MiniDB* db, const char* sql,Session session) {
     SelectStmt stmt;
     if (!parse_select(sql, &stmt)) {
         fprintf(stderr, "[select] parse error\n");
@@ -91,7 +91,7 @@ char* execute_select_to_string(MiniDB* db, const char* sql) {
     }
 
     ResultSet result;
-    if (!db_select(db, &stmt, &result)) {
+    if (!db_select(db, &stmt, &result,session)) {
         fprintf(stderr, "[select] execution failed\n");
         return NULL;
     }

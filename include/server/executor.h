@@ -13,5 +13,5 @@ typedef struct {
 
 //bool db_create_table(MiniDB* db, const CreateTableStmt* stmt);
 //bool db_insert(MiniDB* db, const char* table_name, const InsertStmt* stmt);
-bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result);
+bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result,Session session);
 #endif

@@ -1,1 +1,1 @@
-/usr/bin/cc -g   CMakeFiles/minidb.dir/src/main.c.o  -o bin/minidb  lib/libminidb_core.a /usr/lib/x86_64-linux-gnu/libz.so 
+/usr/bin/cc -g   CMakeFiles/minidb.dir/src/main.c.o  -o bin/minidb  lib/libminidb_core.a -lpthread /usr/lib/x86_64-linux-gnu/libz.so 

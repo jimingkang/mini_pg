@@ -1,0 +1,177 @@
+#include "minidb.h"
+#include "txmgr.h"
+#include "tuple.h"
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+//extern void print_db_status(MiniDB* db);
+extern void print_tuple(const Tuple* tuple, const TableMeta* meta);
+
+#define THREAD_COUNT 4
+
+typedef struct {
+    MiniDB* db;
+    const char* table_name;
+    int thread_id;
+} TxThreadArgs;
+
+void* run_transaction(void* arg) {
+    TxThreadArgs* args = (TxThreadArgs*)arg;
+    MiniDB* db = args->db;
+    int tid = args->thread_id;
+    const char* table_name = args->table_name;
+
+
+
+    if(tid=0){
+    Session session;
+    session.db = db;
+    session.current_xid = session_begin_transaction(&session);
+    if (session.current_xid == INVALID_XID) {
+        fprintf(stderr, "[T%d] Failed to start transaction\n", tid);
+        return NULL;
+    }
+            // ================== 事务 1 ==================
+    printf("\n===== Transaction 1: Create Table =====\n");
+    
+
+    printf("Started transaction %u\n", session.current_xid );
+    
+    // 创建表定义
+    ColumnDef user_columns[] = {
+        {"id", INT4_TYPE},
+        {"name", TEXT_TYPE},
+        {"age", INT4_TYPE}
+    };
+    
+    // 创建表
+    if (db_create_table(&db, "users", user_columns, 3,session) < 0) {
+        fprintf(stderr, "Error: Failed to create table\n");
+        session_rollback_transaction(&db);
+        return 1;
+    }
+    
+    // 打印中间状态
+   // print_db_status(&db);
+    
+    // 提交事务
+    if (session_commit_transaction(&session) ){
+        fprintf(stderr, "Error: Failed to commit transaction %u\n", session.current_xid );
+        return 1;
+    }
+    printf("[T%d] Committed\n", session.current_xid );
+    }
+
+    if (tid == 1) {  // 插入用户
+         // 开始新事务
+       Session session;
+    session.db = db;
+    session.current_xid = session_begin_transaction(&session);
+    if (session.current_xid == INVALID_XID) {
+        fprintf(stderr, "[T%d] Failed to start transaction\n", tid);
+        return NULL;
+    }
+        Tuple t = {0};
+        t.col_count = 3;
+        t.columns = malloc(sizeof(Column) * t.col_count);
+        t.columns[0].type = INT4_TYPE; t.columns[0].value.int_val = 10;
+        t.columns[1].type = TEXT_TYPE; t.columns[1].value.str_val = strdup("Alice");
+        t.columns[2].type = INT4_TYPE; t.columns[2].value.int_val = 20;
+
+        if (db_insert(db, table_name, &t, session) >= 0) {
+            printf("[T%d] Inserted Alice\n", tid);
+        }
+        free(t.columns[1].value.str_val);
+        free(t.columns);
+         // 提交事务
+    if (session_commit_transaction(&session) ){
+        fprintf(stderr, "Error: Failed to commit transaction %u\n", session.current_xid );
+        return 1;
+    }
+    printf("[T%d] Committed\n", session.current_xid );
+
+    } else if (tid == 2) {  // 查询
+        sleep(1);
+            Session session;
+    session.db = db;
+    session.current_xid = session_begin_transaction(&session);
+    if (session.current_xid == INVALID_XID) {
+        fprintf(stderr, "[T%d] Failed to start transaction\n", tid);
+        return NULL;
+    }
+        int count = 0;
+        Tuple** results = db_query(db, table_name, &count);
+        printf("[T%d] Found %d tuples\n", tid, count);
+        for (int i = 0; i < count; i++) {
+            print_tuple(results[i], find_table(&db->catalog, table_name));
+        }
+         // 提交事务
+    if (session_commit_transaction(&session) ){
+        fprintf(stderr, "Error: Failed to commit transaction %u\n", session.current_xid );
+        return 1;
+    }
+    printf("[T%d] Committed\n", session.current_xid );
+    
+    } else if (tid == 3) {  // 插入并回滚
+            Session session;
+    session.db = db;
+    session.current_xid = session_begin_transaction(&session);
+    if (session.current_xid == INVALID_XID) {
+        fprintf(stderr, "[T%d] Failed to start transaction\n", tid);
+        return NULL;
+    }
+        Tuple t = {0};
+        t.col_count = 3;
+        t.columns = malloc(sizeof(Column) * t.col_count);
+        t.columns[0].type = INT4_TYPE; t.columns[0].value.int_val = 20;
+        t.columns[1].type = TEXT_TYPE; t.columns[1].value.str_val = strdup("Bob");
+        t.columns[2].type = INT4_TYPE; t.columns[2].value.int_val = 40;
+
+        db_insert(db, table_name, &t, session);
+        printf("[T%d] Inserted Bob (will rollback)\n",  session.current_xid);
+
+        free(t.columns[1].value.str_val);
+        free(t.columns);
+
+        session_rollback_transaction(&session);
+        printf("[T%d] Rolled back\n",  session.current_xid);
+        return NULL;
+    }
+
+    return NULL;
+}
+
+int main() {
+    MiniDB db;
+    init_db(&db, "/home/rlk/Downloads/mini_pg/bin");
+
+    // 创建表（只做一次）
+    ColumnDef cols[] = {
+        {"id", INT4_TYPE},
+        {"name", TEXT_TYPE},
+        {"age", INT4_TYPE},
+    };
+   // db_create_table(&db, "users", cols, 3, (Session){.db=&db, .current_xid=txmgr_start_transaction(&db.tx_mgr)});
+   // save_system_catalog(&db.catalog);
+
+    pthread_t threads[THREAD_COUNT];
+    TxThreadArgs args[THREAD_COUNT];
+
+    for (int i = 0; i < THREAD_COUNT; i++) {
+        args[i].db = &db;
+        args[i].table_name = "users";
+        args[i].thread_id = i;
+        pthread_create(&threads[i], NULL, run_transaction, &args[i]);
+    }
+
+    for (int i = 0; i < THREAD_COUNT; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    printf("\nFinal DB Status:\n");
+    print_db_status(&db);
+    return 0;
+}

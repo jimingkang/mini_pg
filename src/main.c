@@ -7,7 +7,7 @@
 
 
 // 示例程序
-int main_pg() {
+int main() {
     MiniDB db;
     
     // 初始化数据库
@@ -15,10 +15,12 @@ int main_pg() {
     init_db(&db, "/home/rlk/Downloads/mini_pg/build/bin/");
     print_db_status(&db);
     Session session;
+
+
     //session.client_fd = client_fd;
     session.db = &db;
     session.current_xid = INVALID_XID;
-    /*    
+    /*    */
     // ================== 事务 1 ==================
     printf("\n===== Transaction 1: Create Table =====\n");
     
@@ -54,7 +56,7 @@ int main_pg() {
         return 1;
     }
     printf("Committed transaction %u\n", tx1);
-*/
+
     // ================== 事务 2 ==================
     printf("\n===== Transaction 2: Insert Data =====\n");
     
@@ -77,7 +79,7 @@ user1.columns = (Column *)malloc(col_count * sizeof(Column));
 
 
     user1.columns[0].type = INT4_TYPE; user1.columns[0].value.int_val = 1;
-    user1.columns[1].type = TEXT_TYPE; user1.columns[1].value.str_val = strdup("Jimmy");
+    user1.columns[1].type = TEXT_TYPE; user1.columns[1].value.str_val = strdup("Mesi");
     user1.columns[2].type = INT4_TYPE; user1.columns[2].value.int_val = 30;
 
     if (db_insert(&db, "users", &user1,    session) < 0) {
@@ -89,7 +91,7 @@ user1.columns = (Column *)malloc(col_count * sizeof(Column));
     free(user1.columns[1].value.str_val);
 free(user1.columns);
     
-    /*  */
+    /*   */
     // 插入用户2
     Tuple user2 = {0};
     user2.col_count = col_count;
@@ -104,7 +106,10 @@ free(user1.columns);
         return 1;
     }
     printf("Inserted user2\n");
-  
+  // free(user2.columns[1].value.str_val);
+//free(user2.columns);
+   
+
     // 打印中间状态
     print_db_status(&db);
     
@@ -120,6 +125,7 @@ free(user1.columns);
     
     // 开始新事务
     uint32_t tx3 = session_begin_transaction(&session);
+        session.current_xid=tx3;
     if (tx3 == INVALID_XID) {
         fprintf(stderr, "Error: Failed to start transaction\n");
         return 1;
@@ -128,7 +134,7 @@ free(user1.columns);
     
     // 查询数据
     int cnt;
-     Tuple**  new_results = db_query(&db, "users",&cnt);
+     Tuple**  new_results = db_query(&db, "users",&cnt,session);
     if (new_results) {
 
             printf("Query returned %d tuples:\n", cnt);
@@ -195,7 +201,7 @@ free(user1.columns);
     // 查询数据（用户3应该不存在）
     //count = db_query(&db, "users", results, &count);
     int res_count;
-    new_results = db_query(&db, "users", &res_count);
+    new_results = db_query(&db, "users", &res_count,session);
     if (new_results) {
 
         printf("Query returned %d tuples:\n", res_count);

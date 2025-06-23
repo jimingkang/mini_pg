@@ -31,7 +31,7 @@ char* handle_query(const char* query, MiniDB* db,Session session ) {
         if (execute_insert(db, query,session)) return strdup("Insert OK\n");
         else return strdup("Insert Failed\n");
     } else if (strncasecmp(query, "select", 6) == 0) {
-        char* result = execute_select_to_string(db, query); // 你需要实现这个函数
+        char* result = execute_select_to_string(db, query,session); // 你需要实现这个函数
         return result ? result : strdup("Select Failed\n");
     } else {
         return strdup("Unsupported SQL\n");
@@ -68,7 +68,7 @@ void handle_client(int client_fd) {
     close(client_fd);
 }
 
-int main() {
+int main_server() {
     signal(SIGCHLD, sigchld_handler);
     
     init_db(&global_db, "./");

@@ -12,7 +12,7 @@
 void init_db(MiniDB *db, const char *data_dir) {
     // 设置数据目录
     strncpy(db->data_dir, data_dir, sizeof(db->data_dir));
-    //mkdir(data_dir, 0755);
+    mkdir(data_dir, 0755);
     
     // 初始化系统目录
     init_system_catalog(&db->catalog,db->data_dir);
@@ -90,7 +90,7 @@ int session_commit_transaction(Session* session) {
     session->current_xid = INVALID_XID;
     return 0;
 }
-int session_rollback_transaction(Session* session) {
+int Old_session_rollback_transaction(Session* session) {
     if (!session || session->current_xid == INVALID_XID) {
         fprintf(stderr, "[session] No active transaction to rollback\n");
         return -1;
@@ -101,6 +101,59 @@ int session_rollback_transaction(Session* session) {
     printf("[session] Rolled back transaction\n");
     return 0;
 }
+int session_rollback_transaction(Session* session) {
+    if (!session || session->current_xid == INVALID_XID) {
+        fprintf(stderr, "[session] No active transaction to rollback\n");
+        return -1;
+    }
+
+    MiniDB* db = session->db;
+    uint32_t xid = session->current_xid;
+
+    // 遍历每张表
+    for (int i = 0; i < db->catalog.table_count; i++) {
+        TableMeta* meta = &db->catalog.tables[i];
+        FILE* file = fopen(meta->filename, "r+b");
+        if (!file) continue;
+
+        Page page;
+        long page_offset = 0;
+
+        while (fread(&page, sizeof(Page), 1, file) == 1) {
+            int modified = 0;
+            for (int j = 0; j < page.header.slot_count; j++) {
+                Tuple* tuple = page_get_tuple(&page, j, meta);
+                if (!tuple) continue;
+
+                if (tuple->xmin == xid) {
+                    // 撤销：删除元组或设置 deleted/xmax
+                    page_delete_tuple(&page, j);
+                    modified = 1;
+                    printf("[rollback] Removed tuple with oid=%u from table '%s'\n",
+                           tuple->oid, meta->name);
+                }
+
+                free_tuple(tuple);
+            }
+
+            if (modified) {
+                fseek(file, page_offset, SEEK_SET);
+                fwrite(&page, sizeof(Page), 1, file);
+            }
+
+            page_offset += sizeof(Page);
+        }
+
+        fclose(file);
+    }
+
+    txmgr_abort_transaction(&db->tx_mgr, xid);
+    session->current_xid = INVALID_XID;
+
+    printf("[session] Rolled back transaction %u\n", xid);
+    return 0;
+}
+
 
 
 // 创建表
@@ -177,6 +230,10 @@ bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Sessio
     // 分配新OID
     static uint32_t next_oid = 1;
     new_tuple->oid = next_oid++;
+
+
+    new_tuple->xmin=session.current_xid;
+    
     
     // 打开表文件
     FILE *table_file = fopen(meta->filename, "r+b");
@@ -244,7 +301,7 @@ bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Sessio
  * @param result_count 返回结果数量
  * @return 元组指针数组，需要调用者释放
  */
-Tuple** db_query(MiniDB *db, const char *table_name, int *result_count) {
+Tuple** db_query(MiniDB *db, const char *table_name, int *result_count,Session session) {
     if (!db || !table_name || !result_count) {
         return NULL;
     }
@@ -283,7 +340,7 @@ Tuple** db_query(MiniDB *db, const char *table_name, int *result_count) {
         page_count++;
         
         // 验证页面
-        if (page.header.page_id == INVALID_PAGE_ID) {
+        if (page.header.page_id == -1) {
             continue;
         }
         
@@ -292,6 +349,31 @@ Tuple** db_query(MiniDB *db, const char *table_name, int *result_count) {
         
         // 遍历所有槽位
         for (int i = 0; i < page.header.slot_count; i++) {
+            Tuple* t = page_get_tuple(&page, i, meta);
+            if (!t) continue;
+            printf("DEBUG: slot %d → oid=%u, xmin=%u, xmax=%u, deleted=%d\n",i, t->oid, t->xmin, t->xmax, t->deleted);
+
+            // === 🔍 MVCC 可见性判断核心逻辑 ===
+            bool visible = false;
+            uint32_t xid = session.current_xid;
+
+            // 只对未被删除的、对当前事务可见的元组生效
+            if ((t->deleted == false) &&
+                (t->xmin <= xid) &&
+                (t->xmax == 0 || t->xmax > xid)) {
+                visible = true;
+            }
+
+            if (visible) {
+                if (total_tuples < MAX_RESULTS) {
+                    results[total_tuples++] = t;
+                } else {
+                    free_tuple(t);
+                }
+            } else {
+                free_tuple(t);
+            }
+            /*
             if (!(slots[i].flags & SLOT_OCCUPIED)) {
                 continue; // 跳过未占用槽位
             }
@@ -314,6 +396,7 @@ Tuple** db_query(MiniDB *db, const char *table_name, int *result_count) {
             } else {
                 free_tuple(tuple); // 结果集已满
             }
+                */
         }
     }
     

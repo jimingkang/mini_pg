@@ -6,14 +6,6 @@
 
 #IncludeRegexTransform: 
 
-../include/catalog.h
-stdint.h
--
-minidb.h
-../include/minidb.h
-tuple.h
-../include/tuple.h
-
 ../include/minidb.h
 stdio.h
 -
@@ -48,16 +40,6 @@ stddef.h
 types.h
 ../include/types.h
 
-../include/tuple.h
-catalog.h
-../include/catalog.h
-stdint.h
--
-stdbool.h
--
-types.h
-../include/types.h
-
 ../include/txmgr.h
 stdint.h
 -
@@ -72,19 +54,33 @@ stdint.h
 stdbool.h
 -
 
-/home/rlk/Downloads/mini_pg/src/catalog.c
+../include/wal.h
+stdint.h
+-
+zlib.h
+-
+minidb.h
+../include/minidb.h
+
+/home/rlk/Downloads/mini_pg/src/minidb.c
 minidb.h
 /home/rlk/Downloads/mini_pg/src/minidb.h
-dirent.h
--
-fnmatch.h
--
 stdio.h
 -
 stdlib.h
 -
 string.h
 -
-catalog.h
-/home/rlk/Downloads/mini_pg/src/catalog.h
+time.h
+-
+unistd.h
+-
+fcntl.h
+-
+sys/stat.h
+-
+zlib.h
+-
+wal.h
+/home/rlk/Downloads/mini_pg/src/wal.h
 
