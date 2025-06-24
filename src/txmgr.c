@@ -21,8 +21,7 @@ void txmgr_init(TransactionManager *txmgr) {
     txmgr->next_xid = 1; // 从1开始，0保留给无效事务
     txmgr->oldest_xid = 1;
     
-    printf("Transaction manager initialized. Next XID: %u, Oldest XID: %u\n", 
-           txmgr->next_xid, txmgr->oldest_xid);
+
 }
 
 // 查找空闲事务槽
@@ -281,6 +280,8 @@ bool load_tx_state(TransactionManager* txmgr, const char* db_path) {
     fread(&txmgr->next_xid, sizeof(uint32_t), 1, fp);
     fread(&txmgr->oldest_xid, sizeof(uint32_t), 1, fp);
     fclose(fp);
+    printf("Transaction manager initialized. Next XID: %u, Oldest XID: %u\n", 
+           txmgr->next_xid, txmgr->oldest_xid);
     return true;
 }
 bool save_tx_state(const TransactionManager* txmgr, const char* db_path) {

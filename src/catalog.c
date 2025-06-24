@@ -246,11 +246,9 @@ int create_table(SystemCatalog *catalog, const char *table_name, ColumnDef *colu
 int find_table(SystemCatalog *catalog, const char *table_name) {
     for (int i = 0; i < catalog->table_count; i++) {
         if (strcmp(catalog->tables[i].name, table_name) == 0) {
-            printf("In find_table: found table at %p\n", catalog->tables[i]);
-
-            printf("  oid: %u\n", catalog->tables[i].oid);
-
-            printf("  name: %s\n", catalog->tables[i].name);
+           // printf("In find_table: found table at %p\n", catalog->tables[i]);
+           // printf("  oid: %u\n", catalog->tables[i].oid);
+           // printf("  name: %s\n", catalog->tables[i].name);
           //  return &catalog->tables[i];
           return i;
         }
@@ -260,9 +258,9 @@ int find_table(SystemCatalog *catalog, const char *table_name) {
 
 TableMeta* find_table_meta(MiniDB* db, const char* table_name) {
     if (!db || !table_name) return NULL;
-    for (int i = 0; i < db->table_count; i++) {
-        if (strcmp(db->tables[i].name, table_name) == 0) {
-        return &db->tables[i];
+    for (int i = 0; i < db->catalog.table_count; i++) {
+        if (strcmp(db->catalog.tables[i].name, table_name) == 0) {
+        return &(db->catalog.tables[i]);
         }
     }
 

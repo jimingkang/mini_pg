@@ -17,6 +17,13 @@ CMakeFiles/minidb_core.dir/src/minidb.c.o
  ../include/wal.h
  /home/rlk/Downloads/mini_pg/src/minidb.c
 CMakeFiles/minidb_core.dir/src/page.c.o
+ ../include/catalog.h
+ ../include/minidb.h
+ ../include/page.h
+ ../include/tuple.h
+ ../include/txmgr.h
+ ../include/types.h
+ /home/rlk/Downloads/mini_pg/src/page.c
 CMakeFiles/minidb_core.dir/src/server/executor.c.o
  ../include/catalog.h
  ../include/minidb.h

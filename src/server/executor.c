@@ -194,6 +194,7 @@ bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result, Session se
 
     //TableMeta* meta = find_table_meta(db, stmt->table_name);
      int idx= find_table(&db->catalog, stmt->table_name);
+      printf("[debug] find_table[%d]  \n",idx);
     TableMeta *meta =&(db->catalog.tables[idx]);
     if (!meta) return false;
 
@@ -201,6 +202,8 @@ bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result, Session se
     result->num_rows = count;
     result->rows = malloc(sizeof(char**) * count);
 
+
+    printf("[debug]   rows %d from file %s\n", count, meta->filename);
     for (int i = 0; i < count; i++) {
         Tuple* t = tuples[i];
         char** row = malloc(sizeof(char*) * result->num_cols);
@@ -232,7 +235,9 @@ bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result, Session se
             }
 
             row[j] = strdup(buf);
+       
         }
+           
         result->rows[i] = row;
         free_tuple(t);  // ✅释放每条 Tuple
     }

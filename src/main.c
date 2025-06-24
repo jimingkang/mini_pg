@@ -7,7 +7,7 @@
 
 
 // 示例程序
-int main() {
+int main_pg() {
     MiniDB db;
     
     // 初始化数据库
@@ -20,7 +20,7 @@ int main() {
     //session.client_fd = client_fd;
     session.db = &db;
     session.current_xid = INVALID_XID;
-    /*    
+    /*    */
     // ================== 事务 1 ==================
     printf("\n===== Transaction 1: Create Table =====\n");
     
@@ -56,7 +56,7 @@ int main() {
         return 1;
     }
     printf("Committed transaction %u\n", tx1);
-*/
+
     // ================== 事务 2 ==================
     printf("\n===== Transaction 2: Insert Data =====\n");
     

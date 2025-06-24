@@ -83,7 +83,7 @@ bool execute_insert(MiniDB* db, const char* sql,Session session) {
     //return db_insert(db, stmt.table_name, stmt.values);
 }
 
-char* execute_select_to_string(MiniDB* db, const char* sql,Session session) {
+int execute_select_to_string(MiniDB* db, const char* sql,Session session,char * ret) {
     SelectStmt stmt;
     if (!parse_select(sql, &stmt)) {
         fprintf(stderr, "[select] parse error\n");
@@ -96,6 +96,7 @@ char* execute_select_to_string(MiniDB* db, const char* sql,Session session) {
         return NULL;
     }
 
+    /*
     char* buf = malloc(4096); // 简易实现，建议动态扩容
     buf[0] = '\0';
     for (int i = 0; i < result.num_rows; i++) {
@@ -105,6 +106,25 @@ char* execute_select_to_string(MiniDB* db, const char* sql,Session session) {
         }
         strcat(buf, "\n");
     }
-    fprintf(stderr, "[select] execution failed\n");
-    return buf;
+        */
+    char* buf = ret;//malloc(4096);
+    memset(buf,0,4096);
+    if (!buf) return NULL;
+    size_t offset = 0;
+    for (int i = 0; i < result.num_rows; i++) {
+        for (int j = 0; j < result.num_cols; j++) {
+            const char* val = result.rows[i][j] ? result.rows[i][j] : "<null>";
+            offset += snprintf(buf + offset, 4096 - offset, "%s\t", val);
+        }
+        offset += snprintf(buf + offset, 4096 - offset, "\n");
+    }
+   // strcat(buf, "\0");
+  //printf("[select]  execute_select_to_string:len=%d\n, %s",strlen(buf),buf);
+   //  return buf;
+   return strlen(buf);
+   
+ // char* debug = strdup(buf);  // 新申请一份，避免指针混乱
+//printf("[select] strdup done: debug=%s\n", debug);
+//return debug;
+ 
 }

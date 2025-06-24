@@ -7,5 +7,6 @@
 
 bool execute_create_table(MiniDB* db, const char* sql,Session session );
 bool execute_insert(MiniDB* db, const char* sql,Session session );
-char* execute_select_to_string(MiniDB* db, const char* sql,Session session) ;
+//char* execute_select_to_string(MiniDB* db, const char* sql,Session session) ;
+int execute_select_to_string(MiniDB* db, const char* sql,Session session,char * ret);
 #endif

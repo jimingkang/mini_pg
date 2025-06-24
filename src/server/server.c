@@ -23,6 +23,7 @@ void sigchld_handler(int s) {
 }
 
 char* handle_query(const char* query, MiniDB* db,Session session ) {
+     //fprintf(stderr, "query= %s,strncasecmp(query, select, 6)=%d\n",query,strncasecmp(query, "select", 6));
     // 可根据你项目已有的函数替换这里的调用逻辑
     if (strncasecmp(query, "create table", 12) == 0) {
         if (execute_create_table(db, query,session)) return strdup("Create OK\n");
@@ -31,7 +32,9 @@ char* handle_query(const char* query, MiniDB* db,Session session ) {
         if (execute_insert(db, query,session)) return strdup("Insert OK\n");
         else return strdup("Insert Failed\n");
     } else if (strncasecmp(query, "select", 6) == 0) {
-        char* result = execute_select_to_string(db, query,session); // 你需要实现这个函数
+        printf("hit select : query=%s\n",query);
+        char* result =malloc(4096);
+       int len=  execute_select_to_string(db, query,session,result); // 你需要实现这个函数
         return result ? result : strdup("Select Failed\n");
     } else {
         return strdup("Unsupported SQL\n");
@@ -39,36 +42,8 @@ char* handle_query(const char* query, MiniDB* db,Session session ) {
 }
 
 
-void handle_client(int client_fd) {
-    Session session;
-    session.client_fd = client_fd;
-    session.db = &global_db;
-    session.current_xid = INVALID_XID;
 
-    char buffer[4096];
-    while (1) {
-        memset(buffer, 0, sizeof(buffer));
-        int n = read(client_fd, buffer, sizeof(buffer));
-        if (n <= 0) break;
-
-        if (strncmp(buffer, "BEGIN", 5) == 0) {
-            session_begin_transaction(&session);
-            write(client_fd, "Transaction started\n", 21);
-        } else if (strncmp(buffer, "COMMIT", 6) == 0) {
-            session_commit_transaction(&global_db,&session);
-            write(client_fd, "Transaction committed\n", 23);
-        } else {
-            // 执行 SQL 语句（使用 session.current_xid 绑定事务）
-            char* resp = handle_query(buffer, session.db,session);  // 你可以扩展它支持 XID
-            write(client_fd, resp, strlen(resp));
-            free(resp);
-        }
-    }
-
-    close(client_fd);
-}
-
-int main_server() {
+int main() {
     signal(SIGCHLD, sigchld_handler);
     
     init_db(&global_db, "/home/rlk/Downloads/mini_pg/build/bin");
@@ -132,6 +107,12 @@ int main_server() {
             } else {
                 // 执行 SQL 时保持 current_xid 状态
                 char* result = handle_query(buffer, session.db, session);
+                 if (!result) {
+                    printf("[handle_query] result is NULL!\n");
+                } else {
+                    //printf("[handle_query] got result, first char = %c\n", result[0]);
+                    printf("handle_query: get retured string from sql_exec:\n%s\n", result);
+                }
                 write(client_fd, result, strlen(result));
                 free(result);
             }

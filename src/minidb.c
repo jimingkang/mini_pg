@@ -345,15 +345,16 @@ Tuple** db_query(MiniDB *db, const char *table_name, int *result_count,Session s
         
         // 获取槽位数组
         Slot* slots = page.slots;//(Slot*)page.data;
-        
+        printf("DEBUG: page.header.slot_count%d\n",page.header.slot_count);
+
         // 遍历所有槽位
         for (int i = 0; i < page.header.slot_count; i++) {
             Tuple* t = page_get_tuple(&page, i, meta);
             if (!t) continue;
-            printf("DEBUG: slot %d → oid=%u, xmin=%u, xmax=%u, deleted=%d\n",i, t->oid, t->xmin, t->xmax, t->deleted);
+            //printf("DEBUG: slot %d → oid=%u, xmin=%u, xmax=%u, deleted=%d\n",i, t->oid, t->xmin, t->xmax, t->deleted);
 
             // === 🔍 MVCC 可见性判断核心逻辑 ===
-            bool visible = false;
+            bool visible = true;
             uint32_t xid = session.current_xid;
 
             // 只对未被删除的、对当前事务可见的元组生效
@@ -366,10 +367,14 @@ Tuple** db_query(MiniDB *db, const char *table_name, int *result_count,Session s
             if (visible) {
                 if (total_tuples < MAX_RESULTS) {
                     results[total_tuples++] = t;
+                    //printf("DEBUG: tuple xmin= %d\n",t->xmin);
+
                 } else {
+                    printf("DEBUG: before free t\n");
                     free_tuple(t);
                 }
             } else {
+                printf("DEBUG: before free t else\n");
                 free_tuple(t);
             }
             /*
@@ -407,7 +412,10 @@ Tuple** db_query(MiniDB *db, const char *table_name, int *result_count,Session s
         results = NULL;
     } else {
         // 调整结果数组大小
+         printf("DEBUG:total_tuples=%d\n",total_tuples);
+
         Tuple** tmp = realloc(results, total_tuples * sizeof(Tuple*));
+        //printf("DEBUG:tmp=%s\n",tmp);
         if (tmp) {
             results = tmp;
         }

@@ -9,7 +9,7 @@
 
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8888
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 8192
 
 int main() {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -42,16 +42,13 @@ int main() {
         send(sockfd, query, strlen(query), 0);
 
         int len = read(sockfd, response, sizeof(response));
-        if (len <= 0) {
-            printf("Connection closed by server.\n");
-            break;
-        }
+         printf("len=%d,\n",len);
         response[len] = '\0';
         if (len > 0) {
           
             printf("Response:\n%s\n", response);
         } else {
-            printf("Connection closed by server.\n");
+            printf("len=%d,Connection closed by server.\n",len);
             break;
         }
     }
