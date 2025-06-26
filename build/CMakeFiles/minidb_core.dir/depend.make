@@ -10,6 +10,7 @@ CMakeFiles/minidb_core.dir/src/catalog.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/catalog.c.o: ../include/types.h
 CMakeFiles/minidb_core.dir/src/catalog.c.o: ../src/catalog.c
 
+CMakeFiles/minidb_core.dir/src/lock.c.o: ../include/lock.h
 CMakeFiles/minidb_core.dir/src/lock.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/lock.c.o: ../include/page.h
 CMakeFiles/minidb_core.dir/src/lock.c.o: ../include/server/parser.h

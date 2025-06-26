@@ -57,27 +57,27 @@ include CMakeFiles/test_minidb.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/test_minidb.dir/flags.make
 
-CMakeFiles/test_minidb.dir/test/test_users.c.o: CMakeFiles/test_minidb.dir/flags.make
-CMakeFiles/test_minidb.dir/test/test_users.c.o: ../test/test_users.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/test_minidb.dir/test/test_users.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/test_minidb.dir/test/test_users.c.o   -c /home/rlk/Downloads/mini_pg/test/test_users.c
+CMakeFiles/test_minidb.dir/test/test_users_thread.c.o: CMakeFiles/test_minidb.dir/flags.make
+CMakeFiles/test_minidb.dir/test/test_users_thread.c.o: ../test/test_users_thread.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/test_minidb.dir/test/test_users_thread.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/test_minidb.dir/test/test_users_thread.c.o   -c /home/rlk/Downloads/mini_pg/test/test_users_thread.c
 
-CMakeFiles/test_minidb.dir/test/test_users.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/test_minidb.dir/test/test_users.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/test/test_users.c > CMakeFiles/test_minidb.dir/test/test_users.c.i
+CMakeFiles/test_minidb.dir/test/test_users_thread.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/test_minidb.dir/test/test_users_thread.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/test/test_users_thread.c > CMakeFiles/test_minidb.dir/test/test_users_thread.c.i
 
-CMakeFiles/test_minidb.dir/test/test_users.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/test_minidb.dir/test/test_users.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/test/test_users.c -o CMakeFiles/test_minidb.dir/test/test_users.c.s
+CMakeFiles/test_minidb.dir/test/test_users_thread.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/test_minidb.dir/test/test_users_thread.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/test/test_users_thread.c -o CMakeFiles/test_minidb.dir/test/test_users_thread.c.s
 
 # Object files for target test_minidb
 test_minidb_OBJECTS = \
-"CMakeFiles/test_minidb.dir/test/test_users.c.o"
+"CMakeFiles/test_minidb.dir/test/test_users_thread.c.o"
 
 # External object files for target test_minidb
 test_minidb_EXTERNAL_OBJECTS =
 
-bin/test_minidb: CMakeFiles/test_minidb.dir/test/test_users.c.o
+bin/test_minidb: CMakeFiles/test_minidb.dir/test/test_users_thread.c.o
 bin/test_minidb: CMakeFiles/test_minidb.dir/build.make
 bin/test_minidb: lib/libminidb_core.a
 bin/test_minidb: /usr/lib/x86_64-linux-gnu/libz.so

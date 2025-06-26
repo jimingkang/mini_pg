@@ -541,32 +541,32 @@ src/wal.c.s:
 	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/wal.c.s
 .PHONY : src/wal.c.s
 
-test/test_users.o: test/test_users.c.o
+test/test_users_thread.o: test/test_users_thread.c.o
 
-.PHONY : test/test_users.o
+.PHONY : test/test_users_thread.o
 
 # target to build an object file
-test/test_users.c.o:
-	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users.c.o
-.PHONY : test/test_users.c.o
+test/test_users_thread.c.o:
+	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users_thread.c.o
+.PHONY : test/test_users_thread.c.o
 
-test/test_users.i: test/test_users.c.i
+test/test_users_thread.i: test/test_users_thread.c.i
 
-.PHONY : test/test_users.i
+.PHONY : test/test_users_thread.i
 
 # target to preprocess a source file
-test/test_users.c.i:
-	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users.c.i
-.PHONY : test/test_users.c.i
+test/test_users_thread.c.i:
+	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users_thread.c.i
+.PHONY : test/test_users_thread.c.i
 
-test/test_users.s: test/test_users.c.s
+test/test_users_thread.s: test/test_users_thread.c.s
 
-.PHONY : test/test_users.s
+.PHONY : test/test_users_thread.s
 
 # target to generate assembly for a file
-test/test_users.c.s:
-	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users.c.s
-.PHONY : test/test_users.c.s
+test/test_users_thread.c.s:
+	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users_thread.c.s
+.PHONY : test/test_users_thread.c.s
 
 # Help Target
 help:
@@ -621,9 +621,9 @@ help:
 	@echo "... src/wal.o"
 	@echo "... src/wal.i"
 	@echo "... src/wal.s"
-	@echo "... test/test_users.o"
-	@echo "... test/test_users.i"
-	@echo "... test/test_users.s"
+	@echo "... test/test_users_thread.o"
+	@echo "... test/test_users_thread.i"
+	@echo "... test/test_users_thread.s"
 .PHONY : help
 
 

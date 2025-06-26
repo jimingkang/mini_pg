@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "/home/rlk/Downloads/mini_pg/test/test_users.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/test_minidb.dir/test/test_users.c.o"
+  "/home/rlk/Downloads/mini_pg/test/test_users_thread.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/test_minidb.dir/test/test_users_thread.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 

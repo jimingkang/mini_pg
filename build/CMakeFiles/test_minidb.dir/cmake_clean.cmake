@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/test_minidb.dir/test/test_users.c.o"
+  "CMakeFiles/test_minidb.dir/test/test_users_thread.c.o"
   "bin/test_minidb"
   "bin/test_minidb.pdb"
 )

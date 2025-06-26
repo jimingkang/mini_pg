@@ -291,7 +291,7 @@ int ret=db_update(&db, &stmt,session);
     // 打印最终状态
     printf("\nFinal database status:\n");
     //print_db_status(&db);
-    
+
     printf("\nDatabase operations completed successfully!\n");
     return 0;
 }

@@ -11,6 +11,7 @@ CMakeFiles/minidb_core.dir/src/catalog.c.o
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/catalog.c
 CMakeFiles/minidb_core.dir/src/lock.c.o
+ ../include/lock.h
  ../include/minidb.h
  ../include/page.h
  ../include/server/parser.h

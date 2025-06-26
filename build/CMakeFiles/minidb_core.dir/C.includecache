@@ -6,13 +6,9 @@
 
 #IncludeRegexTransform: 
 
-../include/catalog.h
-stdint.h
--
-minidb.h
-../include/minidb.h
-tuple.h
-../include/tuple.h
+../include/lock.h
+types.h
+../include/types.h
 
 ../include/minidb.h
 stdio.h
@@ -50,29 +46,11 @@ stddef.h
 types.h
 ../include/types.h
 
-../include/server/executor.h
-stdbool.h
--
-minidb.h
-../include/server/minidb.h
-tuple.h
-../include/server/tuple.h
-
 ../include/server/parser.h
 stdbool.h
 -
 minidb.h
 ../include/server/minidb.h
-
-../include/tuple.h
-catalog.h
-../include/catalog.h
-stdint.h
--
-stdbool.h
--
-types.h
-../include/types.h
 
 ../include/txmgr.h
 stdint.h
@@ -106,15 +84,9 @@ pthread.h
 semaphore.h
 -
 
-/home/rlk/Downloads/mini_pg/src/server/executor.c
-server/executor.h
-/home/rlk/Downloads/mini_pg/src/server/server/executor.h
-tuple.h
-/home/rlk/Downloads/mini_pg/src/server/tuple.h
-stdlib.h
--
-string.h
--
-stdio.h
--
+/home/rlk/Downloads/mini_pg/src/lock.c
+minidb.h
+/home/rlk/Downloads/mini_pg/src/minidb.h
+lock.h
+/home/rlk/Downloads/mini_pg/src/lock.h
 
