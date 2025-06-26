@@ -5,6 +5,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
   "/home/rlk/Downloads/mini_pg/src/catalog.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/catalog.c.o"
+  "/home/rlk/Downloads/mini_pg/src/lock.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/lock.c.o"
   "/home/rlk/Downloads/mini_pg/src/minidb.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/minidb.c.o"
   "/home/rlk/Downloads/mini_pg/src/page.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/page.c.o"
   "/home/rlk/Downloads/mini_pg/src/server/executor.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/server/executor.c.o"

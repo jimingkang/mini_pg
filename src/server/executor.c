@@ -246,3 +246,165 @@ bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result, Session se
     return true;
 }
 
+bool old_db_update(MiniDB* db, const UpdateStmt* stmt, Session* session) {
+  // if (!db || !stmt || session.current_xid == INVALID_XID) {
+  //      fprintf(stderr, "Update failed: Invalid input or no active transaction.\n");
+   //     return false;
+  //  }
+
+    int idx = find_table(&db->catalog, stmt->table_name);
+    if (idx < 0) {
+        fprintf(stderr, "Update failed: Table '%s' not found.\n", stmt->table_name);
+        return false;
+    }
+
+    TableMeta* meta = &db->catalog.tables[idx];
+    FILE* fp = fopen(meta->filename, "r+b");
+    if (!fp) {
+        perror("Failed to open table file");
+        return false;
+    }
+
+    Page page;
+    bool updated = false;
+    long pos = 0;
+
+    while (fread(&page, sizeof(Page), 1, fp) == 1) {
+        LWLockAcquireExclusive(&page.lock);
+
+        for (int i = 0; i < page.header.slot_count; i++) {
+            Slot* slot = &page.slots[i];
+            if (slot->status != SLOT_OCCUPIED) continue;
+
+            Tuple* t = page_get_tuple(&page, i,meta); // 假设有个方法能解析 tuple
+
+            // 判断 tuple 是否对当前事务可见
+            if (!is_tuple_visible(t, session->current_xid)) continue;
+
+            // 判断是否满足更新条件（匹配 where 条件）
+            if (!eval_condition(&(stmt->where), t, meta)) continue;
+
+            // 标记原元组为“被当前事务删除”
+            t->xmax = session->current_xid;
+
+            // 构造新 tuple
+            Tuple new_tuple = *t; // 复制字段，可替换为 stmt->new_values
+            new_tuple.xmin = session->current_xid;
+            new_tuple.xmax = INVALID_XID;
+
+            uint16_t new_slot;
+            if (!page_insert_tuple(&page, &new_tuple, &new_slot)) {
+                fprintf(stderr, "Update failed: No space for new version.\n");
+                LWLockRelease(&page.lock);
+                fclose(fp);
+                return false;
+            }
+
+            updated = true;
+        }
+
+        // 写回页面
+        pos = ftell(fp) - sizeof(Page);
+        fseek(fp, pos, SEEK_SET);
+        fwrite(&page, sizeof(Page), 1, fp);
+        fflush(fp);
+        LWLockRelease(&page.lock);
+    }
+
+    fclose(fp);
+    if (updated) save_table_meta_to_file(meta, db->data_dir);
+    return updated;
+}
+
+
+
+int  db_update(MiniDB *db,const UpdateStmt* stmt,Session session) {
+    if (!db || !stmt->table_name || session.current_xid == INVALID_XID) {
+        fprintf(stderr, "Invalid input or no active transaction\n");
+        return false;
+    }
+
+    int idx = find_table(&db->catalog, stmt->table_name);
+    if (idx < 0) {
+        fprintf(stderr, "Table '%s' not found\n", stmt->table_name);
+        return false;
+    }
+
+    TableMeta *meta = &db->catalog.tables[idx];
+    FILE *table_file = fopen(meta->filename, "r+b");
+    if (!table_file) {
+        perror("Failed to open table file");
+        return false;
+    }
+
+    int result_count = 0;
+    Page page;
+    long page_pos = 0;
+    while (fread(&page, sizeof(Page), 1, table_file) == 1) {
+        page_pos = ftell(table_file) - sizeof(Page);  // ✅ 修复定位
+        int orig_slot_count = page.header.slot_count;
+        for (int i = 0; i < orig_slot_count; i++) {
+            Slot *slot = &page.slots[i];
+            if (slot->flags  != SLOT_OCCUPIED) continue;
+
+            Tuple *t = page_get_tuple(&page, i, meta);
+            if (!t || !is_tuple_visible(t, session.current_xid)) continue;
+if (t->xmin == session.current_xid) continue;
+                 if (!eval_condition(&(stmt->where), t, meta)) continue;
+
+            // 执行更新：例如将 age 改为 40
+            //for (int j = 0; j < meta->col_count; j++) {
+            //    if (strcmp(meta->cols[j].name, "age") == 0) {
+            //        set_column_value(&t->columns[j], "40");
+            //    }
+            //}
+
+            
+
+            t->xmax = session.current_xid;
+            Tuple new_t;
+            memcpy(&new_t, t, sizeof(Tuple));
+            new_t.xmin = session.current_xid;
+            new_t.xmax = 0;
+
+            // 遍历所有 SET 列进行更新
+for (int j = 0; j < meta->col_count; j++) {
+    for (int k = 0; k < stmt->num_assignments; k++) {
+        if (strcmp(meta->cols[j].name, stmt->columns[k]) == 0) {
+            set_column_value(&new_t.columns[j], stmt->values[k]);
+        }
+    }
+}
+
+            uint16_t new_slot_idx;
+            if (page_insert_tuple(&page, &new_t, &new_slot_idx)) {
+                slot->flags = SLOT_DELETED;
+                page.header.tuple_count++;
+                (result_count)++;
+            }
+        }
+
+        fseek(table_file, page_pos, SEEK_SET);
+        fwrite(&page, sizeof(Page), 1, table_file);
+        page_pos = ftell(table_file);
+    }
+
+    fclose(table_file);
+    return true;
+}
+void set_column_value(Column* column, const char* new_value) {
+    if (!column || !new_value) return;
+
+    switch (column->type) {
+        case INT4_TYPE:
+            column->value.int_val = atoi(new_value);
+            break;
+        case TEXT_TYPE:
+            strncpy(column->value.str_val, new_value, MAX_TEXT_LEN - 1);
+            column->value.str_val[MAX_TEXT_LEN - 1] = '\0';  // 保证结尾
+            break;
+        default:
+            fprintf(stderr, "Unsupported column type in set_column_value\n");
+            break;
+    }
+}

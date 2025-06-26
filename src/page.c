@@ -101,6 +101,8 @@ void page_compact(Page* page) {
 // 插入元组到页面
 bool page_insert_tuple(Page* page, const Tuple* tuple, uint16_t* slot_out) {
     if (!page || !tuple || !slot_out) return false;
+    if (page->header.slot_count >= MAX_SLOTS) return false;
+
     
     // 序列化元组以确定所需空间
     uint8_t buffer[MAX_TUPLE_SIZE];

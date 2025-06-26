@@ -4,13 +4,26 @@
 CMakeFiles/minidb_core.dir/src/catalog.c.o: ../include/catalog.h
 CMakeFiles/minidb_core.dir/src/catalog.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/catalog.c.o: ../include/page.h
+CMakeFiles/minidb_core.dir/src/catalog.c.o: ../include/server/parser.h
 CMakeFiles/minidb_core.dir/src/catalog.c.o: ../include/tuple.h
 CMakeFiles/minidb_core.dir/src/catalog.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/catalog.c.o: ../include/types.h
 CMakeFiles/minidb_core.dir/src/catalog.c.o: ../src/catalog.c
 
+CMakeFiles/minidb_core.dir/src/lock.c.o: ../include/minidb.h
+CMakeFiles/minidb_core.dir/src/lock.c.o: ../include/page.h
+CMakeFiles/minidb_core.dir/src/lock.c.o: ../include/server/parser.h
+CMakeFiles/minidb_core.dir/src/lock.c.o: ../include/txmgr.h
+CMakeFiles/minidb_core.dir/src/lock.c.o: ../include/types.h
+CMakeFiles/minidb_core.dir/src/lock.c.o: ../src/lock.c
+
+CMakeFiles/minidb_core.dir/src/minidb.c.o: ../include/catalog.h
+CMakeFiles/minidb_core.dir/src/minidb.c.o: ../include/lock.h
 CMakeFiles/minidb_core.dir/src/minidb.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/minidb.c.o: ../include/page.h
+CMakeFiles/minidb_core.dir/src/minidb.c.o: ../include/server/executor.h
+CMakeFiles/minidb_core.dir/src/minidb.c.o: ../include/server/parser.h
+CMakeFiles/minidb_core.dir/src/minidb.c.o: ../include/tuple.h
 CMakeFiles/minidb_core.dir/src/minidb.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/minidb.c.o: ../include/types.h
 CMakeFiles/minidb_core.dir/src/minidb.c.o: ../include/wal.h
@@ -19,6 +32,7 @@ CMakeFiles/minidb_core.dir/src/minidb.c.o: ../src/minidb.c
 CMakeFiles/minidb_core.dir/src/page.c.o: ../include/catalog.h
 CMakeFiles/minidb_core.dir/src/page.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/page.c.o: ../include/page.h
+CMakeFiles/minidb_core.dir/src/page.c.o: ../include/server/parser.h
 CMakeFiles/minidb_core.dir/src/page.c.o: ../include/tuple.h
 CMakeFiles/minidb_core.dir/src/page.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/page.c.o: ../include/types.h
@@ -41,19 +55,23 @@ CMakeFiles/minidb_core.dir/src/server/parser.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/server/parser.c.o: ../include/types.h
 CMakeFiles/minidb_core.dir/src/server/parser.c.o: ../src/server/parser.c
 
+CMakeFiles/minidb_core.dir/src/server/server.c.o: ../include/catalog.h
 CMakeFiles/minidb_core.dir/src/server/server.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/server/server.c.o: ../include/page.h
 CMakeFiles/minidb_core.dir/src/server/server.c.o: ../include/server/executor.h
 CMakeFiles/minidb_core.dir/src/server/server.c.o: ../include/server/parser.h
+CMakeFiles/minidb_core.dir/src/server/server.c.o: ../include/tuple.h
 CMakeFiles/minidb_core.dir/src/server/server.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/server/server.c.o: ../include/types.h
 CMakeFiles/minidb_core.dir/src/server/server.c.o: ../src/server/server.c
 
+CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../include/catalog.h
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../include/page.h
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../include/server/executor.h
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../include/server/parser.h
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../include/server/sql_exec.h
+CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../include/tuple.h
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../include/types.h
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../src/server/sql_exec.c
@@ -61,13 +79,16 @@ CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../src/server/sql_exec.c
 CMakeFiles/minidb_core.dir/src/tuple.c.o: ../include/catalog.h
 CMakeFiles/minidb_core.dir/src/tuple.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/tuple.c.o: ../include/page.h
+CMakeFiles/minidb_core.dir/src/tuple.c.o: ../include/server/parser.h
 CMakeFiles/minidb_core.dir/src/tuple.c.o: ../include/tuple.h
 CMakeFiles/minidb_core.dir/src/tuple.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/tuple.c.o: ../include/types.h
 CMakeFiles/minidb_core.dir/src/tuple.c.o: ../src/tuple.c
 
+CMakeFiles/minidb_core.dir/src/txmgr.c.o: ../include/lock.h
 CMakeFiles/minidb_core.dir/src/txmgr.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/txmgr.c.o: ../include/page.h
+CMakeFiles/minidb_core.dir/src/txmgr.c.o: ../include/server/parser.h
 CMakeFiles/minidb_core.dir/src/txmgr.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/txmgr.c.o: ../include/types.h
 CMakeFiles/minidb_core.dir/src/txmgr.c.o: ../src/txmgr.c
@@ -75,6 +96,7 @@ CMakeFiles/minidb_core.dir/src/txmgr.c.o: ../src/txmgr.c
 CMakeFiles/minidb_core.dir/src/wal.c.o: ../include/catalog.h
 CMakeFiles/minidb_core.dir/src/wal.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/wal.c.o: ../include/page.h
+CMakeFiles/minidb_core.dir/src/wal.c.o: ../include/server/parser.h
 CMakeFiles/minidb_core.dir/src/wal.c.o: ../include/tuple.h
 CMakeFiles/minidb_core.dir/src/wal.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/wal.c.o: ../include/types.h

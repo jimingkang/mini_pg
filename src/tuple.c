@@ -1,5 +1,6 @@
 #include "tuple.h"
 #include "catalog.h"
+#include "parser.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -489,4 +490,24 @@ uint32_t tuple_hash(const Tuple* tuple) {
     }
     
     return hash;
+}
+
+bool is_tuple_visible(const Tuple* tuple, uint32_t current_xid) {
+    // 最简单的 MVCC 可见性判断（简化版）
+    return tuple->xmin <= current_xid && tuple->xmax == 0;
+}
+bool eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) {
+    for (int i = 0; i < t->col_count; i++) {
+        if (strcmp(meta->cols[i].name, cond->column) == 0) {
+            if (strcmp(cond->op, "=") == 0) {
+               if (meta->cols[i].type == TEXT_TYPE) {
+                return strcmp(t->columns[i].value.str_val, cond->value) == 0;
+               } else if (meta->cols[i].type == INT4_TYPE) {
+                int cond_val = atoi(cond->value);
+                return t->columns[i].value.int_val == cond_val;
+               }
+            }
+        }
+    }
+    return false;
 }

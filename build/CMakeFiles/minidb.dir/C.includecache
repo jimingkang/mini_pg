@@ -6,6 +6,14 @@
 
 #IncludeRegexTransform: 
 
+../include/catalog.h
+stdint.h
+-
+minidb.h
+../include/minidb.h
+tuple.h
+../include/tuple.h
+
 ../include/minidb.h
 stdio.h
 -
@@ -31,11 +39,37 @@ page.h
 ../include/page.h
 types.h
 ../include/types.h
+parser.h
+../include/parser.h
 
 ../include/page.h
 stdint.h
 -
 stddef.h
+-
+types.h
+../include/types.h
+
+../include/server/executor.h
+stdbool.h
+-
+minidb.h
+../include/server/minidb.h
+tuple.h
+../include/server/tuple.h
+
+../include/server/parser.h
+stdbool.h
+-
+minidb.h
+../include/server/minidb.h
+
+../include/tuple.h
+catalog.h
+../include/catalog.h
+stdint.h
+-
+stdbool.h
 -
 types.h
 ../include/types.h
@@ -53,6 +87,24 @@ stdint.h
 -
 stdbool.h
 -
+bits/pthreadtypes.h
+-
+stdatomic.h
+-
+stdbool.h
+-
+stdint.h
+-
+stdio.h
+-
+stdlib.h
+-
+unistd.h
+-
+pthread.h
+-
+semaphore.h
+-
 
 /home/rlk/Downloads/mini_pg/src/main.c
 minidb.h
@@ -67,4 +119,8 @@ string.h
 -
 time.h
 -
+parser.h
+-
+executor.h
+/home/rlk/Downloads/mini_pg/src/executor.h
 

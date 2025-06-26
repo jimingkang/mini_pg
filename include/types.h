@@ -4,6 +4,16 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <bits/pthreadtypes.h>
+
+#include <stdatomic.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 
 
@@ -16,6 +26,7 @@
 #define MAX_TABLES 100
 #define MAX_COLS 32
 
+#define MAX_TEXT_LEN 256 
 
 
 
@@ -117,10 +128,59 @@ typedef struct Slot {
     uint8_t flags;      // 状态标志 (OCCUPIED/DELETED)
 } Slot;
 
+// 事务状态
+typedef enum {
+    TRANS_ACTIVE,     // 事务进行中
+    TRANS_COMMITTED,  // 事务已提交
+    TRANS_ABORTED     // 事务已中止
+} TransactionState;
+typedef struct {
+    uint32_t xid;                 // 事务ID
+    TransactionState state;      // 状态：进行中、已提交、已中止
+    uint64_t start_time;         // 开始时间
+    uint32_t snapshot;           // 快照
+    uint32_t lsn;                // 日志序列号
+    bool holding_exclusive_lock; // 是否持有排他锁
+    bool holding_shared_lock;    // 是否持有共享锁
+} Transaction;
+// === 模拟 PGPROC ===
+typedef struct PGPROC {
+    Transaction *txn;       // 指向事务对象
+    sem_t sema;             // 用于等待锁的阻塞
+    struct PGPROC *next;    // 等待链表
+    bool waiting_for_excl;  // 是否等待排他锁
+} PGPROC;
+
+// === 模拟 proclist_head ===
+typedef struct proclist_head {
+    PGPROC *head;
+    PGPROC *tail;
+} proclist_head;
+
+// === 模拟 LWLock ===
+typedef struct LWLock {
+    uint16_t tranche;
+    atomic_uint state;        // bit0 = exclusive，bit1~ = shared count
+    proclist_head waiters;
+} LWLock;
+
+typedef struct {
+    char table_name[64];
+    uint32_t oid;  // 该行的 OID（Tuple 中的 oid 字段）
+} RowLockTag;
+typedef struct RowLock {
+    RowLockTag tag;
+    PGPROC *holder;           // 持有锁的事务
+    PGPROC *wait_queue_head;  // 阻塞等待队列
+    struct RowLock *next;
+} RowLock;
+
 typedef struct Page {
     PageHeader header;
     Slot slots[MAX_SLOTS];          // 槽位数组
     uint8_t data[PAGE_DATA_SIZE];   // 数据区
+       // ✅ 每页一个锁
+    LWLock lock;
 } Page;
 
 
@@ -136,7 +196,15 @@ PageID last_page;    // 表的最后一个页面ID
 
   // ✅ 新增：元组的最大 OID
     uint32_t max_row_oid;
+
+
+    LWLock fsm_lock;
+    LWLock extension_lock;
 } TableMeta;
+
+
+
+
 
 
 #define MAX_CONCURRENT_TRANS 10
@@ -144,21 +212,9 @@ PageID last_page;    // 表的最后一个页面ID
 // 无效事务ID
 #define INVALID_XID 0
 
-// 事务状态
-typedef enum {
-    TRANS_ACTIVE,     // 事务进行中
-    TRANS_COMMITTED,  // 事务已提交
-    TRANS_ABORTED     // 事务已中止
-} TransactionState;
 
-// 事务结构
-typedef struct {
-    uint32_t xid;             // 事务ID
-    TransactionState state;    // 事务状态
-    uint64_t start_time;      // 开始时间（微秒精度）
-    uint32_t snapshot;        // 快照时间（最老活动事务ID）
-    uint32_t lsn;             // 最后LSN（日志序列号）
-} Transaction;
+
+
 
 // 事务管理器
 typedef struct {
@@ -193,6 +249,7 @@ typedef struct {
     int client_fd;             // 客户端 socket fd
     MiniDB* db;                // 指向数据库
     uint32_t current_xid;      // 当前连接的事务 ID
+    
 } Session;
 
 

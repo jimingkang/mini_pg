@@ -53,6 +53,7 @@ CMAKE_BINARY_DIR = /home/rlk/Downloads/mini_pg/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
+all: CMakeFiles/test_minidb.dir/all
 all: CMakeFiles/minidb.dir/all
 all: CMakeFiles/minidb_core.dir/all
 
@@ -64,10 +65,38 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
+clean: CMakeFiles/test_minidb.dir/clean
 clean: CMakeFiles/minidb.dir/clean
 clean: CMakeFiles/minidb_core.dir/clean
 
 .PHONY : clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/test_minidb.dir
+
+# All Build rule for target.
+CMakeFiles/test_minidb.dir/all: CMakeFiles/minidb_core.dir/all
+	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/depend
+	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=15,16 "Built target test_minidb"
+.PHONY : CMakeFiles/test_minidb.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/test_minidb.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 14
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/test_minidb.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 0
+.PHONY : CMakeFiles/test_minidb.dir/rule
+
+# Convenience name for target.
+test_minidb: CMakeFiles/test_minidb.dir/rule
+
+.PHONY : test_minidb
+
+# clean rule for target.
+CMakeFiles/test_minidb.dir/clean:
+	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/clean
+.PHONY : CMakeFiles/test_minidb.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/minidb.dir
@@ -81,7 +110,7 @@ CMakeFiles/minidb.dir/all: CMakeFiles/minidb_core.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/minidb.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 13
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 14
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/minidb.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 0
 .PHONY : CMakeFiles/minidb.dir/rule
@@ -103,12 +132,12 @@ CMakeFiles/minidb.dir/clean:
 CMakeFiles/minidb_core.dir/all:
 	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/depend
 	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=3,4,5,6,7,8,9,10,11,12,13 "Built target minidb_core"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=3,4,5,6,7,8,9,10,11,12,13,14 "Built target minidb_core"
 .PHONY : CMakeFiles/minidb_core.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/minidb_core.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 11
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 12
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/minidb_core.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 0
 .PHONY : CMakeFiles/minidb_core.dir/rule

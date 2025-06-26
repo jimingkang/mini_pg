@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/minidb_core.dir/src/catalog.c.o"
+  "CMakeFiles/minidb_core.dir/src/lock.c.o"
   "CMakeFiles/minidb_core.dir/src/minidb.c.o"
   "CMakeFiles/minidb_core.dir/src/page.c.o"
   "CMakeFiles/minidb_core.dir/src/server/executor.c.o"

@@ -179,6 +179,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named test_minidb
+
+# Build rule for target.
+test_minidb: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 test_minidb
+.PHONY : test_minidb
+
+# fast build rule for target.
+test_minidb/fast:
+	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/build
+.PHONY : test_minidb/fast
+
+#=============================================================================
 # Target rules for targets named minidb
 
 # Build rule for target.
@@ -230,6 +243,33 @@ src/catalog.s: src/catalog.c.s
 src/catalog.c.s:
 	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/catalog.c.s
 .PHONY : src/catalog.c.s
+
+src/lock.o: src/lock.c.o
+
+.PHONY : src/lock.o
+
+# target to build an object file
+src/lock.c.o:
+	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/lock.c.o
+.PHONY : src/lock.c.o
+
+src/lock.i: src/lock.c.i
+
+.PHONY : src/lock.i
+
+# target to preprocess a source file
+src/lock.c.i:
+	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/lock.c.i
+.PHONY : src/lock.c.i
+
+src/lock.s: src/lock.c.s
+
+.PHONY : src/lock.s
+
+# target to generate assembly for a file
+src/lock.c.s:
+	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/lock.c.s
+.PHONY : src/lock.c.s
 
 src/main.o: src/main.c.o
 
@@ -501,6 +541,33 @@ src/wal.c.s:
 	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/wal.c.s
 .PHONY : src/wal.c.s
 
+test/test_users.o: test/test_users.c.o
+
+.PHONY : test/test_users.o
+
+# target to build an object file
+test/test_users.c.o:
+	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users.c.o
+.PHONY : test/test_users.c.o
+
+test/test_users.i: test/test_users.c.i
+
+.PHONY : test/test_users.i
+
+# target to preprocess a source file
+test/test_users.c.i:
+	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users.c.i
+.PHONY : test/test_users.c.i
+
+test/test_users.s: test/test_users.c.s
+
+.PHONY : test/test_users.s
+
+# target to generate assembly for a file
+test/test_users.c.s:
+	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users.c.s
+.PHONY : test/test_users.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -514,12 +581,16 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... package"
+	@echo "... test_minidb"
 	@echo "... install/local"
 	@echo "... minidb"
 	@echo "... minidb_core"
 	@echo "... src/catalog.o"
 	@echo "... src/catalog.i"
 	@echo "... src/catalog.s"
+	@echo "... src/lock.o"
+	@echo "... src/lock.i"
+	@echo "... src/lock.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
@@ -550,6 +621,9 @@ help:
 	@echo "... src/wal.o"
 	@echo "... src/wal.i"
 	@echo "... src/wal.s"
+	@echo "... test/test_users.o"
+	@echo "... test/test_users.i"
+	@echo "... test/test_users.s"
 .PHONY : help
 
 

@@ -128,3 +128,19 @@ int execute_select_to_string(MiniDB* db, const char* sql,Session session,char * 
 //return debug;
  
 }
+int execute_update_to_string(MiniDB* db, const char* sql, Session session, char* output) {
+    UpdateStmt stmt;
+    if (!parse_update(sql, &stmt)) {
+        snprintf(output, 256, "Failed to parse update SQL\n");
+        return -1;
+    }
+
+    int count = db_update(db,  &stmt, session);
+    if (!count) {
+        snprintf(output, 256, "Update failed\n");
+        return -1;
+    }
+
+    snprintf(output, 256, "Update OK, %d row(s) affected\n", count);
+    return count;
+}

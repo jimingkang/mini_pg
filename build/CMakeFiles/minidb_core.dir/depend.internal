@@ -5,13 +5,26 @@ CMakeFiles/minidb_core.dir/src/catalog.c.o
  ../include/catalog.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parser.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/catalog.c
-CMakeFiles/minidb_core.dir/src/minidb.c.o
+CMakeFiles/minidb_core.dir/src/lock.c.o
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parser.h
+ ../include/txmgr.h
+ ../include/types.h
+ /home/rlk/Downloads/mini_pg/src/lock.c
+CMakeFiles/minidb_core.dir/src/minidb.c.o
+ ../include/catalog.h
+ ../include/lock.h
+ ../include/minidb.h
+ ../include/page.h
+ ../include/server/executor.h
+ ../include/server/parser.h
+ ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
  ../include/wal.h
@@ -20,6 +33,7 @@ CMakeFiles/minidb_core.dir/src/page.c.o
  ../include/catalog.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parser.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
@@ -42,19 +56,23 @@ CMakeFiles/minidb_core.dir/src/server/parser.c.o
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/server/parser.c
 CMakeFiles/minidb_core.dir/src/server/server.c.o
+ ../include/catalog.h
  ../include/minidb.h
  ../include/page.h
  ../include/server/executor.h
  ../include/server/parser.h
+ ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/server/server.c
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o
+ ../include/catalog.h
  ../include/minidb.h
  ../include/page.h
  ../include/server/executor.h
  ../include/server/parser.h
  ../include/server/sql_exec.h
+ ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/server/sql_exec.c
@@ -62,13 +80,16 @@ CMakeFiles/minidb_core.dir/src/tuple.c.o
  ../include/catalog.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parser.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/tuple.c
 CMakeFiles/minidb_core.dir/src/txmgr.c.o
+ ../include/lock.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parser.h
  ../include/txmgr.h
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/txmgr.c
@@ -76,6 +97,7 @@ CMakeFiles/minidb_core.dir/src/wal.c.o
  ../include/catalog.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parser.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h

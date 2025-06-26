@@ -1,10 +1,18 @@
 #include "minidb.h"
 #include "txmgr.h"
+#include "lock.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <limits.h>
+
+LWLock TxMgrLock; // 用于保护事务管理器的全局锁
+
+// 事务初始化前需调用一次
+void InitTransactionManagerLock() {
+    LWLockInit(&TxMgrLock, 1);
+}
 
 // 初始化事务管理器
 void txmgr_init(TransactionManager *txmgr) {

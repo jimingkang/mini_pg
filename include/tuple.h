@@ -34,5 +34,5 @@ bool tuple_equals(const Tuple* t1, const Tuple* t2);
 
 // 计算元组的哈希值（用于索引）
 uint32_t tuple_hash(const Tuple* tuple);
-
+bool eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) ;
 #endif // TUPLE_H

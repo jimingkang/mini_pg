@@ -39,3 +39,17 @@ bool parse_select(const char* sql, SelectStmt* stmt) {
     strcpy(stmt->columns[2], "age");
     return true;
 }
+
+bool parse_update(const char* sql, UpdateStmt* stmt) {
+    strcpy(stmt->table_name, "users");
+    stmt->num_assignments = 1;
+    strcpy(stmt->columns[0], "age");
+    stmt->values[0] = strdup("40");
+
+    // 模拟 where 条件：name = 'Tom'
+    stmt->has_where = true;
+    strcpy(stmt->where.column, "name");
+    strcpy(stmt->where.op, "=");
+    strcpy(stmt->where.value, "Tom");
+    return true;
+}

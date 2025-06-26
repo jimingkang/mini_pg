@@ -36,14 +36,19 @@ char* handle_query(const char* query, MiniDB* db,Session session ) {
         char* result =malloc(4096);
        int len=  execute_select_to_string(db, query,session,result); // 你需要实现这个函数
         return result ? result : strdup("Select Failed\n");
-    } else {
+    } else if (strncasecmp(query, "update", 6) == 0) {
+        // ✅ 新增部分：解析 + 执行 update
+         char* result =malloc(4096);
+         int len=  execute_update_to_string(db, query,session,result); // 你需要实现这个函数
+          return result ? result : strdup("update Failed\n");
+    }else {
         return strdup("Unsupported SQL\n");
     }
 }
 
 
 
-int main() {
+int main_server() {
     signal(SIGCHLD, sigchld_handler);
     
     init_db(&global_db, "/home/rlk/Downloads/mini_pg/build/bin");

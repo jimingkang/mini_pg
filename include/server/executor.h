@@ -3,7 +3,8 @@
 #define EXEC_H
 #include <stdbool.h>
 #include "minidb.h"
-#include "parser.h"
+#include "tuple.h"
+
 
 typedef struct {
     int num_rows;
@@ -14,4 +15,7 @@ typedef struct {
 //bool db_create_table(MiniDB* db, const CreateTableStmt* stmt);
 //bool db_insert(MiniDB* db, const char* table_name, const InsertStmt* stmt);
 bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result,Session session);
+//bool db_update(MiniDB* db, const UpdateStmt* stmt, Session* session);
+//bool exce_update(MiniDB* db, const UpdateStmt* stmt, Session* session);
+int db_update(MiniDB *db, const UpdateStmt* stmt, Session session);
 #endif

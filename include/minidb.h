@@ -14,6 +14,8 @@
 #include "txmgr.h"
 #include "page.h"
 #include "types.h"
+#include "parser.h"'
+
 // 数据库常量
 //#define PAGE_SIZE 8192
 #define HEADER_SIZE 24
@@ -63,6 +65,8 @@ int db_create_table(MiniDB *db, const char *table_name, ColumnDef *columns, uint
 
 //int db_insert(MiniDB *db, const char *table_name, Tuple *tuple);
 bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Session session);
+//bool db_update(MiniDB* db, const UpdateStmt* stmt, Session session);
+//bool db_update(MiniDB *db, const char *table_name,const UpdateStmt* stmt, int *result_count, Session session);
 
 //int db_query(MiniDB *db, const char *table_name, Tuple *results, int max_results);
 Tuple** db_query(MiniDB *db, const char *table_name, int *result_count,Session session);

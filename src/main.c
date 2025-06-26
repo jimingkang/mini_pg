@@ -4,15 +4,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-
+#include <parser.h>
+#include "executor.h"
 // 示例程序
-int main_pg() {
+int main() {
     MiniDB db;
     
     // 初始化数据库
     printf("Initializing database...\n");
-    init_db(&db, "/home/rlk/Downloads/mini_pg/build/bin");
+    init_db(&db, "/home/rlk/Downloads/mini_pg/build");
    // print_db_status(&db);
     Session session;
 
@@ -77,7 +77,7 @@ int main_pg() {
 
 
     user1.columns[0].type = INT4_TYPE; user1.columns[0].value.int_val = 1;
-    user1.columns[1].type = TEXT_TYPE; user1.columns[1].value.str_val = strdup("Deco");
+    user1.columns[1].type = TEXT_TYPE; user1.columns[1].value.str_val = strdup("Tom");
     user1.columns[2].type = INT4_TYPE; user1.columns[2].value.int_val = 30;
 
     if (db_insert(&db, "users", &user1,session) < 0) {
@@ -88,14 +88,13 @@ int main_pg() {
     printf("Inserted user1\n");
     free(user1.columns[1].value.str_val);
     free(user1.columns);
-        print_db_status(&db);
     /*  */
     // 插入用户2
     Tuple user2 = {0};
     user2.col_count = col_count;
     user2.columns = (Column *)malloc(col_count * sizeof(Column));
     user2.columns[0].type = INT4_TYPE; user2.columns[0].value.int_val = 2;
-    user2.columns[1].type = TEXT_TYPE; strcpy(user2.columns[1].value.str_val, "CRon");
+    user2.columns[1].type = TEXT_TYPE; strcpy(user2.columns[1].value.str_val, "Jack");
     user2.columns[2].type = INT4_TYPE; user2.columns[2].value.int_val = 25;
     
     if (db_insert(&db, "users", &user2,session) < 0) {
@@ -128,7 +127,7 @@ int main_pg() {
         fprintf(stderr, "Error: Failed to start transaction\n");
         return 1;
     }
-    printf("Started transaction %u\n", tx3);
+    printf("Started Query Data transaction %u\n", tx3);
     
     // 查询数据
     int cnt;
@@ -147,23 +146,88 @@ int main_pg() {
         fprintf(stderr, "Error: Failed to commit transaction %u\n", tx3);
         return 1;
     }
-    printf("Committed transaction %u\n", tx3);
+    printf("Committed Query transaction %u\n", tx3);
+     
+
+
+ 
+    // 开始新事务
+    uint32_t tx4= session_begin_transaction(&session);
+    session.current_xid=tx4;
+    // Step 6: 构造并执行 UPDATE 操作
+    UpdateStmt stmt;
+    memset(&stmt, 0, sizeof(UpdateStmt));
+    strcpy(stmt.table_name, "users");
+
+    stmt.num_assignments = 1;
+     strcpy(stmt.columns[0], "age");
+    stmt.values[0] = strdup("40");
+
+
+    
+    strcpy(stmt.where.column, "name");
+     strcpy(stmt.where.op, "=");
+    strcpy(stmt.where.value, "Tom");
+int ret=db_update(&db, &stmt,session);
+    if (!ret==1) {
+        printf("Update failed\n");
+       // return;
+    } else {
+        printf("Update executed successfully\n");
+    }
+        // 提交事务
+    if (session_commit_transaction(&db,&session)) {
+        fprintf(stderr, "Error: Failed to commit transaction %u\n", tx4);
+        return 1;
+    }
+    printf("Committed Updatetransaction %u\n", tx4);
+
+    // ================== 事务 5 ==================
+    printf("\n===== Transaction 5: Query Data =====\n");
+    
+    // 开始新事务
+    uint32_t tx5 = session_begin_transaction(&session);
+        session.current_xid=tx5;
+    if (tx3 == INVALID_XID) {
+        fprintf(stderr, "Error: Failed to start transaction\n");
+        return 1;
+    }
+    printf("Started transaction %u\n", tx3);
+    
+    // 查询数据
+
+      new_results = db_query(&db, "users",&cnt,session);
+    if (new_results) {
+
+            printf("new Query returned %d tuples:\n", cnt);
+
+        for (int i = 0; i < cnt; i++) {
+            print_tuple(new_results[i], find_table(&db.catalog, "users"));
+        }
+    }
+    
+    // 提交事务
+    if (session_commit_transaction(&db,&session)) {
+        fprintf(stderr, "Error: Failed to commit transaction %u\n", tx5);
+        return 1;
+    }
+    printf("Committed 5 transaction %u\n", tx5);
     
     // ================== 事务 4 (演示回滚) ==================
     printf("\n===== Transaction 4: Rollback Demo =====\n");
     
     // 开始新事务
-    uint32_t tx4 = session_begin_transaction(&session);
-    session.current_xid=tx4;
+    uint32_t tx6 = session_begin_transaction(&session);
+    session.current_xid=tx6;
     if (tx4 == INVALID_XID) {
         fprintf(stderr, "Error: Failed to start transaction\n");
         return 1;
     }
-    printf("Started transaction %u\n", tx4);
+    printf("Started transaction %u\n", tx6);
     
     // 插入用户3
     Tuple user3 = {0};
-        user3.col_count = col_count;
+    user3.col_count = col_count;
     user3.columns = (Column *)malloc(col_count * sizeof(Column));
 
     user3.columns[0].type = INT4_TYPE; user3.columns[0].value.int_val = 3;
@@ -179,17 +243,17 @@ int main_pg() {
     
     // 回滚事务
     if (session_rollback_transaction(&db,&session)) {
-        fprintf(stderr, "Error: Failed to rollback transaction %u\n", tx4);
+        fprintf(stderr, "Error: Failed to rollback transaction %u\n", tx6);
         return 1;
     }
-    printf("Rolled back transaction %u\n", tx4);
+    printf("Rolled back 6 transaction %u\n", tx6);
     
     // ================== 事务 5 ==================
-    printf("\n===== Transaction 5: Verify Rollback =====\n");
+    printf("\n===== Transaction 7: Verify Rollback =====\n");
     
     // 开始新事务
-    uint32_t tx5 = session_begin_transaction(&session);
-    session.current_xid=tx5;
+    uint32_t tx7 = session_begin_transaction(&session);
+    session.current_xid=tx7;
     if (tx5 == INVALID_XID) {
         fprintf(stderr, "Error: Failed to start transaction\n");
         return 1;
@@ -213,10 +277,13 @@ int main_pg() {
         
     // 提交事务
     if (session_commit_transaction(&db,&session)) {
-        fprintf(stderr, "Error: Failed to commit transaction %u\n", tx5);
+        fprintf(stderr, "Error: Failed to commit transaction %u\n", tx7);
         return 1;
     }
-    printf("Committed transaction %u\n", tx5);
+    printf("Committed transaction %u\n", tx7);
+
+
+     
     
     // 创建检查点
     db_create_checkpoint(&db);

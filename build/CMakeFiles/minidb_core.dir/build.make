@@ -135,9 +135,22 @@ CMakeFiles/minidb_core.dir/src/tuple.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minidb_core.dir/src/tuple.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/tuple.c -o CMakeFiles/minidb_core.dir/src/tuple.c.s
 
+CMakeFiles/minidb_core.dir/src/lock.c.o: CMakeFiles/minidb_core.dir/flags.make
+CMakeFiles/minidb_core.dir/src/lock.c.o: ../src/lock.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/minidb_core.dir/src/lock.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minidb_core.dir/src/lock.c.o   -c /home/rlk/Downloads/mini_pg/src/lock.c
+
+CMakeFiles/minidb_core.dir/src/lock.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/minidb_core.dir/src/lock.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/src/lock.c > CMakeFiles/minidb_core.dir/src/lock.c.i
+
+CMakeFiles/minidb_core.dir/src/lock.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minidb_core.dir/src/lock.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/lock.c -o CMakeFiles/minidb_core.dir/src/lock.c.s
+
 CMakeFiles/minidb_core.dir/src/server/server.c.o: CMakeFiles/minidb_core.dir/flags.make
 CMakeFiles/minidb_core.dir/src/server/server.c.o: ../src/server/server.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/minidb_core.dir/src/server/server.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/minidb_core.dir/src/server/server.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minidb_core.dir/src/server/server.c.o   -c /home/rlk/Downloads/mini_pg/src/server/server.c
 
 CMakeFiles/minidb_core.dir/src/server/server.c.i: cmake_force
@@ -150,7 +163,7 @@ CMakeFiles/minidb_core.dir/src/server/server.c.s: cmake_force
 
 CMakeFiles/minidb_core.dir/src/server/executor.c.o: CMakeFiles/minidb_core.dir/flags.make
 CMakeFiles/minidb_core.dir/src/server/executor.c.o: ../src/server/executor.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/minidb_core.dir/src/server/executor.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/minidb_core.dir/src/server/executor.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minidb_core.dir/src/server/executor.c.o   -c /home/rlk/Downloads/mini_pg/src/server/executor.c
 
 CMakeFiles/minidb_core.dir/src/server/executor.c.i: cmake_force
@@ -163,7 +176,7 @@ CMakeFiles/minidb_core.dir/src/server/executor.c.s: cmake_force
 
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: CMakeFiles/minidb_core.dir/flags.make
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../src/server/sql_exec.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o   -c /home/rlk/Downloads/mini_pg/src/server/sql_exec.c
 
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.i: cmake_force
@@ -176,7 +189,7 @@ CMakeFiles/minidb_core.dir/src/server/sql_exec.c.s: cmake_force
 
 CMakeFiles/minidb_core.dir/src/server/parser.c.o: CMakeFiles/minidb_core.dir/flags.make
 CMakeFiles/minidb_core.dir/src/server/parser.c.o: ../src/server/parser.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/minidb_core.dir/src/server/parser.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object CMakeFiles/minidb_core.dir/src/server/parser.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minidb_core.dir/src/server/parser.c.o   -c /home/rlk/Downloads/mini_pg/src/server/parser.c
 
 CMakeFiles/minidb_core.dir/src/server/parser.c.i: cmake_force
@@ -195,6 +208,7 @@ minidb_core_OBJECTS = \
 "CMakeFiles/minidb_core.dir/src/catalog.c.o" \
 "CMakeFiles/minidb_core.dir/src/page.c.o" \
 "CMakeFiles/minidb_core.dir/src/tuple.c.o" \
+"CMakeFiles/minidb_core.dir/src/lock.c.o" \
 "CMakeFiles/minidb_core.dir/src/server/server.c.o" \
 "CMakeFiles/minidb_core.dir/src/server/executor.c.o" \
 "CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o" \
@@ -209,13 +223,14 @@ lib/libminidb_core.a: CMakeFiles/minidb_core.dir/src/wal.c.o
 lib/libminidb_core.a: CMakeFiles/minidb_core.dir/src/catalog.c.o
 lib/libminidb_core.a: CMakeFiles/minidb_core.dir/src/page.c.o
 lib/libminidb_core.a: CMakeFiles/minidb_core.dir/src/tuple.c.o
+lib/libminidb_core.a: CMakeFiles/minidb_core.dir/src/lock.c.o
 lib/libminidb_core.a: CMakeFiles/minidb_core.dir/src/server/server.c.o
 lib/libminidb_core.a: CMakeFiles/minidb_core.dir/src/server/executor.c.o
 lib/libminidb_core.a: CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o
 lib/libminidb_core.a: CMakeFiles/minidb_core.dir/src/server/parser.c.o
 lib/libminidb_core.a: CMakeFiles/minidb_core.dir/build.make
 lib/libminidb_core.a: CMakeFiles/minidb_core.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking C static library lib/libminidb_core.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking C static library lib/libminidb_core.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/minidb_core.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/minidb_core.dir/link.txt --verbose=$(VERBOSE)
 

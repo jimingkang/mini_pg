@@ -36,6 +36,7 @@ add_library(minidb_core STATIC
     src/catalog.c
     src/page.c
    src/tuple.c
+    src/lock.c
    src/server/server.c
    src/server/executor.c
    src/server/sql_exec.c
@@ -54,15 +55,17 @@ add_executable(minidb
 target_link_libraries(minidb minidb_core pthread)
 
 # ================== 测试程序 ==================
-#add_executable(test_minidb
+add_executable(test_minidb
 #    test/test_minidb.c
 #    test/test_txmgr.c
 #    test/test_wal.c
 #    test/test_page.c
 #    test/test_tuple.c
-#)
+    test/test_users.c
 
-#target_link_libraries(test_minidb minidb_core)
+)
+
+target_link_libraries(test_minidb minidb_core)
 #target_link_libraries(minidb_core)
 
 # ================== 安装目标 ==================

@@ -8,6 +8,8 @@
 #include <sys/stat.h>
 #include <zlib.h>
 #include "wal.h"
+#include "lock.h"
+#include "executor.h"
 // 初始化数据库
 void init_db(MiniDB *db, const char *data_dir) {
     // 设置数据目录
@@ -108,7 +110,10 @@ int session_rollback_transaction(MiniDB *db,Session* session) {
     // 遍历每张表
     for (int i = 0; i < db->catalog.table_count; i++) {
         TableMeta* meta = &db->catalog.tables[i];
-        FILE* file = fopen(meta->filename, "r+b");
+        char fullpath[256];  // 或者动态分配更安全
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+ 
+        FILE* file = fopen(fullpath, "r+b");
         if (!file) continue;
 
         Page page;
@@ -160,7 +165,7 @@ int db_create_table(MiniDB *db, const char *table_name, ColumnDef *columns, uint
     }
     
     // 在系统目录中创建表
-    int oid = create_table(&db->catalog, table_name, columns, col_count,"./");
+    int oid = create_table(&db->catalog, table_name, columns, col_count,&db->data_dir);
     if (oid < 0) {
         fprintf(stderr, "Error: Failed to create table '%s'\n", table_name);
         return -1;
@@ -233,12 +238,18 @@ bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Sessio
     
     
     // 打开表文件
-    FILE *table_file = fopen(meta->filename, "r+b");
+    char fullpath[256];  // 或者动态分配更安全
+snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+    FILE *table_file = fopen(fullpath, "r+b");
     if (!table_file) {
         perror("Failed to open table file");
         free_tuple(new_tuple);
         return false;
     }
+
+    
+    // === 加锁：查找空闲页 ===
+    LWLockAcquireExclusive(&meta->fsm_lock);
     
     // 查找有空间的页面
     Page page;
@@ -251,30 +262,38 @@ bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Sessio
         size_t required_space = new_tuple->col_count * sizeof(Column) + 128; // 估算大小
         
         if (page_free_space(&page) >= required_space) {
+              // === 加锁：页锁 ===
+            LWLockAcquireExclusive(&page.lock);
             // 尝试插入
             if (page_insert_tuple(&page, new_tuple, &slot_index)) {
                 found_space = true;
                 insert_pos = ftell(table_file) - sizeof(Page);
+                     LWLockRelease(&page.lock);
                 break;
             }
+            LWLockRelease(&page.lock);
         }
     }
-    
+    LWLockRelease(&meta->fsm_lock);
+    LWLockAcquireExclusive(&meta->extension_lock);
     // 如果没有空间，创建新页面
     if (!found_space) {
+       
         PageID new_page_id = db->next_page_id++;
         page_init(&page, new_page_id);
-        
+        LWLockInit(&page.lock, 0);  // 初始化新页锁
         if (!page_insert_tuple(&page, new_tuple, &slot_index)) {
             fprintf(stderr, "Failed to insert into new page\n");
             fclose(table_file);
             free_tuple(new_tuple);
+            LWLockRelease(&meta->extension_lock);
             return false;
         }
         
         // 移动到文件末尾
         fseek(table_file, 0, SEEK_END);
         insert_pos = ftell(table_file);
+       
     }
     
     // 写入页面
@@ -285,8 +304,12 @@ bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Sessio
         free_tuple(new_tuple);
         return false;
     }
-     fflush(table_file);
+
+   
+    fflush(table_file);
+    LWLockRelease(&meta->extension_lock);
     fclose(table_file);
+
    // free_tuple(new_tuple);
 
    save_table_meta_to_file(meta, db->data_dir);
@@ -317,7 +340,9 @@ Tuple** db_query(MiniDB *db, const char *table_name, int *result_count,Session s
     fprintf(stderr, "for Table '%s',file  found:%s\n", table_name,meta->filename);
     
     // 打开表文件
-    FILE *table_file = fopen(meta->filename, "rb");
+    char fullpath[256];  // 或者动态分配更安全
+snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+    FILE *table_file = fopen(fullpath, "r+b");
     if (!table_file) {
         perror("Failed to open table file");
         return NULL;
@@ -466,8 +491,3 @@ void print_db_status(const MiniDB *db) {
     // 打印事务管理器状态
     txmgr_print_status(&db->tx_mgr);
 }
-
-
-
-
-

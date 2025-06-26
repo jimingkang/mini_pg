@@ -5,6 +5,7 @@
 /home/rlk/Downloads/mini_pg/build/CMakeFiles/list_install_components.dir
 /home/rlk/Downloads/mini_pg/build/CMakeFiles/rebuild_cache.dir
 /home/rlk/Downloads/mini_pg/build/CMakeFiles/package.dir
+/home/rlk/Downloads/mini_pg/build/CMakeFiles/test_minidb.dir
 /home/rlk/Downloads/mini_pg/build/CMakeFiles/install/local.dir
 /home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb.dir
 /home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir

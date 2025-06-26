@@ -64,6 +64,12 @@ stdbool.h
 minidb.h
 ../include/server/minidb.h
 
+../include/server/sql_exec.h
+stdbool.h
+-
+minidb.h
+../include/server/minidb.h
+
 ../include/tuple.h
 catalog.h
 ../include/catalog.h
@@ -106,15 +112,15 @@ pthread.h
 semaphore.h
 -
 
-/home/rlk/Downloads/mini_pg/src/server/executor.c
-server/executor.h
-/home/rlk/Downloads/mini_pg/src/server/server/executor.h
-tuple.h
-/home/rlk/Downloads/mini_pg/src/server/tuple.h
-stdlib.h
+/home/rlk/Downloads/mini_pg/test/test_users.c
+minidb.h
+/home/rlk/Downloads/mini_pg/test/minidb.h
+parser.h
+/home/rlk/Downloads/mini_pg/test/parser.h
+assert.h
 -
-string.h
+executor.h
 -
-stdio.h
+sql_exec.h
 -
 
