@@ -33,7 +33,8 @@ void test_update_case(MiniDB* db) {
 
     stmt.num_assignments = 1;
      strcpy(stmt.columns[0], "age");
-    stmt.values[0] = strdup("40");
+    //strcpy(stmt.values[0] ,"40");
+    stmt.values[0]=strdup("40");
 
 
     

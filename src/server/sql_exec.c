@@ -129,17 +129,43 @@ int execute_select_to_string(MiniDB* db, const char* sql,Session session,char * 
  
 }
 int execute_update_to_string(MiniDB* db, const char* sql, Session session, char* output) {
-    UpdateStmt stmt;
-    if (!parse_update(sql, &stmt)) {
-        snprintf(output, 256, "Failed to parse update SQL\n");
-        return -1;
-    }
+    UpdateStmt *stmt=malloc(sizeof(UpdateStmt));
+    // UpdateStmt stmt_origin;
+        //memset(&stmt, 0, sizeof(UpdateStmt));
+     //   UpdateStmt *stmt=&stmt_origin;
+   // if (!parse_update(sql, &stmt)) {
+   // snprintf(output, 256, "Failed to parse update SQL\n");
+    //    return -1;
+   // }
+     strcpy(stmt->table_name, "users");
+    stmt->num_assignments = 1;
+    strcpy(stmt->columns[0], "age");
+    //stmt->values[0]=malloc(128);
+    //strcpy(stmt->values[0] ,"110");
+    stmt->values[0]=strdup("110");
 
-    int count = db_update(db,  &stmt, session);
+    // 模拟 where 条件：name = 'Tom'
+    stmt->has_where = true;
+    strcpy(stmt->where.column, "name");
+    fprintf(stderr, ">>> in parse_update: stmt->where.column = [%s]\n", stmt->where.column);
+    strcpy(stmt->where.op, "=");
+    strcpy(stmt->where.value, "Jack");
+
+
+
+ 
+
+fprintf(stderr, "[DEBUG] stmt addr: %p\n", (void*)&stmt);
+fprintf(stderr, "[DEBUG] stmt->where.column addr: %p\n", (void*)stmt->where.column);
+fprintf(stderr, "[DEBUG] stmt->values[0] addr: %p\n", (void*)stmt->values[0]);
+
+    int count = db_update(db,  stmt, session);
     if (!count) {
         snprintf(output, 256, "Update failed\n");
         return -1;
     }
+
+    free(stmt);
 
     snprintf(output, 256, "Update OK, %d row(s) affected\n", count);
     return count;

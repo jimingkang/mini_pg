@@ -40,16 +40,21 @@ bool parse_select(const char* sql, SelectStmt* stmt) {
     return true;
 }
 
-bool parse_update(const char* sql, UpdateStmt* stmt) {
+bool parse_update(const char* sql, UpdateStmt*stmt) {
+  
     strcpy(stmt->table_name, "users");
     stmt->num_assignments = 1;
     strcpy(stmt->columns[0], "age");
-    stmt->values[0] = strdup("40");
+    //stmt->values[0]=malloc(128);
+    //strcpy(stmt->values[0] ,"110");
+    stmt->values[0]=strdup("110");
 
     // 模拟 where 条件：name = 'Tom'
     stmt->has_where = true;
     strcpy(stmt->where.column, "name");
+    fprintf(stderr, ">>> in parse_update: stmt->where.column = [%s]\n", stmt->where.column);
     strcpy(stmt->where.op, "=");
-    strcpy(stmt->where.value, "Tom");
+    strcpy(stmt->where.value, "Jack");
+    fprintf(stderr, ">>> in parse_update: stmt->where.value = [%s]\n", stmt->where.value);
     return true;
 }

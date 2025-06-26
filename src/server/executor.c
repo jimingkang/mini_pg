@@ -6,184 +6,6 @@
 #include <stdio.h>
 
 
-bool demo_db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result) {
-    // 此处为模拟，实际应调用你的 select 执行逻辑
-    result->num_rows = 1;
-    result->num_cols = stmt->num_columns;
-    result->rows = malloc(sizeof(char**) * result->num_rows);
-    result->rows[0] = malloc(sizeof(char*) * result->num_cols);
-
-    for (int i = 0; i < result->num_cols; i++) {
-        result->rows[0][i] = strdup("demo");
-    }
-    return true;
-}
-/*
-//直接tuple读取数据
-bool direct_tuple_db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result) {
-  //  TableMeta* meta = find_table(&db->catalog, stmt->table_name);
-    int idx= find_table(&db->catalog, stmt->table_name);
-    TableMeta *meta =&(db->catalog.tables[idx]);
-    if (!meta) {
-        fprintf(stderr, "[select] table not found: %s\n", stmt->table_name);
-        return false;
-    }
-
-    FILE* table_file = fopen(meta->filename, "rb");
-    if (!table_file) {
-        perror("[select] failed to open table file");
-        return false;
-    }
-
-    Tuple tuple;
-    result->num_cols = stmt->num_columns;
-    result->rows = NULL;
-    result->num_rows = 0;
-
-    while (read_tuple(table_file, &tuple)) {
-        if (tuple.deleted) continue;
-
-        // 构造一行字符串结果
-        char** row = malloc(sizeof(char*) * result->num_cols);
-        for (int i = 0; i < result->num_cols; i++) {
-            const char* colname = stmt->columns[i];
-
-            int col_index = -1;
-            for (int j = 0; j < meta->col_count; j++) {
-                if (strcmp(meta->cols[j].name, colname) == 0) {
-                    col_index = j;
-                    break;
-                }
-            }
-            if (col_index == -1) {
-                fprintf(stderr, "[select] column not found: %s\n", colname);
-                fclose(table_file);
-                return false;
-            }
-
-            Column* col = &tuple.columns[col_index];
-            char buf[128];
-            switch (col->type) {
-                case INT4_TYPE:
-                    snprintf(buf, sizeof(buf), "%d", col->value.int_val);
-                    break;
-                case FLOAT_TYPE:
-                    snprintf(buf, sizeof(buf), "%.2f", col->value.float_val);
-                    break;
-                case BOOL_TYPE:
-                    snprintf(buf, sizeof(buf), "%s", col->value.bool_val ? "true" : "false");
-                    break;
-                case TEXT_TYPE:
-                    snprintf(buf, sizeof(buf), "%s", col->value.str_val);
-                    break;
-                case DATE_TYPE:
-                    snprintf(buf, sizeof(buf), "%d", col->value.int_val);
-                    break;
-                default:
-                    strcpy(buf, "<unknown>");
-            }
-            row[i] = strdup(buf);
-        }
-
-        result->rows = realloc(result->rows, sizeof(char**) * (result->num_rows + 1));
-        result->rows[result->num_rows++] = row;
-
-        if (tuple.columns) {
-            for (int i = 0; i < tuple.col_count; i++) {
-                if (tuple.columns[i].type == TEXT_TYPE && tuple.columns[i].value.str_val)
-                    free(tuple.columns[i].value.str_val);
-            }
-            free(tuple.columns);
-        }
-    }
-
-    fclose(table_file);
-    return true;
-}
-*/
-//通过page读取数据
-bool page_db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result) {
-    TableMeta* meta = find_table_meta(&db->catalog, stmt->table_name);
-    if (!meta) {
-        fprintf(stderr, "[select] table not found: %s\n", stmt->table_name);
-        return false;
-    }
-
-    FILE* table_file = fopen(meta->filename, "rb");
-    if (!table_file) {
-        perror("[select] open file failed");
-        return false;
-    }
-
-    result->num_cols = stmt->num_columns;
-    result->num_rows = 0;
-    result->rows = NULL;
-
-    PageID current = meta->first_page;
-    while (current != INVALID_PAGE_ID) {
-        Page* page = read_page(table_file, current);
-        if (!page) break;
-
-        for (int i = 0; i < page->header.tuple_count; i++) {
-            Tuple* tuple = page_get_tuple(page, i,meta);
-            if (!tuple || tuple->deleted) continue;
-
-            // 构造一行
-            char** row = malloc(sizeof(char*) * result->num_cols);
-            for (int c = 0; c < result->num_cols; c++) {
-                const char* colname = stmt->columns[c];
-                int col_index = -1;
-                for (int j = 0; j < meta->col_count; j++) {
-                    if (strcmp(meta->cols[j].name, colname) == 0) {
-                        col_index = j;
-                        break;
-                    }
-                }
-                if (col_index == -1) {
-                    fprintf(stderr, "[select] column not found: %s\n", colname);
-                    fclose(table_file);
-                    return false;
-                }
-
-                Column* col = &tuple->columns[col_index];
-                char buf[128];
-                switch (col->type) {
-                    case INT4_TYPE:
-                        snprintf(buf, sizeof(buf), "%d", col->value.int_val);
-                        break;
-                    case FLOAT_TYPE:
-                        snprintf(buf, sizeof(buf), "%.2f", col->value.float_val);
-                        break;
-                    case BOOL_TYPE:
-                        snprintf(buf, sizeof(buf), "%s", col->value.bool_val ? "true" : "false");
-                        break;
-                    case TEXT_TYPE:
-                        snprintf(buf, sizeof(buf), "%s", col->value.str_val);
-                        break;
-                    case DATE_TYPE:
-                        snprintf(buf, sizeof(buf), "%d", col->value.int_val);
-                        break;
-                    default:
-                        strcpy(buf, "<unknown>");
-                }
-
-                row[c] = strdup(buf);
-            }
-
-            result->rows = realloc(result->rows, sizeof(char**) * (result->num_rows + 1));
-            result->rows[result->num_rows++] = row;
-
-            free_tuple(tuple);  // 释放动态字段
-        }
-
-        PageID next = page->header.next_page;
-        free_page(page);  // 你自己的释放函数
-        current = next;
-    }
-
-    fclose(table_file);
-    return true;
-}
 
 
 bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result, Session session) {
@@ -243,10 +65,12 @@ bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result, Session se
     }
 
     free(tuples);
+      save_tx_state(&db->tx_mgr, db->data_dir);
     return true;
 }
 
 bool old_db_update(MiniDB* db, const UpdateStmt* stmt, Session* session) {
+
   // if (!db || !stmt || session.current_xid == INVALID_XID) {
   //      fprintf(stderr, "Update failed: Invalid input or no active transaction.\n");
    //     return false;
@@ -319,17 +143,18 @@ bool old_db_update(MiniDB* db, const UpdateStmt* stmt, Session* session) {
 
 
 int  db_update(MiniDB *db,const UpdateStmt* stmt,Session session) {
+    fprintf(stderr, "stmt->where.column = [%s]\n", stmt->where.column);
     if (!db || !stmt->table_name || session.current_xid == INVALID_XID) {
         fprintf(stderr, "Invalid input or no active transaction\n");
         return false;
     }
-
+    fprintf(stderr, "db_update:table_name '%s'  \n", stmt->table_name);
     int idx = find_table(&db->catalog, stmt->table_name);
     if (idx < 0) {
         fprintf(stderr, "Table '%s' not found\n", stmt->table_name);
         return false;
     }
-
+ //fprintf(stderr, " db_update:table_name '%s' found  \n", stmt->table_name);
     TableMeta *meta = &db->catalog.tables[idx];
     FILE *table_file = fopen(meta->filename, "r+b");
     if (!table_file) {
@@ -341,26 +166,35 @@ int  db_update(MiniDB *db,const UpdateStmt* stmt,Session session) {
     Page page;
     long page_pos = 0;
     while (fread(&page, sizeof(Page), 1, table_file) == 1) {
+        //  LWLockAcquireExclusive(&page.lock);
         page_pos = ftell(table_file) - sizeof(Page);  // ✅ 修复定位
         int orig_slot_count = page.header.slot_count;
+        fprintf(stderr, "in fread for loop:orig_slot_count=%d,session.current_xid=%d \n", orig_slot_count, session.current_xid);
         for (int i = 0; i < orig_slot_count; i++) {
+            //fprintf(stderr, "in fread for loop:orig_slot_count i=%d\n", i);
             Slot *slot = &page.slots[i];
             if (slot->flags  != SLOT_OCCUPIED) continue;
 
             Tuple *t = page_get_tuple(&page, i, meta);
             if (!t || !is_tuple_visible(t, session.current_xid)) continue;
-if (t->xmin == session.current_xid) continue;
-                 if (!eval_condition(&(stmt->where), t, meta)) continue;
-
-            // 执行更新：例如将 age 改为 40
-            //for (int j = 0; j < meta->col_count; j++) {
-            //    if (strcmp(meta->cols[j].name, "age") == 0) {
-            //        set_column_value(&t->columns[j], "40");
-            //    }
-            //}
-
+               // fprintf(stderr, "in fread after is_tuple_visible \n");
+            if (t->xmin == session.current_xid) continue;
+             fprintf(stderr, "in fread: before  lock_row \n");
+           // lock_row(meta->name, t->oid, session.current_xid);
+           if (!lock_row(meta->name, t->oid, session.current_xid)) {
+    fprintf(stderr, "行锁获取失败，跳过 oid=%u\n", t->oid);
+    continue;
+}
             
-
+           // if (!eval_condition(&(stmt->where), t, meta)) continue;
+           if (!eval_condition(&(stmt->where), t, meta)) {
+                fprintf(stderr, "in fread: eval_condition 条件不满足,释放锁 , session.current_xid=%d \n", session.current_xid); 
+              unlock_row(meta->name, t->oid, session.current_xid);  // 条件不满足也要释放锁
+          
+            continue;
+            }
+                
+            sleep(1);   
             t->xmax = session.current_xid;
             Tuple new_t;
             memcpy(&new_t, t, sizeof(Tuple));
@@ -368,29 +202,50 @@ if (t->xmin == session.current_xid) continue;
             new_t.xmax = 0;
 
             // 遍历所有 SET 列进行更新
-for (int j = 0; j < meta->col_count; j++) {
-    for (int k = 0; k < stmt->num_assignments; k++) {
-        if (strcmp(meta->cols[j].name, stmt->columns[k]) == 0) {
-            set_column_value(&new_t.columns[j], stmt->values[k]);
-        }
-    }
-}
+            for (int j = 0; j < meta->col_count; j++) {
+              for (int k = 0; k < stmt->num_assignments; k++) {
+                if (strcmp(meta->cols[j].name, stmt->columns[k]) == 0) {
+                   set_column_value(&new_t.columns[j], stmt->values[k]);
+                  }
+               }
+            }
 
             uint16_t new_slot_idx;
             if (page_insert_tuple(&page, &new_t, &new_slot_idx)) {
                 slot->flags = SLOT_DELETED;
-                page.header.tuple_count++;
+               // page.header.tuple_count++;
+
                 (result_count)++;
             }
+            fprintf(stderr, "in fread:最终,释放锁 , session.current_x:%d\n", session.current_xid);
+            unlock_row(meta->name, t->oid, session.current_xid);
         }
 
         fseek(table_file, page_pos, SEEK_SET);
         fwrite(&page, sizeof(Page), 1, table_file);
         page_pos = ftell(table_file);
+       // LWLockRelease(&page.lock);
     }
 
     fclose(table_file);
-    return true;
+    
+  save_tx_state(&db->tx_mgr, db->data_dir);
+
+    for (int i = 0; i < page.header.slot_count; i++) {
+    Slot* s = &page.slots[i];
+    fprintf(stderr, "Slot[%d] flags=%d offset=%d len=%d\n", i, s->flags, s->offset, s->length);
+    
+    Tuple* t = page_get_tuple(&page, i, meta);
+    if (t) {
+        for (int c = 0; c < meta->col_count; c++) {
+            if (strcmp(meta->cols[c].name, "name") == 0) {
+                fprintf(stderr, "name = %s\n", t->columns[c].value.str_val);
+            }
+        }
+    }
+}
+
+    return result_count;
 }
 void set_column_value(Column* column, const char* new_value) {
     if (!column || !new_value) return;

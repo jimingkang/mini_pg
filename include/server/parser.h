@@ -43,6 +43,7 @@ typedef struct {
     int num_assignments;                // 赋值的列数
     char columns[MAX_COLS][MAX_NAME_LEN];  // 要更新的列名
     char* values[MAX_COLS];             // 更新的值
+  //char values[MAX_COLS][MAX_TEXT_LEN];
     Condition where;                    // WHERE 子句条件（只支持一个简单条件）
     bool has_where;                     // 是否指定了 WHERE 子句
 } UpdateStmt;

@@ -322,3 +322,38 @@ Page* read_page(const char* table_path, PageID page_id) {
     fclose(file);
     return page;
 }
+
+void init_page_cache() {
+    memset(&global_page_cache, 0, sizeof(global_page_cache));
+    pthread_mutex_init(&global_page_cache.lock, NULL);
+}
+
+Page* page_cache_get(uint32_t oid, TableMeta* meta, FILE* table_file) {
+    pthread_mutex_lock(&global_page_cache.lock);
+
+    // 查找缓存
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        if (global_page_cache.entries[i].valid && global_page_cache.entries[i].oid == oid) {
+            pthread_mutex_unlock(&global_page_cache.lock);
+            return &global_page_cache.entries[i].page;
+        }
+    }
+
+    // 没命中，从磁盘读取
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        if (!global_page_cache.entries[i].valid) {
+            long offset = (long)oid * sizeof(Page);
+            fseek(table_file, offset, SEEK_SET);
+            fread(&global_page_cache.entries[i].page, sizeof(Page), 1, table_file);
+            global_page_cache.entries[i].oid = oid;
+            global_page_cache.entries[i].valid = true;
+            global_page_cache.entries[i].dirty = false;
+
+            pthread_mutex_unlock(&global_page_cache.lock);
+            return &global_page_cache.entries[i].page;
+        }
+    }
+
+    pthread_mutex_unlock(&global_page_cache.lock);
+    return NULL;  // 缓存满未命中
+}

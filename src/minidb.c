@@ -25,6 +25,8 @@ void init_db(MiniDB *db, const char *data_dir) {
     // 初始无活动事务
     db->current_xid = INVALID_XID;
     
+
+    init_row_lock_table();
     // 初始化WAL
     init_wal();
     
@@ -447,6 +449,8 @@ snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
     }
     
     *result_count = total_tuples;
+
+    save_table_meta_to_file(meta, db->data_dir);
     return results;
 }
 

@@ -52,7 +52,7 @@ add_executable(minidb
     src/main.c
 )
 
-target_link_libraries(minidb minidb_core pthread)
+target_link_libraries(minidb minidb_core )
 
 # ================== 测试程序 ==================
 add_executable(test_minidb
@@ -61,11 +61,12 @@ add_executable(test_minidb
 #    test/test_wal.c
 #    test/test_page.c
 #    test/test_tuple.c
-    test/test_users.c
+  #  test/test_users.c
+    test/test_users_thread.c
 
 )
 
-target_link_libraries(test_minidb minidb_core)
+target_link_libraries(test_minidb minidb_core pthread)
 #target_link_libraries(minidb_core)
 
 # ================== 安装目标 ==================

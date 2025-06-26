@@ -168,10 +168,17 @@ typedef struct {
     char table_name[64];
     uint32_t oid;  // 该行的 OID（Tuple 中的 oid 字段）
 } RowLockTag;
+/*
 typedef struct RowLock {
     RowLockTag tag;
     PGPROC *holder;           // 持有锁的事务
     PGPROC *wait_queue_head;  // 阻塞等待队列
+    struct RowLock *next;
+} RowLock;
+*/
+typedef struct RowLock {
+    RowLockTag tag;
+    uint32_t holder_xid;
     struct RowLock *next;
 } RowLock;
 

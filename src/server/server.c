@@ -36,22 +36,27 @@ char* handle_query(const char* query, MiniDB* db,Session session ) {
         char* result =malloc(4096);
        int len=  execute_select_to_string(db, query,session,result); // 你需要实现这个函数
         return result ? result : strdup("Select Failed\n");
-    } else if (strncasecmp(query, "update", 6) == 0) {
+    } 
+    /*
+    else if (strncasecmp(query, "update", 6) == 0) {
         // ✅ 新增部分：解析 + 执行 update
          char* result =malloc(4096);
          int len=  execute_update_to_string(db, query,session,result); // 你需要实现这个函数
+           printf("update : get retured string from execute_update_to_string:\n%s\n", result);
           return result ? result : strdup("update Failed\n");
-    }else {
+    }
+          */
+    else {
         return strdup("Unsupported SQL\n");
     }
 }
 
 
 
-int main_server() {
+int main_pg() {
     signal(SIGCHLD, sigchld_handler);
     
-    init_db(&global_db, "/home/rlk/Downloads/mini_pg/build/bin");
+    init_db(&global_db, "/home/rlk/Downloads/mini_pg/build");
 
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in addr = {0};
@@ -64,19 +69,6 @@ int main_server() {
 
     printf("[mini_pg] server started on port %d\n", PORT);
 
-    /*
-    while (1) {
-        int client_fd = accept(server_fd, NULL, NULL);
-        if (client_fd < 0) continue;
-
-        if (fork() == 0) {
-               printf("[server] child process: pid=%d, handling client\n", getpid());
-            close(server_fd);
-            handle_client(client_fd);
-        }
-        close(client_fd);
-    }
-    */
    while (1) {
     int client_fd = accept(server_fd, NULL, NULL);
     if (fork() == 0) {
@@ -109,7 +101,13 @@ int main_server() {
                 const char* msg = "Committed\r\n";
                 write(client_fd, msg, strlen(msg));
              //   write(client_fd, "Committed\n", 10);
-            } else {
+            }else if (strncasecmp(buffer, "update", 6) == 0) {
+                // ✅ 新增部分：解析 + 执行 update
+               char* result =malloc(4096);
+                int len=  execute_update_to_string(session.db, buffer,session,result); // 你需要实现这个函数
+                  printf("update : get retured string from execute_update_to_string:\n%s\n", result);
+                return result ? result : strdup("update Failed\n");
+         } else {
                 // 执行 SQL 时保持 current_xid 状态
                 char* result = handle_query(buffer, session.db, session);
                  if (!result) {

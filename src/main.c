@@ -20,7 +20,7 @@ int main() {
     //session.client_fd = client_fd;
     session.db = &db;
     session.current_xid = INVALID_XID;
-    /*    */
+    /*      */
     // ================== 事务 1 ==================
     printf("\n===== Transaction 1: Create Table =====\n");
     
@@ -88,7 +88,7 @@ int main() {
     printf("Inserted user1\n");
     free(user1.columns[1].value.str_val);
     free(user1.columns);
-    /*  */
+  
     // 插入用户2
     Tuple user2 = {0};
     user2.col_count = col_count;
@@ -116,7 +116,7 @@ int main() {
         return 1;
     }
     printf("Committed transaction %u\n", tx2);
-    
+ 
     // ================== 事务 3 ==================
     printf("\n===== Transaction 3: Query Data =====\n");
     
@@ -161,14 +161,14 @@ int main() {
 
     stmt.num_assignments = 1;
      strcpy(stmt.columns[0], "age");
-    stmt.values[0] = strdup("40");
+stmt.values[0]=strdup("456");
 
 
     
     strcpy(stmt.where.column, "name");
      strcpy(stmt.where.op, "=");
-    strcpy(stmt.where.value, "Tom");
-int ret=db_update(&db, &stmt,session);
+    strcpy(stmt.where.value, "Jack");
+    int ret=db_update(&db, &stmt,session);
     if (!ret==1) {
         printf("Update failed\n");
        // return;
@@ -226,6 +226,7 @@ int ret=db_update(&db, &stmt,session);
     printf("Started transaction %u\n", tx6);
     
     // 插入用户3
+    //int col_count=3;
     Tuple user3 = {0};
     user3.col_count = col_count;
     user3.columns = (Column *)malloc(col_count * sizeof(Column));

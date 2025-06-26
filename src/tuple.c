@@ -496,18 +496,51 @@ bool is_tuple_visible(const Tuple* tuple, uint32_t current_xid) {
     // 最简单的 MVCC 可见性判断（简化版）
     return tuple->xmin <= current_xid && tuple->xmax == 0;
 }
-bool eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) {
+bool old_eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) {
+       fprintf(stderr, "eval_condition: tuple id=%d,name=%s\n", t->columns[0].value.int_val,t->columns[1].value.str_val);
     for (int i = 0; i < t->col_count; i++) {
         if (strcmp(meta->cols[i].name, cond->column) == 0) {
             if (strcmp(cond->op, "=") == 0) {
                if (meta->cols[i].type == TEXT_TYPE) {
+                fprintf(stderr, "meta->cols[i].type =%d\n",meta->cols[i].type );
                 return strcmp(t->columns[i].value.str_val, cond->value) == 0;
                } else if (meta->cols[i].type == INT4_TYPE) {
                 int cond_val = atoi(cond->value);
+                fprintf(stderr, "cond_val =%d\n",cond_val );
                 return t->columns[i].value.int_val == cond_val;
                }
             }
         }
     }
+    return false;
+}
+bool eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) {
+    fprintf(stderr, "eval_condition: tuple id=%d, name=%s\n",
+            t->columns[0].value.int_val, t->columns[1].value.str_val);
+
+    for (int i = 0; i < t->col_count; i++) {
+        //fprintf(stderr, "Checking condition: target column='%s', condition column='%s'\n", meta->cols[i].name, cond->column);
+
+        if (strcmp(meta->cols[i].name, cond->column) == 0) {
+           // fprintf(stderr, "Column match found. Comparing with operator '%s'\n", cond->op);
+
+            if (strcmp(cond->op, "=") == 0) {
+                if (meta->cols[i].type == TEXT_TYPE) {
+                    fprintf(stderr, "Comparing TEXT: '%s' == '%s'\n",t->columns[i].value.str_val, cond->value);
+                    return strcmp(t->columns[i].value.str_val, cond->value) == 0;
+                } else if (meta->cols[i].type == INT4_TYPE) {
+                    int cond_val = atoi(cond->value);
+                    fprintf(stderr, "Comparing INT: %d == %d\n", t->columns[i].value.int_val, cond_val);
+                    return t->columns[i].value.int_val == cond_val;
+                } else {
+                    fprintf(stderr, "Unsupported column type: %d\n", meta->cols[i].type);
+                }
+            } else {
+                fprintf(stderr, "Unsupported operator: '%s'\n", cond->op);
+            }
+        }
+    }
+
+    fprintf(stderr, "No matching column found for condition.\n");
     return false;
 }

@@ -1,13 +1,25 @@
 {
   "version": "0.2.0",
   "configurations": [
+    {
+ 
+      "type": "lldb",
+      "request": "attach",
+      "name": "Attach to minipg",
+      "program":"/home/rlk/Downloads/mini_pg/build/bin/minidb",
+      "processId":"${command:pickProcess}",
+      "MIMode": "gdb",
+    //  "target": "[PID]",
+    //  "cwd": "${workspaceRoot}",
+    //  "valuesFormatting": "parseText"
+    },
     
 
     {
       "name": "Debug mini_pg (remote)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/home/rlk/Downloads/mini_pg/build/bin/minidb",
+      "program": "/home/rlk/Downloads/mini_pg/build/bin/test_minidb",
       "args": [],
       "stopAtEntry": false,
       "cwd": "/home/rlk/Downloads/mini_pg/build",

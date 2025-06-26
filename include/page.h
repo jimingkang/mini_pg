@@ -5,9 +5,24 @@
 #include "types.h"
 
 
-//void page_init(Page* page, PageID page_id);
-//size_t page_free_space(const Page* page);
-//bool page_insert_tuple(Page* page, const Tuple* tuple, uint16_t* slot_out) ;
+
+#define PAGE_CACHE_SIZE 128  // 缓存页数上限，可按需调整
+
+typedef struct PageCacheEntry {
+    uint32_t oid;            // 页面所在行的 OID（或对应的唯一页标识符）
+    Page page;              // 缓存的页面内容
+    bool dirty;             // 是否被修改过，需写回磁盘
+    bool valid;             // 是否为有效缓存
+} PageCacheEntry;
+
+typedef struct PageCache {
+    PageCacheEntry entries[PAGE_CACHE_SIZE];
+    pthread_mutex_t lock;    // 多线程访问保护
+} PageCache;
+
+PageCache global_page_cache;
+
+
 
 void page_init(Page* page, PageID page_id);
 size_t page_free_space(const Page* page);
