@@ -1,0 +1,190 @@
+一个简易版postgres的实现.采用cmake管理
+  include为头文件
+   src为源代码
+
+编译方式:
+mkdir build
+>cd build
+>cmake ..
+build>make
+>./bin/minidb (创建表,插入数据,更新数据,回滚数据)
+>./bin/test_minidb (多线程更新数据)
+
+
+
+
+A)所有数据类型都在type.h中,
+------------------------------------------------
+对于数据行结构,及页结构,有如下定义:
+// 数据类型枚举
+typedef enum {
+    INT4_TYPE,      // 4字节整数
+    FLOAT_TYPE,     // 4字节浮点数
+    BOOL_TYPE,      // 1字节布尔值
+    TEXT_TYPE,      // 变长字符串
+    DATE_TYPE,      // 4字节日期（时间戳）
+    // 可扩展更多类型...
+} DataType;
+// 列值联合体
+typedef union {
+    int32_t int_val;    // 整数值
+    float float_val;    // 浮点数值
+    bool bool_val;      // 布尔值
+    char* str_val;      // 字符串值（动态分配）
+} ColumnValue;
+
+// 列结构
+typedef struct {
+    DataType type;      // 数据类型
+    ColumnValue value;  // 列值
+} Column;
+
+// 列定义
+typedef struct {
+    char name[MAX_NAME_LEN];
+    DataType type;
+} ColumnDef;
+
+// 元组结构
+typedef struct {
+    uint32_t oid;         // 元组唯一ID
+    uint32_t xmin;        // 创建事务ID (MVCC)
+    uint32_t xmax;        // 删除/更新事务ID (MVCC)
+    bool deleted;         // 逻辑删除标志
+    uint8_t col_count;    // 列数量
+    Column* columns;      // 列数据数组
+} Tuple;
+
+typedef struct PageHeader {
+    uint32_t checksum;
+    PageID page_id;
+    uint32_t lsn;
+    uint16_t free_start;     // 数据区当前偏移
+        uint16_t free_end;     // 数据区当前偏移
+
+    uint16_t free_space;     // 剩余空间
+    uint16_t tuple_count;    // 有效元组数量
+    uint16_t slot_count;     // 槽位使用数量
+    PageID next_page;
+    PageID prev_page;
+} PageHeader;
+// 页面结构
+
+typedef struct Slot {
+    uint16_t offset;        // 数据区偏移
+    uint16_t length;        // 数据长度
+    uint16_t tuple_size;    // 原始元组大小
+    uint8_t status;         // 槽位状态: SLOT_FREE, SLOT_USED, SLOT_DELETED
+    uint8_t flags;      // 状态标志 (OCCUPIED/DELETED)
+} Slot;
+
+typedef struct Page {
+    PageHeader header;
+    Slot slots[MAX_SLOTS];          // 槽位数组
+    uint8_t data[PAGE_DATA_SIZE];   // 数据区
+       // ✅ 每页一个锁
+    LWLock lock;
+} Page;
+
+
+// 表元数据
+typedef struct {
+    uint32_t oid;
+    char name[MAX_NAME_LEN];
+    char filename[MAX_NAME_LEN];
+    uint8_t col_count;
+    ColumnDef cols[MAX_COLS];
+    PageID first_page;   // 表的第一个页面ID
+PageID last_page;    // 表的最后一个页面ID
+  // ✅ 新增：元组的最大 OID
+    uint32_t max_row_oid;
+
+    LWLock fsm_lock;
+    LWLock extension_lock;
+} TableMeta;
+
+-----------------------------------------------------
+对于事务有如下定义:
+// 事务状态
+typedef enum {
+    TRANS_NONE,           //       0
+    TRANS_ACTIVE,     // 事务进行中 1
+    TRANS_COMMITTED,  // 事务已提交  2
+    TRANS_ABORTED     // 事务已中止  3
+} TransactionState;
+typedef struct {
+    uint32_t xid;                 // 事务ID
+    TransactionState state;      // 状态：进行中、已提交、已中止
+    uint64_t start_time;         // 开始时间
+    uint32_t snapshot;           // 快照
+    uint32_t lsn;                // 日志序列号
+    bool holding_exclusive_lock; // 是否持有排他锁
+    bool holding_shared_lock;    // 是否持有共享锁
+} Transaction;
+typedef struct {
+    uint8_t committed_flags[MAX_XID];  // xid => 1 表示已提交，0 表示未提交或不存在
+} CommitLog;
+
+
+// 事务管理器
+typedef struct {
+    Transaction transactions[MAX_CONCURRENT_TRANS]; // 事务数组
+    uint32_t next_xid;         // 下一个可用事务ID
+    uint32_t oldest_xid;       // 最老活动事务ID
+   //uint8_t committed_flags[MAX_XID];  // 标志事务是否已提交 ,
+    uint8_t committed_bitmap[COMMIT_BITMAP_SIZE];  // 替代原来的 committed_flags
+} TransactionManager;
+
+对于系统目录,有如下定义,类似于pg的information表
+typedef struct {
+    TableMeta tables[MAX_TABLES];
+    uint16_t table_count;
+    uint32_t next_oid;       // 下一个对象ID
+} SystemCatalog;
+
+
+-------------------------------------------------------
+对于数据库状态,有如下定义,类似于pg的clust实例
+typedef struct {
+    SystemCatalog catalog;   // 系统目录
+    TransactionManager tx_mgr; // 事务管理器
+    char data_dir[256];      // 数据目录
+    uint32_t current_xid;    // 当前活动事务ID
+    PageID next_page_id; // 用于分配新页面ID
+
+    TableMeta* tables;      // 表元数据数组
+
+int table_count;        // 表数量
+char* db_name;          // 数据库名称
+char* db_path;          // 数据库路径
+} MiniDB;
+
+对于页缓冲管理,有如下定义:typedef struct PageCacheEntry {
+    uint32_t oid;            // 页面所在行的 OID（或对应的唯一页标识符）=page_id
+    Page page;              // 缓存的页面内容
+    bool dirty;             // 是否被修改过，需写回磁盘
+    bool valid;             // 是否为有效缓存
+} PageCacheEntry;
+
+typedef struct PageCache {
+    PageCacheEntry entries[PAGE_CACHE_SIZE];
+    LWLock lock;    // 多线程访问保护
+} PageCache;
+
+B)数据文件包含.meta和.tbl
+每一张表一个meta文件保存元数据,一个.tbl保存具体数据
+一个.tbl的页会被加载到PageCache里面:PageCache->PageCacheEntry->Page 用Page->PageHeader->PageID来标识这个缓冲页,
+缓冲页目前设计为和表挂钩,并没有全局共享,以后可以扩展为缓冲页独立与表,这样就可以释放后被其它表做为缓冲
+
+C)事务支持多进程,通过mvcc实现隔离,详情见txmgr.c 
+
+D)锁目前采用轻量级自旋锁和是一样的,有页面级别锁和行级别锁,详情见.c
+
+E) server和client是为了以后支持tcp连接用
+
+F)test为测试
+
+test_users_thread.c实现了多线程update测试
+
+
+
