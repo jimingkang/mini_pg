@@ -187,4 +187,11 @@ F)test为测试
 test_users_thread.c实现了多线程update测试
 
 
+待完成:
 
+1)索引
+2)checkpoint
+3)bgwriter(脏数据的刷新)
+4)wal回放
+5)崩溃恢复
+6)vacuum
