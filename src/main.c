@@ -51,7 +51,7 @@ int main() {
    // print_db_status(&db);
     
     // 提交事务
-    if (session_commit_transaction(&db,&session) ){
+    if (session_commit_transaction(session.db,&session) ){
         fprintf(stderr, "Error: Failed to commit transaction %u\n", tx1);
         return 1;
     }
@@ -137,7 +137,7 @@ int main() {
             printf("Query returned %d tuples:\n", cnt);
 
         for (int i = 0; i < cnt; i++) {
-            print_tuple(new_results[i], find_table(&db.catalog, "users"));
+            print_tuple(new_results[i], find_table(&db.catalog, "users"),session.current_xid);
         }
     }
     
@@ -202,7 +202,7 @@ stmt.values[0]=strdup("456");
             printf("new Query returned %d tuples:\n", cnt);
 
         for (int i = 0; i < cnt; i++) {
-            print_tuple(new_results[i], find_table(&db.catalog, "users"));
+            print_tuple(new_results[i], find_table(&db.catalog, "users"),session.current_xid);
         }
     }
     
@@ -271,7 +271,7 @@ stmt.values[0]=strdup("456");
 
         for (int i = 0; i < res_count; i++) {
 
-        print_tuple(new_results[i], find_table(&db.catalog, "users"));
+        print_tuple(new_results[i], find_table(&db.catalog, "users"),session.current_xid);
 
     }
 }

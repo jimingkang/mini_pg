@@ -27,12 +27,13 @@ void* tuple_get_value(const Tuple* tuple, uint8_t col_index);
 bool tuple_set_value(Tuple* tuple, uint8_t col_index, const void* value);
 
 // 打印元组
-void print_tuple(const Tuple* tuple, const TableMeta* meta);
-
+//void print_tuple(const Tuple* tuple, const TableMeta* meta);
+void print_tuple(const Tuple* tuple, const TableMeta* meta, uint32_t current_xid) ;
 // 比较两个元组是否相等
 bool tuple_equals(const Tuple* t1, const Tuple* t2);
 
 // 计算元组的哈希值（用于索引）
 uint32_t tuple_hash(const Tuple* tuple);
 bool eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) ;
+bool is_tuple_visible(TransactionManager *txmgr,const Tuple* tuple, uint32_t current_xid) ;
 #endif // TUPLE_H

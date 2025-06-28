@@ -1,12 +1,12 @@
 #include "page.h"
 #include "tuple.h"
+#include "lock.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stddef.h> // 添加这行以支持ptrdiff_t
-
-#define PAGE_DATA_OFFSET offsetof(Page, data)
+extern const char *DATADIR;
 
 
 // 计算槽位数组起始位置
@@ -298,6 +298,7 @@ void page_print_info(const Page* page) {
 // ========== 新增：从文件中读取页面（使用路径） ==========
 Page* read_page(const char* table_path, PageID page_id) {
     if (!table_path) return NULL;
+    
     FILE* file = fopen(table_path, "rb");
     if (!file) return NULL;
 
@@ -325,16 +326,27 @@ Page* read_page(const char* table_path, PageID page_id) {
 
 void init_page_cache() {
     memset(&global_page_cache, 0, sizeof(global_page_cache));
-    pthread_mutex_init(&global_page_cache.lock, NULL);
+    //pthread_mutex_init(&global_page_cache.lock, NULL);
+     for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        global_page_cache.entries[i].dirty=false;
+        global_page_cache.entries[i].valid=false;
+        LWLockInit(&global_page_cache.entries[i].page.lock, TRANCHE_PAGE_LOCK);
+    }
+    LWLockInit(&global_page_cache.lock, TRANCHE_PAGE_LOCK);  // 全局锁也初始化
+
+
+
+
 }
 
 Page* page_cache_get(uint32_t oid, TableMeta* meta, FILE* table_file) {
-    pthread_mutex_lock(&global_page_cache.lock);
-
+    //pthread_mutex_lock(&global_page_cache.lock);
+      LWLockAcquireExclusive(&global_page_cache.lock);
     // 查找缓存
     for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
         if (global_page_cache.entries[i].valid && global_page_cache.entries[i].oid == oid) {
-            pthread_mutex_unlock(&global_page_cache.lock);
+            //pthread_mutex_unlock(&global_page_cache.lock);
+            LWLockRelease(&global_page_cache.lock);
             return &global_page_cache.entries[i].page;
         }
     }
@@ -349,11 +361,199 @@ Page* page_cache_get(uint32_t oid, TableMeta* meta, FILE* table_file) {
             global_page_cache.entries[i].valid = true;
             global_page_cache.entries[i].dirty = false;
 
-            pthread_mutex_unlock(&global_page_cache.lock);
+            //pthread_mutex_unlock(&global_page_cache.lock);
+             LWLockRelease(&global_page_cache.lock);
             return &global_page_cache.entries[i].page;
         }
     }
 
-    pthread_mutex_unlock(&global_page_cache.lock);
+    //pthread_mutex_unlock(&global_page_cache.lock);
+    LWLockRelease(&global_page_cache.lock);
     return NULL;  // 缓存满未命中
+}
+//page_id
+void page_cache_mark_dirty(uint32_t page_id) {
+    LWLockAcquireExclusive(&global_page_cache.lock);
+
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        PageCacheEntry* entry = &global_page_cache.entries[i];
+        if (entry->valid && entry->page.header.page_id == page_id) {
+            entry->dirty = true;
+            break;
+        }
+    }
+
+    LWLockRelease(&global_page_cache.lock);
+}
+Page* page_cache_load_or_fetch(uint32_t page_id, const char* filename) {
+    LWLockAcquireExclusive(&global_page_cache.lock);
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        if (global_page_cache.entries[i].valid && global_page_cache.entries[i].page.header.page_id == page_id) {
+            LWLockRelease(&global_page_cache.lock);
+            return &global_page_cache.entries[i].page;
+        }
+    }
+    FILE* fp = fopen(filename, "r+b");
+    if (!fp) {
+        perror("fopen failed");
+        LWLockRelease(&global_page_cache.lock);
+        return NULL;
+    }
+    fseek(fp, 0, SEEK_END);
+    long file_size = ftell(fp);
+    if ((long)(page_id * sizeof(Page)) >= file_size) {
+        fclose(fp);
+        LWLockRelease(&global_page_cache.lock);
+        return NULL;
+    }
+    fseek(fp, page_id * sizeof(Page), SEEK_SET);
+    Page page;
+    if (fread(&page, sizeof(Page), 1, fp) != 1) {
+        fclose(fp);
+        LWLockRelease(&global_page_cache.lock);
+        return NULL;
+    }
+    fclose(fp);
+    int slot = -1;
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        if (!global_page_cache.entries[i].valid) {
+            slot = i;
+            break;
+        }
+    }
+    if (slot == -1) slot = rand() % PAGE_CACHE_SIZE;
+
+    global_page_cache.entries[slot].page = page;
+    global_page_cache.entries[slot].oid = page_id;
+    global_page_cache.entries[slot].valid = true;
+    global_page_cache.entries[slot].dirty = false;
+
+    LWLockRelease(&global_page_cache.lock);
+    return &global_page_cache.entries[slot].page;
+}
+
+bool page_cache_flush(uint32_t page_id, const char* filename) {
+    LWLockAcquireExclusive(&global_page_cache.lock);
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        if (global_page_cache.entries[i].valid && global_page_cache.entries[i].page.header.page_id == page_id) {
+            if (!global_page_cache.entries[i].dirty) {
+                LWLockRelease(&global_page_cache.lock);
+                return true;
+            }
+            FILE* fp = fopen(filename, "r+b");
+            if (!fp) {
+                perror("flush fopen failed");
+                LWLockRelease(&global_page_cache.lock);
+                return false;
+            }
+            fseek(fp, page_id  * sizeof(Page), SEEK_SET);
+            if (fwrite(&global_page_cache.entries[i].page, sizeof(Page), 1, fp) != 1) {
+                fclose(fp);
+                LWLockRelease(&global_page_cache.lock);
+                return false;
+            }
+            fflush(fp);  // ✅ 可选：确保数据立即写入磁盘
+            fclose(fp);
+            global_page_cache.entries[i].dirty = false;
+            LWLockRelease(&global_page_cache.lock);
+            return true;
+        }
+    }
+    LWLockRelease(&global_page_cache.lock);
+    return false;
+}
+
+
+Page* old_page_cache_load_or_fetch(uint32_t oid, const char* filename) {
+    //pthread_mutex_lock(&global_page_cache.lock);
+    LWLockAcquireExclusive(&global_page_cache.lock);
+
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        PageCacheEntry* entry = &global_page_cache.entries[i];
+        if (entry->valid && entry->oid == oid) {
+            //pthread_mutex_unlock(&global_page_cache.lock);
+            LWLockRelease(&global_page_cache.lock);
+            return &entry->page;
+        }
+    }
+
+    // 没找到，装入缓存
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        PageCacheEntry* entry = &global_page_cache.entries[i];
+        if (!entry->valid) {
+            //char file_path[MAX_NAME_LEN * 2];
+          //  snprintf(file_path, sizeof(file_path), "%s/%s.tbl", DATADIR,filename);
+            FILE* file = fopen(filename, "r+b");
+            if (!file) {
+                perror("Failed to open file for page cache fetch");
+                //pthread_mutex_unlock(&global_page_cache.lock);
+                 LWLockRelease(&global_page_cache.lock);
+                return NULL;
+            }
+
+            if (fseek(file, oid * sizeof(Page), SEEK_SET) != 0) {
+                perror("fseek error");
+                fclose(file);
+                //pthread_mutex_unlock(&global_page_cache.lock);
+                 LWLockRelease(&global_page_cache.lock);
+                return NULL;
+            }
+
+            if (fread(&entry->page, sizeof(Page), 1, file) != 1) {
+                perror("fread error");
+                fclose(file);
+               // pthread_mutex_unlock(&global_page_cache.lock);
+                LWLockRelease(&global_page_cache.lock);
+                return NULL;
+            }
+
+            fclose(file);
+            entry->oid = oid;
+            entry->valid = true;
+            entry->dirty = false;
+            // 初始化页面锁
+            entry->page.lock.state = 0;
+            //pthread_mutex_unlock(&global_page_cache.lock);
+            LWLockRelease(&global_page_cache.lock);
+            return &entry->page;
+        }
+    }
+
+    //pthread_mutex_unlock(&global_page_cache.lock);
+    LWLockRelease(&global_page_cache.lock);
+    fprintf(stderr, "Page cache full, cannot load page with oid=%u\n", oid);
+    return NULL;
+}
+
+bool old_flush_page_cache(uint32_t oid, const char* filename) {
+    LWLockAcquireExclusive(&global_page_cache.lock);
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        if (global_page_cache.entries[i].valid && global_page_cache.entries[i].oid == oid) {
+            if (!global_page_cache.entries[i].dirty) {
+                LWLockRelease(&global_page_cache.lock);
+                return true;
+            }
+            //char file_path[MAX_NAME_LEN * 2];
+            //snprintf(file_path, sizeof(file_path), "%s/%s.tbl", DATADIR,filename);
+           // FILE* file = fopen(file_path, "rb");
+            FILE* fp = fopen(filename, "r+b");
+            if (!fp) {
+                perror("flush fopen failed");
+                LWLockRelease(&global_page_cache.lock);
+                return false;
+            }
+            fseek(fp, oid * sizeof(Page), SEEK_SET);
+            if (fwrite(&global_page_cache.entries[i].page, sizeof(Page), 1, fp) != 1) {
+                fclose(fp);
+                LWLockRelease(&global_page_cache.lock);
+                return false;
+            }
+            fclose(fp);
+            global_page_cache.entries[i].dirty = false;
+            LWLockRelease(&global_page_cache.lock);
+            return true;
+        }
+    }
+    LWLockRelease(&global_page_cache.lock);
+    return false;
 }

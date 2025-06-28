@@ -35,7 +35,7 @@ void LWLockInit(LWLock *lock, uint16_t tranche_id) {
 
 
 bool LWLockAcquireExclusive(LWLock *lock) {
-    printf("LWLockAcquireExclusive ");
+   // printf("LWLockAcquireExclusive ");
     uint32_t expected = 0;
     while (!atomic_compare_exchange_weak(&lock->state, &expected, 1)) {
         expected = 0;
@@ -157,13 +157,13 @@ if (h >= ROW_LOCK_BUCKETS) {
     while (curr) {
         if (row_lock_tag_equal(&curr->tag, &tag)) {
             if (curr->holder_xid == 0 || curr->holder_xid == xid) {
-                 printf("获得锁, xid=%d\n",xid);
+                 printf(" xid=%d,获得锁,\n",xid);
                 curr->holder_xid = xid;
                 lock->state = 0;
                  return true;
             } else {
                 // 已被别人占用，释放锁后重试
-                printf("已被别人占用，释放锁后重试,xid=%d\n",xid);
+                printf("xid=%d ,锁已被别人占用，sched_yield释放锁后重试\n",xid);
                 lock->state = 0;
                 sched_yield();
                   sleep(1);
@@ -182,7 +182,7 @@ if (h >= ROW_LOCK_BUCKETS) {
         lock->state = 0;
         return false;
     }
-     printf("得到锁,xid=%d\n",xid);
+    printf("xid=%d,得到一个新锁\n",xid);
     new_lock->tag = tag;
     new_lock->holder_xid = xid;
     new_lock->next = global_row_locks.buckets[h];
@@ -200,8 +200,8 @@ void unlock_row(const char* table, uint32_t oid, uint32_t xid) {
     strcpy(tag.table_name, table);
     tag.oid = oid;
 
-       uint32_t h_raw = hash_row_lock_tag(&tag);
-uint32_t h = h_raw % ROW_LOCK_BUCKETS; 
+    uint32_t h_raw = hash_row_lock_tag(&tag);
+    uint32_t h = h_raw % ROW_LOCK_BUCKETS; 
     LWLock* lock = &global_row_locks.bucket_locks[h];
 
     while (!__sync_bool_compare_and_swap(&lock->state, 0, 1)) {
@@ -220,4 +220,28 @@ uint32_t h = h_raw % ROW_LOCK_BUCKETS;
     }
 
     lock->state = 0;
+}
+void unlock_all_rows_for_xid(uint32_t xid) {
+    for (int i = 0; i < ROW_LOCK_BUCKETS; ++i) {
+        LWLockAcquireExclusive(&global_row_locks.bucket_locks[i]);
+
+        RowLock** prev = &global_row_locks.buckets[i];
+        RowLock* curr = *prev;
+
+        while (curr) {
+            if (curr->holder_xid == xid) {
+                // 移除当前锁
+                *prev = curr->next;
+                RowLock* to_free = curr;
+                curr = curr->next;
+
+                free(to_free);  // 假设你用 malloc 分配的
+            } else {
+                prev = &curr->next;
+                curr = curr->next;
+            }
+        }
+
+        LWLockRelease(&global_row_locks.bucket_locks[i]);
+    }
 }

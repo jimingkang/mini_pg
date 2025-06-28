@@ -101,13 +101,15 @@ void init_system_catalog(SystemCatalog *catalog, const char *db_path) {
                 meta->cols[i].name[col_name_len] = '\0';
                 fread(&meta->cols[i].type, sizeof(DataType), 1, fp);
             }
+             fread(&meta->first_page, sizeof(uint32_t), 1, fp);
+            fread(&meta->last_page, sizeof(uint32_t), 1, fp);
             fread(&meta->max_row_oid, sizeof(uint32_t), 1, fp);
 
             fclose(fp);
 
             meta->oid = catalog->next_oid++;
-            meta->first_page = INVALID_PAGE_ID;
-            meta->last_page = INVALID_PAGE_ID;
+            //meta->first_page = INVALID_PAGE_ID;
+            //meta->last_page = INVALID_PAGE_ID;
 
             catalog->table_count++;
         }
@@ -171,7 +173,10 @@ void init_system_catalog(SystemCatalog *catalog, const char *db_path) {
             return false;
         }
     }
+    fwrite(&meta->first_page, sizeof(uint32_t), 1, file);
+     fwrite(&meta->last_page, sizeof(uint32_t), 1, file);
     fwrite(&meta->max_row_oid, sizeof(uint32_t), 1, file);
+
     fclose(file);
     return true;
 }
@@ -210,6 +215,8 @@ int create_table(SystemCatalog *catalog, const char *table_name, ColumnDef *colu
     snprintf(meta->filename, MAX_NAME_LEN, "%s.tbl", table_name);
     
     meta->col_count = col_count;
+    meta->first_page = 0;
+    meta->last_page = 0;
     
     // 复制列定义（确保不溢出）
     for (int i = 0; i < col_count; i++) {

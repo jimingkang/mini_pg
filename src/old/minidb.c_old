@@ -131,7 +131,7 @@ int db_insert(MiniDB *db, const char *table_name, Tuple *tuple) {
     char path[256];
     snprintf(path, sizeof(path), "%s/%s", db->data_dir, meta->filename);
     
-    DataPage page;
+    Page page;
     // 尝试读取现有页面
     if (read_data_page(path, &page) < 0) {
         // 文件不存在或读取失败，初始化新页面

@@ -103,7 +103,7 @@ bool old_db_update(MiniDB* db, const UpdateStmt* stmt, Session* session) {
             Tuple* t = page_get_tuple(&page, i,meta); // 假设有个方法能解析 tuple
 
             // 判断 tuple 是否对当前事务可见
-            if (!is_tuple_visible(t, session->current_xid)) continue;
+            if (!is_tuple_visible(&db->tx_mgr,t, session->current_xid)) continue;
 
             // 判断是否满足更新条件（匹配 where 条件）
             if (!eval_condition(&(stmt->where), t, meta)) continue;
@@ -142,13 +142,12 @@ bool old_db_update(MiniDB* db, const UpdateStmt* stmt, Session* session) {
 
 
 
-int  db_update(MiniDB *db,const UpdateStmt* stmt,Session session) {
-    fprintf(stderr, "stmt->where.column = [%s]\n", stmt->where.column);
+int  nocache_db_update(MiniDB *db,const UpdateStmt* stmt,Session session) {
+    fprintf(stderr, "session.current_xid:%d,stmt->where.column = [%s]\n", session.current_xid,stmt->where.column);
     if (!db || !stmt->table_name || session.current_xid == INVALID_XID) {
         fprintf(stderr, "Invalid input or no active transaction\n");
         return false;
     }
-    fprintf(stderr, "db_update:table_name '%s'  \n", stmt->table_name);
     int idx = find_table(&db->catalog, stmt->table_name);
     if (idx < 0) {
         fprintf(stderr, "Table '%s' not found\n", stmt->table_name);
@@ -176,7 +175,7 @@ int  db_update(MiniDB *db,const UpdateStmt* stmt,Session session) {
             if (slot->flags  != SLOT_OCCUPIED) continue;
 
             Tuple *t = page_get_tuple(&page, i, meta);
-            if (!t || !is_tuple_visible(t, session.current_xid)) continue;
+            if (!t || !is_tuple_visible(&db->tx_mgr,t, session.current_xid)) continue;
                // fprintf(stderr, "in fread after is_tuple_visible \n");
             if (t->xmin == session.current_xid) continue;
              fprintf(stderr, "in fread: before  lock_row \n");
@@ -247,6 +246,107 @@ int  db_update(MiniDB *db,const UpdateStmt* stmt,Session session) {
 
     return result_count;
 }
+
+int db_update(MiniDB *db, const UpdateStmt *stmt, Session session) {
+    if (!db || !stmt->table_name || session.current_xid == INVALID_XID) {
+        fprintf(stderr, "Invalid input or no active transaction\n");
+        return false;
+    }
+
+    int idx = find_table(&db->catalog, stmt->table_name);
+    if (idx < 0) {
+        fprintf(stderr, "Table '%s' not found\n", stmt->table_name);
+        return false;
+    }
+
+
+
+    TableMeta *meta = &db->catalog.tables[idx];
+
+    char fullpath[256];
+    snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+
+    int result_count = 0;
+
+    //for (PageID page_id = 0; page_id < db->next_page_id; page_id++) {
+    for (PageID page_id = meta->first_page; page_id <= meta->last_page; page_id++) {
+
+        Page *page = page_cache_load_or_fetch(page_id, fullpath);
+         LWLockAcquireExclusive(&page->lock);
+        if (!page) continue;
+
+        int orig_slot_count = page->header.slot_count;
+
+        for (int i = 0; i < orig_slot_count; i++) {
+            Slot *slot = &page->slots[i];
+            if (slot->flags != SLOT_OCCUPIED) continue;
+
+            Tuple *t = page_get_tuple(page, i, meta);
+            if (!t || !is_tuple_visible(&db->tx_mgr,t, session.current_xid)) {
+                free_tuple(t);
+                continue;
+            }
+
+            if (t->xmin == session.current_xid) {
+                free_tuple(t);
+                continue; // 不重复更新本事务插入的行
+            }
+
+         
+
+            if (!eval_condition(&(stmt->where), t, meta)) {
+
+                free_tuple(t);
+                continue;
+            }
+            if (!lock_row(meta->name, t->oid, session.current_xid)) {
+                fprintf(stderr, "xid:%d,行锁获取失败，跳过 oid=%u\n",session.current_xid, t->oid);
+                free_tuple(t);
+                continue;
+            }
+            sleep(1);  // 模拟并发延迟
+
+            // 逻辑删除旧元组
+            t->xmax = session.current_xid;
+
+            page_update_tuple(page, i, t); // 更新 xmax
+        
+
+            // 插入新版本元组
+            Tuple new_t;
+            memcpy(&new_t, t, sizeof(Tuple));
+                //free_tuple(t);
+            new_t.xmin = session.current_xid;
+            new_t.xmax = 0;
+            new_t.deleted=false;
+
+
+            for (int j = 0; j < meta->col_count; j++) {
+                for (int k = 0; k < stmt->num_assignments; k++) {
+                    if (strcmp(meta->cols[j].name, stmt->columns[k]) == 0) {
+                        set_column_value(&new_t.columns[j], stmt->values[k]);
+                    }
+                }
+            }
+
+            uint16_t new_slot_idx;
+            if (page_insert_tuple(page, &new_t, &new_slot_idx)) {
+                result_count++;
+            }
+           
+
+            unlock_row(meta->name, new_t.oid, session.current_xid);
+        }
+        page_cache_mark_dirty(page_id);
+        // 修改后的页需刷回磁盘
+        page_cache_flush(page_id, fullpath);
+         LWLockRelease(&page->lock);
+    }
+
+   // save_tx_state(&db->tx_mgr, db->data_dir);
+    return result_count;
+}
+
 void set_column_value(Column* column, const char* new_value) {
     if (!column || !new_value) return;
 

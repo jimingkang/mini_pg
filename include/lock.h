@@ -11,12 +11,13 @@ typedef struct {
 
 RowLockTable global_row_locks;
 
-
-bool LWLockAcquireExclusive(LWLock *lock) ;
-
 void LWLockInit(LWLock *lock, uint16_t tranche_id);
+bool LWLockAcquireExclusive(LWLock *lock) ;
+void LWLockRelease(LWLock *lock) ;
+
 
 void init_row_lock_table();
 bool lock_row(const char* table, uint32_t oid, uint32_t xid);
 void unlock_row(const char* table, uint32_t oid, uint32_t xid);
+void unlock_all_rows_for_xid(uint32_t xid);
 #endif

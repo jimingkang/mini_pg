@@ -31,6 +31,7 @@ CMakeFiles/minidb_core.dir/src/minidb.c.o: ../include/wal.h
 CMakeFiles/minidb_core.dir/src/minidb.c.o: ../src/minidb.c
 
 CMakeFiles/minidb_core.dir/src/page.c.o: ../include/catalog.h
+CMakeFiles/minidb_core.dir/src/page.c.o: ../include/lock.h
 CMakeFiles/minidb_core.dir/src/page.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/page.c.o: ../include/page.h
 CMakeFiles/minidb_core.dir/src/page.c.o: ../include/server/parser.h

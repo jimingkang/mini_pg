@@ -351,17 +351,14 @@ bool tuple_set_value(Tuple* tuple, uint8_t col_index, const void* value) {
 }
 
 // 打印元组
-void print_tuple(const Tuple* tuple, const TableMeta* meta) {
+void print_tuple(const Tuple* tuple, const TableMeta* meta, uint32_t current_xid) {
     if (!tuple) {
         printf("(NULL tuple)\n");
         return;
     }
     
-    printf("Tuple OID: %u\n", tuple->oid);
-    printf("xmin: %u, xmax: %u\n", tuple->xmin, tuple->xmax);
-    printf("Deleted: %s\n", tuple->deleted ? "true" : "false");
-    printf("Columns: %d\n", tuple->col_count);
-    
+    printf("Tuple OID: %u xmin: %u, xmax: %u,Columns: %d,current_xid: %d\n",tuple->oid, tuple->xmin, tuple->xmax,tuple->col_count,current_xid);
+
     for (int i = 0; i < tuple->col_count; i++) {
         const char* col_name = meta && i < meta->col_count ? 
                               meta->cols[i].name : "Unknown";
@@ -492,10 +489,84 @@ uint32_t tuple_hash(const Tuple* tuple) {
     return hash;
 }
 
-bool is_tuple_visible(const Tuple* tuple, uint32_t current_xid) {
-    // 最简单的 MVCC 可见性判断（简化版）
-    return tuple->xmin <= current_xid && tuple->xmax == 0;
+
+bool old_is_tuple_visible(TransactionManager *txmgr,const Tuple* tuple, uint32_t current_xid) {
+    // 1. 插入事务没提交，当前事务又不是插入者自己 → 不可见
+    if (!txmgr_is_committed(txmgr,tuple->xmin) && tuple->xmin != current_xid) {
+        return false;
+    }
+
+    // 2. 如果已被删除，且删除事务已提交 → 不可见
+    if (tuple->xmax != 0 && txmgr_is_committed(txmgr,tuple->xmax)) {
+        return false;
+    }
+
+    // 否则视为可见
+    return true;
 }
+bool no_excluded_pre_updated_is_tuple_visible(TransactionManager *txmgr, const Tuple* tuple, uint32_t current_xid) {
+    // 当前事务能看到它自己插入的 tuple
+    if (tuple->xmin == current_xid && tuple->xmax == 0) return true;
+    if (tuple->xmin < current_xid && tuple->xmax == 0 && txmgr_is_committed(txmgr, tuple->xmin)) {
+    //if (tuple->xmin < current_xid && tuple->xmax == 0 ) {
+    // 这是一个旧事务提交的、尚未被删除的记录
+    return true;
+}
+
+    // 插入事务未提交，对其他事务不可见
+    if (!txmgr_is_committed(txmgr,tuple->xmin))
+     return false;
+
+    // 删除事务未提交，还能看到
+    if (tuple->xmax != 0 && !txmgr_is_committed(txmgr,tuple->xmax)) 
+    return true;
+    
+
+      // 删除事务是当前事务本身（第二次 UPDATE 里先看到旧的再写新版本）
+    if (tuple->xmax == current_xid) 
+    return false;
+
+    // 删除事务已提交
+    if (tuple->xmax != 0 && txmgr_is_committed(txmgr,tuple->xmax)) return false;
+
+    return true;
+}
+
+bool is_tuple_visible(TransactionManager *txmgr, const Tuple* tuple, uint32_t current_xid) {
+    // 当前事务插入且尚未删除
+    if (tuple->xmin == current_xid && tuple->xmax == 0) return true;
+
+    // 旧事务插入，已提交，但尚未被删除
+    if (txmgr_is_committed(txmgr, tuple->xmin) && tuple->xmin < current_xid) {
+  
+        if (tuple->xmax == 0) {
+            return true;
+        }
+         // 被当前事务逻辑删除，应不可见
+        if (tuple->xmax == current_xid) {
+            return false;
+        }
+         // 被其他已提交事务逻辑删除
+        if (!txmgr_is_committed(txmgr, tuple->xmax)) {
+            return true; // 删除未生效
+        }
+          // 2.4 删除事务已提交，且小于当前事务 → 删除生效，不可见
+        if (txmgr_is_committed(txmgr, tuple->xmax) && tuple->xmax < current_xid)
+            return false;
+
+        // 被已提交事务删除，但删除事务在当前事务之后
+        if (tuple->xmax > current_xid) {
+            return true;
+        }
+
+       
+
+       
+    }
+
+    return false;
+}
+
 bool old_eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) {
        fprintf(stderr, "eval_condition: tuple id=%d,name=%s\n", t->columns[0].value.int_val,t->columns[1].value.str_val);
     for (int i = 0; i < t->col_count; i++) {
@@ -526,11 +597,11 @@ bool eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta
 
             if (strcmp(cond->op, "=") == 0) {
                 if (meta->cols[i].type == TEXT_TYPE) {
-                    fprintf(stderr, "Comparing TEXT: '%s' == '%s'\n",t->columns[i].value.str_val, cond->value);
+                //    fprintf(stderr, "Comparing TEXT: '%s' == '%s'\n",t->columns[i].value.str_val, cond->value);
                     return strcmp(t->columns[i].value.str_val, cond->value) == 0;
                 } else if (meta->cols[i].type == INT4_TYPE) {
                     int cond_val = atoi(cond->value);
-                    fprintf(stderr, "Comparing INT: %d == %d\n", t->columns[i].value.int_val, cond_val);
+                 //   fprintf(stderr, "Comparing INT: %d == %d\n", t->columns[i].value.int_val, cond_val);
                     return t->columns[i].value.int_val == cond_val;
                 } else {
                     fprintf(stderr, "Unsupported column type: %d\n", meta->cols[i].type);

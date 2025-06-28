@@ -10,22 +10,27 @@
 #include "wal.h"
 #include "lock.h"
 #include "executor.h"
+#include "txmgr.h"
+
+const char *DATADIR=NULL;
 // 初始化数据库
 void init_db(MiniDB *db, const char *data_dir) {
     // 设置数据目录
     strncpy(db->data_dir, data_dir, sizeof(db->data_dir));
     mkdir(data_dir, 0755);
+    DATADIR=data_dir;
     
     // 初始化系统目录
     init_system_catalog(&db->catalog,db->data_dir);
     
     // 初始化事务管理器
     txmgr_init(&db->tx_mgr);
-    load_tx_state(&db->tx_mgr, data_dir);
+    load_tx_state(&(db->tx_mgr), data_dir);
     // 初始无活动事务
     db->current_xid = INVALID_XID;
+    db->next_page_id = 0;  // 如果是新数据库
     
-
+    init_page_cache();
     init_row_lock_table();
     // 初始化WAL
     init_wal();
@@ -43,7 +48,7 @@ uint32_t begin_transaction(MiniDB *db) {
         return INVALID_XID;
     }
     
-    db->current_xid = txmgr_start_transaction(&db->tx_mgr);
+    db->current_xid = txmgr_start_transaction(db);
     return db->current_xid;
 }
 
@@ -54,11 +59,11 @@ int commit_transaction(MiniDB *db) {
         return -1;
     }
     
-    txmgr_commit_transaction(&db->tx_mgr, db->current_xid);
+    txmgr_commit_transaction(db, db->current_xid);
     wal_log_commit(db->current_xid);
     db->current_xid = INVALID_XID;
 
-    save_tx_state(&db->tx_mgr, db->data_dir);
+   // save_tx_state(&db->tx_mgr, db->data_dir);
     return 0;
 }
 
@@ -69,10 +74,10 @@ int rollback_transaction(MiniDB *db) {
         return -1;
     }
     
-    txmgr_abort_transaction(&db->tx_mgr, db->current_xid);
+    txmgr_abort_transaction(db, db->current_xid);
     wal_log_abort(db->current_xid);
     db->current_xid = INVALID_XID;
-    save_tx_state(&db->tx_mgr, db->data_dir);
+   // save_tx_state(&db->tx_mgr, db->data_dir);
     return 0;
 }
 
@@ -82,7 +87,7 @@ uint32_t session_begin_transaction(Session* session) {
         return INVALID_XID;
     }
 
-    session->current_xid = txmgr_start_transaction(&session->db->tx_mgr);
+    session->current_xid = txmgr_start_transaction(session->db);
     return session->current_xid;
 }
 
@@ -92,15 +97,16 @@ int session_commit_transaction(MiniDB *db,Session* session) {
         return -1;
     }
 
-    txmgr_commit_transaction(&session->db->tx_mgr, session->current_xid);
+    txmgr_commit_transaction(db, session->current_xid);
     wal_log_commit(session->current_xid);
+    //unlock_all_rows_for_xid(session->current_xid); // ✅ 显式释放所有行锁
     session->current_xid = INVALID_XID;
 
-    save_tx_state(&db->tx_mgr, db->data_dir);
+    //save_tx_state(&db->tx_mgr, db->data_dir);
     return 0;
 }
 
-int session_rollback_transaction(MiniDB *db,Session* session) {
+int nocache_session_rollback_transaction(MiniDB *db,Session* session) {
     if (!session || session->current_xid == INVALID_XID) {
         fprintf(stderr, "[session] No active transaction to rollback\n");
         return -1;
@@ -149,9 +155,56 @@ int session_rollback_transaction(MiniDB *db,Session* session) {
         fclose(file);
     }
 
-    txmgr_abort_transaction(&db->tx_mgr, xid);
+    txmgr_abort_transaction(&db, xid);
     session->current_xid = INVALID_XID;
-    save_tx_state(&db->tx_mgr, db->data_dir);
+   // save_tx_state(&db->tx_mgr, db->data_dir);
+    printf("[session] Rolled back transaction %u\n", xid);
+    return 0;
+}
+int session_rollback_transaction(MiniDB *db, Session* session) {
+    if (!session || session->current_xid == INVALID_XID) {
+        fprintf(stderr, "[session] No active transaction to rollback\n");
+        return -1;
+    }
+
+    uint32_t xid = session->current_xid;
+
+    for (int i = 0; i < db->catalog.table_count; i++) {
+        TableMeta* meta = &db->catalog.tables[i];
+        char fullpath[256];
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+
+        for (PageID page_id = 0; page_id < db->next_page_id; page_id++) {
+            Page* page = page_cache_load_or_fetch(page_id, fullpath);
+            if (!page) continue;
+
+            int modified = 0;
+            LWLockAcquireExclusive(&page->lock);
+            for (int j = 0; j < page->header.slot_count; j++) {
+                Tuple* tuple = page_get_tuple(page, j, meta);
+                if (!tuple) continue;
+
+                if (tuple->xmin == xid) {
+                    page_delete_tuple(page, j);
+                    modified = 1;
+                    printf("[rollback] Removed tuple with oid=%u from table '%s'\n",
+                           tuple->oid, meta->name);
+                }
+
+                free_tuple(tuple);
+            }
+            LWLockRelease(&page->lock);
+
+            if (modified) {
+                page_cache_mark_dirty(page_id);
+                page_cache_flush(page_id, fullpath);
+            }
+        }
+    }
+
+    txmgr_abort_transaction(db, xid);
+    session->current_xid = INVALID_XID;
+   // save_tx_state(&db->tx_mgr, db->data_dir);
     printf("[session] Rolled back transaction %u\n", xid);
     return 0;
 }
@@ -204,7 +257,7 @@ int db_create_table(MiniDB *db, const char *table_name, ColumnDef *columns, uint
  * @param values 列值数组
  * @return 是否成功
  */
-bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Session session) {
+bool nocache_db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Session session) {
     if (!db || !table_name || !values) {
         return false;
     }
@@ -234,14 +287,11 @@ bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Sessio
     //new_tuple->oid = next_oid++;
 
     new_tuple->oid = ++meta->max_row_oid;
-
-
     new_tuple->xmin=session.current_xid;
-    
     
     // 打开表文件
     char fullpath[256];  // 或者动态分配更安全
-snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+    snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
     FILE *table_file = fopen(fullpath, "r+b");
     if (!table_file) {
         perror("Failed to open table file");
@@ -313,10 +363,160 @@ snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
     fclose(table_file);
 
    // free_tuple(new_tuple);
-
-   save_table_meta_to_file(meta, db->data_dir);
     return true;
 }
+
+//with cache
+bool old_cache_db_insert(MiniDB *db, const char *table_name, const Tuple *values, Session session) {
+    if (!db || !table_name || !values || session.current_xid == INVALID_XID) return false;
+
+    int idx = find_table(&db->catalog, table_name);
+    TableMeta *meta = &db->catalog.tables[idx];
+    if (!meta) return false;
+
+    Tuple *new_tuple = (Tuple *)values;
+    new_tuple->oid = ++meta->max_row_oid;
+    new_tuple->xmin = session.current_xid;
+
+    char fullpath[256];
+    snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+
+    LWLockAcquireExclusive(&meta->fsm_lock);
+    Page *page = NULL;
+    PageID page_id;
+    bool inserted = false;
+
+    for (page_id = 0; page_id < db->next_page_id; page_id++) {
+        page = page_cache_load_or_fetch(page_id, fullpath);
+        if (!page) continue;
+
+        size_t required_space = new_tuple->col_count * sizeof(Column) + 128;
+        if (page_free_space(page) >= required_space) {
+            LWLockAcquireExclusive(&page->lock);
+            uint16_t slot_index;
+            if (page_insert_tuple(page, new_tuple, &slot_index)) {
+                page_cache_mark_dirty(page_id);
+                inserted = true;
+                LWLockRelease(&page->lock);
+                break;
+            }
+            LWLockRelease(&page->lock);
+        }
+    }
+    LWLockRelease(&meta->fsm_lock);
+
+    if (!inserted) {
+        LWLockAcquireExclusive(&meta->extension_lock);
+        page_id = db->next_page_id++;
+        page = page_cache_load_or_fetch(page_id, fullpath);
+        if (!page) {
+            page_init(page, page_id);
+            LWLockInit(&page->lock, 0);
+        }
+        LWLockAcquireExclusive(&page->lock);
+        uint16_t slot_index;
+        if (!page_insert_tuple(page, new_tuple, &slot_index)) {
+            LWLockRelease(&page->lock);
+            LWLockRelease(&meta->extension_lock);
+            return false;
+        }
+        page_cache_mark_dirty(page_id);
+        LWLockRelease(&page->lock);
+        LWLockRelease(&meta->extension_lock);
+    }
+
+    page_cache_flush(page_id, fullpath);
+    return true;
+}
+
+bool db_insert(MiniDB *db, const char *table_name, const Tuple *values, Session session) {
+    if (!db || !table_name || !values || session.current_xid == INVALID_XID) return false;
+
+    int idx = find_table(&db->catalog, table_name);
+    TableMeta *meta = &db->catalog.tables[idx];
+    if (!meta) return false;
+
+    Tuple *new_tuple = (Tuple *)values;
+    new_tuple->oid = ++meta->max_row_oid;
+    new_tuple->xmin = session.current_xid;
+
+    char fullpath[256];
+    snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+
+    FILE* fp = fopen(fullpath, "r+b");
+    if (!fp) {
+        fp = fopen(fullpath, "w+b");
+    }
+    fseek(fp, 0, SEEK_END);
+    if (ftell(fp) == 0) {
+        Page empty;
+        page_init(&empty, 0);
+        fwrite(&empty, sizeof(Page), 1, fp);
+     
+    }
+    fclose(fp);
+
+    LWLockAcquireExclusive(&meta->fsm_lock);
+    Page *page = NULL;
+    PageID page_id;
+    bool inserted = false;
+
+    //for (page_id = 0; page_id < db->next_page_id; page_id++) {
+    for (page_id = meta->first_page; page_id <= meta->last_page; page_id++) {
+        page = page_cache_load_or_fetch(page_id, fullpath);
+        if (!page) continue;
+
+        size_t required_space = new_tuple->col_count * sizeof(Column) + 128;
+        if (page_free_space(page) >= required_space) {
+            LWLockAcquireExclusive(&page->lock);
+            uint16_t slot_index;
+            if (page_insert_tuple(page, new_tuple, &slot_index)) {
+                page_cache_mark_dirty(page_id);
+                inserted = true;
+                LWLockRelease(&page->lock);
+                break;
+            }
+            LWLockRelease(&page->lock);
+        }
+    }
+    LWLockRelease(&meta->fsm_lock);
+
+    if (!inserted) {
+        LWLockAcquireExclusive(&meta->extension_lock);
+        //page_id = db->next_page_id++;
+         PageID new_page_id = ++meta->last_page;
+        page = page_cache_load_or_fetch(page_id, fullpath);
+        if (!page) {
+            Page new_page;
+            //page_init(&new_page, page_id);
+            page_init(&new_page, new_page_id);
+            LWLockInit(&new_page.lock, 0);
+            global_page_cache.entries[page_id % PAGE_CACHE_SIZE].page = new_page;
+            //global_page_cache.entries[page_id % PAGE_CACHE_SIZE].oid = page_id;//oid 表示page_id
+            global_page_cache.entries[new_page_id % PAGE_CACHE_SIZE].oid = new_page_id;
+            global_page_cache.entries[page_id % PAGE_CACHE_SIZE].valid = true;
+            global_page_cache.entries[page_id % PAGE_CACHE_SIZE].dirty = true;
+            page = &global_page_cache.entries[page_id % PAGE_CACHE_SIZE].page;
+        }
+        LWLockAcquireExclusive(&page->lock);
+        uint16_t slot_index;
+        if (!page_insert_tuple(page, new_tuple, &slot_index)) {
+            LWLockRelease(&page->lock);
+            LWLockRelease(&meta->extension_lock);
+            return false;
+        }
+        //page_cache_mark_dirty(page_id);
+        page_cache_mark_dirty(new_page_id);
+        LWLockRelease(&page->lock);
+        LWLockRelease(&meta->extension_lock);
+    }
+
+    page_cache_flush(page_id, fullpath);
+   
+    //save_tx_state(&db->tx_mgr, db->data_dir);
+    return true;
+}
+
 /**
  * 查询表中的所有元组
  * 
@@ -325,7 +525,7 @@ snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
  * @param result_count 返回结果数量
  * @return 元组指针数组，需要调用者释放
  */
-Tuple** db_query(MiniDB *db, const char *table_name, int *result_count,Session session) {
+Tuple** nocache_db_query(MiniDB *db, const char *table_name, int *result_count,Session session) {
     if (!db || !table_name || !result_count) {
         return NULL;
     }
@@ -404,30 +604,7 @@ snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
                 printf("DEBUG: before free t else\n");
                 free_tuple(t);
             }
-            /*
-            if (!(slots[i].flags & SLOT_OCCUPIED)) {
-                continue; // 跳过未占用槽位
-            }
-            
-            // 反序列化元组
-            uint8_t* tuple_data = page.data + slots[i].offset;
-            Tuple* tuple = (Tuple*)malloc(sizeof(Tuple));
-            if (!tuple) {
-                continue;
-            }
-            
-            if (deserialize_tuple(tuple, tuple_data) != slots[i].length) {
-                free(tuple);
-                continue;
-            }
-            
-            // 添加到结果集
-            if (total_tuples < MAX_RESULTS) {
-                results[total_tuples++] = tuple;
-            } else {
-                free_tuple(tuple); // 结果集已满
-            }
-                */
+        
         }
     }
     
@@ -450,7 +627,61 @@ snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
     
     *result_count = total_tuples;
 
-    save_table_meta_to_file(meta, db->data_dir);
+   // save_table_meta_to_file(meta, db->data_dir);
+    return results;
+}
+
+Tuple** db_query(MiniDB *db, const char *table_name, int *result_count, Session session) {
+    if (!db || !table_name || !result_count) return NULL;
+
+    *result_count = 0;
+    int idx = find_table(&db->catalog, table_name);
+    TableMeta *meta = &db->catalog.tables[idx];
+    if (!meta) return NULL;
+
+    char fullpath[256];
+    snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+
+    Tuple** results = malloc(MAX_RESULTS * sizeof(Tuple*));
+    if (!results) return NULL;
+
+    int total_tuples = 0;
+    //for (PageID page_id = 0; page_id < db->next_page_id; page_id++) {
+    for (PageID page_id = meta->first_page; page_id <= meta->last_page; page_id++) {
+        Page* page = page_cache_load_or_fetch(page_id, fullpath);
+        if (!page || page->header.page_id == INVALID_PAGE_ID) continue;
+
+        Slot* slots = page->slots;
+        for (int i = 0; i < page->header.slot_count; i++) {
+            Tuple* t = page_get_tuple(page, i, meta);
+            if (!t) continue;
+            bool visible = false;
+            uint32_t xid = session.current_xid;
+           // if (!t->deleted && t->xmin <= xid && (t->xmax == 0 || t->xmax > xid)) {
+            //    visible = true;
+           // }
+            visible = is_tuple_visible(&db->tx_mgr, t, session.current_xid);
+            if (visible) {
+                if (total_tuples < MAX_RESULTS) {
+                    results[total_tuples++] = t;
+                } else {
+                    free_tuple(t);
+                }
+            } else {
+                free_tuple(t);
+            }
+        }
+    }
+
+    if (total_tuples == 0) {
+        free(results);
+        return NULL;
+    } else {
+        Tuple** tmp = realloc(results, total_tuples * sizeof(Tuple*));
+        if (tmp) results = tmp;
+    }
+    *result_count = total_tuples;
+   // save_table_meta_to_file(meta, db->data_dir);
     return results;
 }
 

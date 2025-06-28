@@ -4,8 +4,9 @@
 #include <stdint.h>
 #include <time.h>
 #include "types.h"
-//typedef struct MiniDB MiniDB;
-// 最大并发事务数
+#define SET_COMMITTED(xid, txmgr)   ((txmgr)->committed_bitmap[(xid)/8] |=  (1 << ((xid)%8)))
+#define IS_COMMITTED(xid, txmgr)    ((txmgr)->committed_bitmap[(xid)/8] &   (1 << ((xid)%8)))
+#define CLEAR_COMMITTED(xid, txmgr) ((txmgr)->committed_bitmap[(xid)/8] &= ~(1 << ((xid)%8)))
 
 
 
@@ -24,15 +25,15 @@ void txmgr_init(TransactionManager *txmgr);
  * @param txmgr 事务管理器指针
  * @return uint32_t 新事务ID（INVALID_XID表示失败）
  */
-uint32_t txmgr_start_transaction(TransactionManager *txmgr);
-
+//uint32_t txmgr_start_transaction(TransactionManager *txmgr);
+uint32_t txmgr_start_transaction(MiniDB *db);
 /**
  * @brief 提交事务
  * 
  * @param txmgr 事务管理器指针
  * @param xid 要提交的事务ID
  */
-void txmgr_commit_transaction(TransactionManager *txmgr, uint32_t xid);
+void txmgr_commit_transaction(MiniDB * db, uint32_t xid);
 
 /**
  * @brief 中止事务
@@ -40,7 +41,7 @@ void txmgr_commit_transaction(TransactionManager *txmgr, uint32_t xid);
  * @param txmgr 事务管理器指针
  * @param xid 要中止的事务ID
  */
-void txmgr_abort_transaction(TransactionManager *txmgr, uint32_t xid);
+void txmgr_abort_transaction(MiniDB * db, uint32_t xid);
 
 /**
  * @brief 检查元组对指定事务是否可见
@@ -86,7 +87,9 @@ uint32_t txmgr_get_oldest_xid(const TransactionManager *txmgr);
  */
 uint32_t txmgr_get_next_xid(const TransactionManager *txmgr);
 
+bool txmgr_is_committed(const TransactionManager* txmgr,uint32_t xid);
 
+bool save_tx_state(const TransactionManager* txmgr, const char* db_path) ;
 
-
+bool load_tx_state(TransactionManager* txmgr, const char* db_path);
 #endif // TRANSACTION_MANAGER_H

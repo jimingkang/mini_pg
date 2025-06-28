@@ -42,6 +42,9 @@ typedef uint32_t PageID;
 #define SLOT_DELETED  0x02
 #define MAX_TUPLE_SIZE (PAGE_DATA_SIZE / 2)
 #define INVALID_SLOT 0xFFFF
+#define MAX_XID 100000  // 最多支持 10 万个事务
+#define COMMIT_BITMAP_SIZE (MAX_XID / 8)  // 每个事务1bit
+
 
 // 数据类型枚举
 typedef enum {
@@ -130,9 +133,10 @@ typedef struct Slot {
 
 // 事务状态
 typedef enum {
-    TRANS_ACTIVE,     // 事务进行中
-    TRANS_COMMITTED,  // 事务已提交
-    TRANS_ABORTED     // 事务已中止
+    TRANS_NONE,           //       0
+    TRANS_ACTIVE,     // 事务进行中 1
+    TRANS_COMMITTED,  // 事务已提交  2
+    TRANS_ABORTED     // 事务已中止  3
 } TransactionState;
 typedef struct {
     uint32_t xid;                 // 事务ID
@@ -143,6 +147,10 @@ typedef struct {
     bool holding_exclusive_lock; // 是否持有排他锁
     bool holding_shared_lock;    // 是否持有共享锁
 } Transaction;
+
+typedef struct {
+    uint8_t committed_flags[MAX_XID];  // xid => 1 表示已提交，0 表示未提交或不存在
+} CommitLog;
 // === 模拟 PGPROC ===
 typedef struct PGPROC {
     Transaction *txn;       // 指向事务对象
@@ -204,7 +212,6 @@ PageID last_page;    // 表的最后一个页面ID
   // ✅ 新增：元组的最大 OID
     uint32_t max_row_oid;
 
-
     LWLock fsm_lock;
     LWLock extension_lock;
 } TableMeta;
@@ -228,6 +235,8 @@ typedef struct {
     Transaction transactions[MAX_CONCURRENT_TRANS]; // 事务数组
     uint32_t next_xid;         // 下一个可用事务ID
     uint32_t oldest_xid;       // 最老活动事务ID
+   //uint8_t committed_flags[MAX_XID];  // 标志事务是否已提交 ,
+    uint8_t committed_bitmap[COMMIT_BITMAP_SIZE];  // 替代原来的 committed_flags
 } TransactionManager;
 
 // 系统目录

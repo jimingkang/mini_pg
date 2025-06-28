@@ -16,15 +16,16 @@ void InitTransactionManagerLock() {
 
 // 初始化事务管理器
 void txmgr_init(TransactionManager *txmgr) {
+     memset(txmgr, 0, sizeof(TransactionManager));
     // 初始化事务数组
     for (int i = 0; i < MAX_CONCURRENT_TRANS; i++) {
         txmgr->transactions[i].xid = INVALID_XID;
-        txmgr->transactions[i].state = TRANS_ABORTED;
+        txmgr->transactions[i].state = TRANS_NONE;
         txmgr->transactions[i].start_time = 0;
         txmgr->transactions[i].snapshot = 0;
         txmgr->transactions[i].lsn = 0;
     }
-    
+      memset(txmgr->committed_bitmap, 0, sizeof(txmgr->committed_bitmap));
     // 初始化事务ID计数器
     txmgr->next_xid = 1; // 从1开始，0保留给无效事务
     txmgr->oldest_xid = 1;
@@ -35,7 +36,8 @@ void txmgr_init(TransactionManager *txmgr) {
 // 查找空闲事务槽
 static int find_free_transaction_slot(TransactionManager *txmgr) {
     for (int i = 0; i < MAX_CONCURRENT_TRANS; i++) {
-        if (txmgr->transactions[i].state == TRANS_ABORTED || 
+        printf("%p\n",txmgr);
+        if (txmgr->transactions[i].state == TRANS_NONE || 
             txmgr->transactions[i].xid == INVALID_XID) {
             return i;
         }
@@ -44,9 +46,9 @@ static int find_free_transaction_slot(TransactionManager *txmgr) {
 }
 
 // 开始新事务
-uint32_t txmgr_start_transaction(TransactionManager *txmgr) {
+uint32_t txmgr_start_transaction(MiniDB *db) {
     // 查找空闲事务槽
-    int slot = find_free_transaction_slot(txmgr);
+    int slot = find_free_transaction_slot(&(db->tx_mgr));
     if (slot < 0) {
         fprintf(stderr, "Error: Maximum concurrent transactions reached (%d)\n", 
                 MAX_CONCURRENT_TRANS);
@@ -54,21 +56,21 @@ uint32_t txmgr_start_transaction(TransactionManager *txmgr) {
     }
     
     // 分配事务ID
-    uint32_t xid = txmgr->next_xid++;
+    uint32_t xid =db->tx_mgr.next_xid++;
     if (xid == INVALID_XID) {
-        xid = txmgr->next_xid++; // 跳过无效ID
+        xid = db->tx_mgr.next_xid++; // 跳过无效ID
     }
     
     // 初始化事务
-    txmgr->transactions[slot].xid = xid;
-    txmgr->transactions[slot].state = TRANS_ACTIVE;
-    txmgr->transactions[slot].start_time = (uint64_t)time(NULL) * 1000000; // 微秒精度
-    txmgr->transactions[slot].snapshot = txmgr->oldest_xid;
-    txmgr->transactions[slot].lsn = 0;
+    db->tx_mgr.transactions[slot].xid = xid;
+    db->tx_mgr.transactions[slot].state = TRANS_ACTIVE;
+    db->tx_mgr.transactions[slot].start_time = (uint64_t)time(NULL) * 1000000; // 微秒精度
+    db->tx_mgr.transactions[slot].snapshot = db->tx_mgr.oldest_xid;
+    db->tx_mgr.transactions[slot].lsn = 0;
     
     // 更新最老事务ID（如果是第一个活动事务）
-    if (txmgr->oldest_xid == 0 || txmgr->oldest_xid > xid) {
-        txmgr->oldest_xid = xid;
+    if (db->tx_mgr.oldest_xid == 0 || db->tx_mgr.oldest_xid > xid) {
+        db->tx_mgr.oldest_xid = xid;
     }
     
     printf("Started transaction %u (slot %d)\n", xid, slot);
@@ -92,8 +94,8 @@ static Transaction *find_transaction(TransactionManager *txmgr, uint32_t xid) {
 }
 
 // 提交事务
-void txmgr_commit_transaction(TransactionManager *txmgr, uint32_t xid) {
-    Transaction *trans = find_transaction(txmgr, xid);
+void txmgr_commit_transaction(MiniDB *db, uint32_t xid) {
+    Transaction *trans = find_transaction(&(db->tx_mgr), xid);
     if (!trans) {
         fprintf(stderr, "Error: Commit failed - transaction %u not found\n", xid);
         return;
@@ -107,38 +109,43 @@ void txmgr_commit_transaction(TransactionManager *txmgr, uint32_t xid) {
     
     // 更新事务状态
     trans->state = TRANS_COMMITTED;
+    //db->tx_mgr.committed_flags[xid] = 1;  // 内存中标记
+    SET_COMMITTED(xid, &db->tx_mgr);
     
     // 记录WAL
     wal_log_commit(xid);
+
     
     printf("Committed transaction %u\n", xid);
     
     // 更新最老事务ID（如果需要）
-    if (xid == txmgr->oldest_xid) {
+    if (xid == db->tx_mgr.oldest_xid) {
         uint32_t new_oldest = UINT32_MAX;
         
         // 查找最小活动事务ID
         for (int i = 0; i < MAX_CONCURRENT_TRANS; i++) {
-            if (txmgr->transactions[i].state == TRANS_ACTIVE && 
-                txmgr->transactions[i].xid < new_oldest) {
-                new_oldest = txmgr->transactions[i].xid;
+            if (db->tx_mgr.transactions[i].state == TRANS_ACTIVE && 
+                db->tx_mgr.transactions[i].xid < new_oldest) {
+                new_oldest = db->tx_mgr.transactions[i].xid;
             }
         }
         
         // 如果没有活动事务，重置为下一个可用XID
         if (new_oldest == UINT32_MAX) {
-            txmgr->oldest_xid = txmgr->next_xid;
+            db->tx_mgr.oldest_xid =db->tx_mgr.next_xid;
         } else {
-            txmgr->oldest_xid = new_oldest;
+            db->tx_mgr.oldest_xid = new_oldest;
         }
-        
-        printf("Updated oldest XID to %u\n", txmgr->oldest_xid);
+        trans->xid = 0;
+        trans->state = TRANS_NONE;
+            save_tx_state(&db->tx_mgr, db->data_dir);  // ✅ 保存事务状态
+        printf("Updated oldest XID to %u\n", db->tx_mgr.oldest_xid);
     }
 }
 
 // 中止事务
-void txmgr_abort_transaction(TransactionManager *txmgr, uint32_t xid) {
-    Transaction *trans = find_transaction(txmgr, xid);
+void txmgr_abort_transaction(MiniDB * db, uint32_t xid) {
+    Transaction *trans = find_transaction(&db->tx_mgr, xid);
     if (!trans) {
         fprintf(stderr, "Error: Abort failed - transaction %u not found\n", xid);
         return;
@@ -152,32 +159,33 @@ void txmgr_abort_transaction(TransactionManager *txmgr, uint32_t xid) {
     
     // 更新事务状态
     trans->state = TRANS_ABORTED;
-    
+     //  db->tx_mgr.committed_flags[xid] = 3;  // 内存中标记
+     CLEAR_COMMITTED(xid, &db->tx_mgr);
     // 记录WAL
     wal_log_abort(xid);
-    
+
     printf("Aborted transaction %u\n", xid);
     
     // 更新最老事务ID（如果需要）
-    if (xid == txmgr->oldest_xid) {
+    if (xid == db->tx_mgr.oldest_xid) {
         uint32_t new_oldest = UINT32_MAX;
         
         // 查找最小活动事务ID
         for (int i = 0; i < MAX_CONCURRENT_TRANS; i++) {
-            if (txmgr->transactions[i].state == TRANS_ACTIVE && 
-                txmgr->transactions[i].xid < new_oldest) {
-                new_oldest = txmgr->transactions[i].xid;
+            if (db->tx_mgr.transactions[i].state == TRANS_ACTIVE && 
+               db->tx_mgr.transactions[i].xid < new_oldest) {
+                new_oldest =db->tx_mgr.transactions[i].xid;
             }
         }
         
         // 如果没有活动事务，重置为下一个可用XID
         if (new_oldest == UINT32_MAX) {
-            txmgr->oldest_xid = txmgr->next_xid;
+            db->tx_mgr.oldest_xid = db->tx_mgr.next_xid;
         } else {
-            txmgr->oldest_xid = new_oldest;
+            db->tx_mgr.oldest_xid = new_oldest;
         }
-        
-        printf("Updated oldest XID to %u\n", txmgr->oldest_xid);
+        save_tx_state(&db->tx_mgr, db->data_dir);  // ✅ 保存事务状态
+        printf("Updated oldest XID to %u\n",db->tx_mgr.oldest_xid);
     }
 }
 
@@ -279,17 +287,35 @@ bool load_tx_state(TransactionManager* txmgr, const char* db_path) {
 
     FILE* fp = fopen(path, "rb");
     if (!fp) {
+        memset(txmgr, 0, sizeof(TransactionManager));
         // 如果没有文件，初始化为默认值
         txmgr->next_xid = 1;
         txmgr->oldest_xid = 1;
+
+        for (int i = 0; i < MAX_CONCURRENT_TRANS; ++i) {
+            txmgr->transactions[i].xid = 0;
+            txmgr->transactions[i].state = TRANS_NONE;
+        }
+            // 初始化 committed_flags
+    memset(txmgr->committed_bitmap, 0, sizeof(txmgr->committed_bitmap));
         return false;
     }
 
     fread(&txmgr->next_xid, sizeof(uint32_t), 1, fp);
     fread(&txmgr->oldest_xid, sizeof(uint32_t), 1, fp);
+     // 读取事务状态槽
+    //fread(txmgr->transactions, sizeof(Transaction), MAX_CONCURRENT_TRANS, fp);
+    for (int i = 0; i < MAX_CONCURRENT_TRANS; i++) {
+    fread(&txmgr->transactions[i].xid, sizeof(uint32_t), 1, fp);
+    fread(&txmgr->transactions[i].state, sizeof(TransactionState), 1, fp);
+}
+
+    //fwrite(txmgr->committed_flags, sizeof(uint8_t), MAX_XID, fp);
+     fread(txmgr->committed_bitmap, 1, COMMIT_BITMAP_SIZE, fp);
+
     fclose(fp);
-    printf("Transaction manager initialized. Next XID: %u, Oldest XID: %u\n", 
-           txmgr->next_xid, txmgr->oldest_xid);
+    printf("Transaction manager initialized. Next XID: %u, Oldest XID: %u,txmgr->committed_bitmap[2]:%d\n", 
+           txmgr->next_xid, txmgr->oldest_xid,txmgr->committed_bitmap[2]);
     return true;
 }
 bool save_tx_state(const TransactionManager* txmgr, const char* db_path) {
@@ -304,6 +330,31 @@ bool save_tx_state(const TransactionManager* txmgr, const char* db_path) {
 
     fwrite(&txmgr->next_xid, sizeof(uint32_t), 1, fp);
     fwrite(&txmgr->oldest_xid, sizeof(uint32_t), 1, fp);
+    
+   
+     // 写入入当前事务槽的活跃状态（调试用）
+    for (int i = 0; i < MAX_CONCURRENT_TRANS; i++) {
+        fwrite(&txmgr->transactions[i].xid, sizeof(uint32_t), 1, fp);
+        fwrite(&txmgr->transactions[i].state, sizeof(TransactionState), 1, fp);
+    }
+     // 写入 committed_flags 状态（假设 MAX_XID 定义合理）
+    //fwrite(txmgr->committed_flags, sizeof(uint8_t),MAX_XID, fp);
+     fwrite(txmgr->committed_bitmap, 1, COMMIT_BITMAP_SIZE, fp);  // 写bitmap
+    fflush(fp);
     fclose(fp);
     return true;
 }
+
+bool old_txmgr_is_committed(const TransactionManager* txmgr,uint32_t xid) {
+    for (int i = 0; i < txmgr->next_xid; ++i) {
+        if (txmgr->transactions[i].xid == xid) {
+            return txmgr->transactions[i].state == TRANS_COMMITTED;
+        }
+    }
+    return false;  // xid 不存在视为未提交
+}
+bool txmgr_is_committed(const TransactionManager* txmgr, uint32_t xid) {
+    if (xid >= MAX_XID || xid == INVALID_XID) return false;
+      return IS_COMMITTED(xid, txmgr);
+}
+
