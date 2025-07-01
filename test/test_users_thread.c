@@ -21,11 +21,12 @@ void* insert_thread(void* arg) {
 
 void* update_thread(void* arg) {
     MiniDB* db = (MiniDB*)arg;
-  srand(time(NULL));  // 放在 main() 最开始，只调用一次
-
+    srand(time(NULL));  // 放在 main() 最开始，只调用一次
+         sleep(1); // 在其中一个线程开始前 sleep
     Session session = {.db = db, .client_fd = 0};
-    session.current_xid = txmgr_start_transaction(db);
-
+    session.current_xid = session_begin_transaction(&session);
+ printf("[ thread:%x,session.current_xid:%d] session_begin_transaction\n", 
+        (unsigned long)pthread_self(), session.current_xid);
     UpdateStmt stmt;
     memset(&stmt, 0, sizeof(UpdateStmt));
     strcpy(stmt.table_name, shared_table);
@@ -39,44 +40,69 @@ void* update_thread(void* arg) {
     strcpy(stmt.where.column, "name");
     strcpy(stmt.where.op, "=");
     strcpy(stmt.where.value, "Jack");
+
+ 
         int cnt=0;
       Tuple**    new_results = db_query(db, "users",&cnt,session);
+      printf("[ thread:%x,session.current_xid:%d] Query found %d tuples\n", 
+        (unsigned long)pthread_self(), session.current_xid, cnt);
+
     if (new_results) {
 
-        printf("[ thread:%d,session.current_xid:%d] before update ,new Query returned %d tuples:\n--------",(unsigned long)pthread_self(),session.current_xid, cnt);
+        printf("[ thread:%x,session.current_xid:%d] before update ,new Query returned %d tuples:\n--------",(unsigned long)pthread_self(),session.current_xid, cnt);
 
         for (int i = 0; i < cnt; i++) {
             print_tuple(new_results[i], find_table(&(db->catalog), "users"),session.current_xid);
         }
     }
+      sleep(1);
 
     if (db_update(db, &stmt, session)<=0) {
-        printf("[thread:%d,session.current_xid:%d] Update failed, age=%d\n",(unsigned long)pthread_self(),session.current_xid,age );
+        printf("[thread:%x,session.current_xid:%d] Update failed, age=%d\n",(unsigned long)pthread_self(),session.current_xid,age );
     } else {
-        printf("[ thread:%d,session.current_xid:%d] Update success, age=%d\n",(unsigned long)pthread_self(),session.current_xid,age );
+        printf("[ thread:%x,session.current_xid:%d] Update success, age=%d\n",(unsigned long)pthread_self(),session.current_xid,age );
     }
-
-         new_results = db_query(db, "users",&cnt,session);
+    
+  
+     new_results = db_query(db, "users",&cnt,session);
     if (new_results) {
 
-        printf("[ thread:%d,session.current_xid:%d] after update ,new Query returned %d tuples:\n--------",(unsigned long)pthread_self(),session.current_xid, cnt);
+        printf("[ thread:%x,session.current_xid:%d] after update sleep 1 sec ,new Query returned %d tuples:\n--------",(unsigned long)pthread_self(),session.current_xid, cnt);
 
         for (int i = 0; i < cnt; i++) {
             print_tuple(new_results[i], find_table(&(db->catalog), "users"),session.current_xid);
         }
     }
 
-    txmgr_commit_transaction(db, session.current_xid);
-       
-   
+    session_commit_transaction(db, &session);
+        
+  
+/*
+    
+
+    session.current_xid = session_begin_transaction(&session);
+      new_results = db_query(db, "users",&cnt,session);
+    if (new_results) {
+
+        printf("[ thread:%x,session.current_xid:%d] after commit ,new Query returned %d tuples:\n--------",(unsigned long)pthread_self(),session.current_xid, cnt);
+
+        for (int i = 0; i < cnt; i++) {
+            print_tuple(new_results[i], find_table(&(db->catalog), "users"),session.current_xid);
+        }
+    }
+ session_commit_transaction(db, &session);
+ */
     return NULL;
 }
+
+
+
 
 int main() {
   
     MiniDB db;
     init_db(&db, "/home/rlk/Downloads/mini_pg/build");
-//update_thread(&db);
+   // update_thread(&db);
     // 多线程操作
     pthread_t tid_insert, tid_update,tid2_update;
    // pthread_create(&tid_insert, NULL, insert_thread, &db);
@@ -84,8 +110,29 @@ int main() {
     pthread_create(&tid2_update, NULL, update_thread, &db);
 
    // pthread_join(tid_insert, NULL);
-    pthread_join(tid_update, NULL);
+   pthread_join(tid_update, NULL);
     pthread_join(tid2_update, NULL);
+
+           /*    */
+     Session session = {.db = &db, .client_fd = 0};
+    session.current_xid = session_begin_transaction(&session);
+       int cnt=0;
+      Tuple**      new_results = db_query(&db, "users",&cnt,session);
+              printf("[main thread:%d,session.current_xid:%d] after commit ,new Query returned %d tuples:\n--------",(unsigned long)pthread_self(),session.current_xid, cnt);
+    if (new_results) {
+
+
+
+        for (int i = 0; i < cnt; i++) {
+            print_tuple(new_results[i], find_table(&(db.catalog), "users"),session.current_xid);
+        }
+    }
+
+    session_commit_transaction(&db, &session);
+
+
+
+   // start_checkpoint_thread(&db);
 
     return 0;
 }

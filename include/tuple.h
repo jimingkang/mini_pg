@@ -35,5 +35,11 @@ bool tuple_equals(const Tuple* t1, const Tuple* t2);
 // 计算元组的哈希值（用于索引）
 uint32_t tuple_hash(const Tuple* tuple);
 bool eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) ;
-bool is_tuple_visible(TransactionManager *txmgr,const Tuple* tuple, uint32_t current_xid) ;
+//bool has_newer_visible_version(TableMeta *meta, TransactionManager *txmgr, const Tuple *old_tuple, uint32_t current_xid);
+//bool has_newer_visible_version(TableMeta *meta, TransactionManager *txmgr, const Tuple *old_tuple, uint32_t current_xid,uint32_t snapshot_xmin);
+bool has_newer_visible_version(TableMeta *meta, TransactionManager *txmgr, const Tuple *old_tuple, uint32_t current_xid,const Snapshot *  snap) ;
+bool is_tuple_visible(TableMeta *meta, TransactionManager *txmgr, const Tuple *tuple, uint32_t current_xid, const Snapshot *snap);
+//bool is_tuple_visible(TransactionManager *txmgr,const Tuple* tuple, uint32_t current_xid) ;
+//bool is_tuple_visible(TableMeta * meta, TransactionManager *txmgr, const Tuple* tuple, uint32_t current_xid);
+//bool is_tuple_visible(TableMeta * meta, TransactionManager *txmgr, const Tuple* tuple, uint32_t current_xid,uint32_t snapshot_xmin);
 #endif // TUPLE_H

@@ -86,6 +86,54 @@ typedef struct Page {
     LWLock lock;
 } Page;
 
+hexdump -C users.tbl
+00000000  00 00 00 00 00 00 00 00  00 00 00 00 84 00 e0 0f  |................|
+00000010  00 00 04 00 04 00 00 00  ff ff ff ff ff ff ff ff  |................|
+00000020  00 00 1e 00 00 00 00 01  1e 00 1f 00 00 00 00 01  |................|
+00000030  3d 00 1f 00 00 00 00 01  5c 00 28 00 00 00 00 01  |=.......\.(.....|
+00000040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+*
+00000220  01 00 00 00 02 00 00 00  00 00 00 00 00 03 00 01  |................|
+00000230  00 00 00 03 03 00 54 6f  6d 00 1e 00 00 00 02 00  |......Tom.......|
+00000240  00 00 02 00 00 00 04 00  00 00 00 03 00 02 00 00  |................|
+00000250  00 03 04 00 4a 61 63 6b  00 19 00 00 00 02 00 00  |....Jack........|
+00000260  00 04 00 00 00 00 00 00  00 00 03 00 02 00 00 00  |................|
+00000270  03 04 00 4a 61 63 6b 00  c8 01 00 00 03 00 00 00  |...Jack.........|
+00000280  06 00 00 00 00 00 00 00  00 03 00 03 00 00 00 03  |................|
+00000290  0d 00 52 6f 6c 6c 62 61  63 6b 5f 75 73 65 72 00  |..Rollback_user.|
+000002a0  23 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |#...............|
+000002b0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+
+
+00 00 00 00     -> checksum: 0
+00 00 00 00     -> page_id: 0
+84 00 e0 0f     -> lsn: 0x0fe00084 （log sequence number）
+00 00           -> free_start: 0x0000
+04 00           -> free_end: 0x0004
+04 00           -> free_space: 4
+00 00           -> tuple_count: 0
+ff ff           -> slot_count: 0xffff （65535，明显不对，推测此字段未初始化或损坏）
+ff ff ff ff     -> next_page: -1（0xffffffff）
+00 00 1e 00     -> prev_page: 0x001e0000（推测字节对齐或错误读取）
+
+00000230: 00 00 00 03   // OID = 3
+03 00 54 6f 6d         // TEXT = "Tom"（长度3，内容Tom）
+00 1e 00 00 00         // TEXT后面疑似是长度/类型信息？
+02 00 00 00           // col_count = 2（？）
+
+
+|<-------------------- PAGE_SIZE = 4096 -------------------->|
++------------------------+-----------------------------------+
+| PageHeader (32B)       |                                   |
++------------------------+         Tuple Data Area           |
+|                        |   ← free_start     ↑free_end      |
+|                        |       ↑            ↓              |
+|                        |      Tuple 1    Tuple 2 ...       |
+|                        |                                   |
++------------------------+-----------------------------------+
+|               Slot Directory（从页面底部往上）            |
+|        [slot 0][slot 1]...[slot N]（每个slot占8字节）       |
++------------------------------------------------------------+
 
 // 表元数据
 typedef struct {
@@ -195,3 +243,105 @@ test_users_thread.c实现了多线程update测试
 4)wal回放
 5)崩溃恢复
 6)vacuum
+
+
+
+
+case分析:
+1)两个显示同时更新同一行bin/test_minidb(源代码test_users_thread.c)
+
+Transaction manager initialized. Next XID: 11, Oldest XID: 11,txmgr->committed_bitmap[2]:0
+
+Started transaction 11 (slot 0)
+
+                                                                                            Started transaction 12 (slot 1)
+                                                                                            get LSN offset:1232
+                                                                                            get LSN offset:1232
+                                                                                            [ thread:e26fd700,session.current_xid:12] session_begin_transaction
+                                                                                            [ thread:e26fd700,session.current_xid:12] Query found 2 tuples
+                                                                                            [ thread:e26fd700,session.current_xid:12] before update ,new Query returned 2 tuples:
+                                                                                            --------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 12
+                                                                                            Unknown (0): 1
+                                                                                            Unknown (3): "Tom"
+                                                                                            Unknown (0): 30
+
+                                                                                            Tuple OID: 2 xmin: 9, xmax: 0,Columns: 3,current_xid: 12
+                                                                                            Unknown (0): 2
+                                                                                            Unknown (3): "Jack"
+                                                                                            Unknown (0): 29
+
+[ thread:e2efe700,session.current_xid:11] session_begin_transaction
+[ thread:e2efe700,session.current_xid:11] Query found 2 tuples
+[ thread:e2efe700,session.current_xid:11] before update ,new Query returned 2 tuples:
+--------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 11
+  Unknown (0): 1
+  Unknown (3): "Tom"
+  Unknown (0): 30
+
+Tuple OID: 2 xmin: 9, xmax: 0,Columns: 3,current_xid: 11
+  Unknown (0): 2
+  Unknown (3): "Jack"
+  Unknown (0): 29
+
+eval_condition: tuple id=1, name=Tom
+eval_condition: tuple id=2, name=Jack
+                                                                                                xid=12,得到一个新锁
+                                                                                                eval_condition: tuple id=1, name=Tom
+                                                                                                eval_condition: tuple id=2, name=Jack
+xid=11 ,锁已被别人占用，sched_yield释放锁后重试
+                                                                                                [ thread:e26fd700,session.current_xid:12] Update success, age=98
+                                                                                                [ thread:e26fd700,session.current_xid:12] after update sleep 1 sec ,new Query returned 2 tuples:
+                                                                                                --------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 12
+                                                                                                Unknown (0): 1
+                                                                                                Unknown (3): "Tom"
+                                                                                                Unknown (0): 30
+
+                                                                                                Tuple OID: 2 xmin: 12, xmax: 0,Columns: 3,current_xid: 12
+                                                                                                Unknown (0): 2
+                                                                                                Unknown (3): "Jack"
+                                                                                                Unknown (0): 98
+
+                                                                                                SET_COMMITTED: xid=12, byte=1, bit=4
+                                                                                                txmgr->committed_bitmap[1] = 17
+xid=11,得到一个新锁
+get LSN offset:1264
+Committed transaction 12
+get LSN offset:1296
+[ thread:e2efe700,session.current_xid:11] Update success, age=67
+[ thread:e2efe700,session.current_xid:11] after update sleep 1 sec ,new Query returned 2 tuples:
+--------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 11
+  Unknown (0): 1
+  Unknown (3): "Tom"
+  Unknown (0): 30
+
+Tuple OID: 2 xmin: 11, xmax: 0,Columns: 3,current_xid: 11
+  Unknown (0): 2
+  Unknown (3): "Jack"
+  Unknown (0): 67
+
+SET_COMMITTED: xid=11, byte=1, bit=3
+txmgr->committed_bitmap[1] = 1f
+get LSN offset:1328
+Committed transaction 11
+Updated oldest XID to 13
+get LSN offset:1360
+0x7ffdaa009498
+Started transaction 13 (slot 0)
+get LSN offset:1392
+                                                        [main thread:-487590080,session.current_xid:13] after commit ,new Query returned 2 tuples:
+                                                        --------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 13
+                                                        Unknown (0): 1
+                                                        Unknown (3): "Tom"
+                                                        Unknown (0): 30
+
+                                                        Tuple OID: 2 xmin: 12, xmax: 0,Columns: 3,current_xid: 13
+                                                        Unknown (0): 2
+                                                        Unknown (3): "Jack"
+                                                        Unknown (0): 98
+
+                                                        SET_COMMITTED: xid=13, byte=1, bit=5
+                                                        txmgr->committed_bitmap[1] = 3f
+                                                        get LSN offset:1424
+                                                        Committed transaction 13
+                                                        Updated oldest XID to 14
+                                                        get LSN offset:1456

@@ -86,7 +86,7 @@ void wal_log_create_table(const TableMeta *meta, uint32_t xid);
 /**
  * @brief 创建检查点
  */
-void wal_log_checkpoint();
+void wal_log_checkpoint(MiniDB *db);
 
 /**
  * @brief 从WAL恢复数据库

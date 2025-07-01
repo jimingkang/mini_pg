@@ -3,6 +3,7 @@
 
 CMakeFiles/minidb.dir/src/main.c.o
  ../include/catalog.h
+ ../include/checkpoint.h
  ../include/minidb.h
  ../include/page.h
  ../include/server/executor.h

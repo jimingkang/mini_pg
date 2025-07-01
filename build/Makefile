@@ -244,6 +244,33 @@ src/catalog.c.s:
 	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/catalog.c.s
 .PHONY : src/catalog.c.s
 
+src/checkpoint.o: src/checkpoint.c.o
+
+.PHONY : src/checkpoint.o
+
+# target to build an object file
+src/checkpoint.c.o:
+	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/checkpoint.c.o
+.PHONY : src/checkpoint.c.o
+
+src/checkpoint.i: src/checkpoint.c.i
+
+.PHONY : src/checkpoint.i
+
+# target to preprocess a source file
+src/checkpoint.c.i:
+	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/checkpoint.c.i
+.PHONY : src/checkpoint.c.i
+
+src/checkpoint.s: src/checkpoint.c.s
+
+.PHONY : src/checkpoint.s
+
+# target to generate assembly for a file
+src/checkpoint.c.s:
+	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/checkpoint.c.s
+.PHONY : src/checkpoint.c.s
+
 src/lock.o: src/lock.c.o
 
 .PHONY : src/lock.o
@@ -588,6 +615,9 @@ help:
 	@echo "... src/catalog.o"
 	@echo "... src/catalog.i"
 	@echo "... src/catalog.s"
+	@echo "... src/checkpoint.o"
+	@echo "... src/checkpoint.i"
+	@echo "... src/checkpoint.s"
 	@echo "... src/lock.o"
 	@echo "... src/lock.i"
 	@echo "... src/lock.s"

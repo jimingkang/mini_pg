@@ -23,6 +23,7 @@
 #define INVALID_PAGE_ID 0xFFFFFFFF
 
 #define MAX_NAME_LEN 50
+#define MAX_PATH_LEN 300
 #define MAX_TABLES 100
 #define MAX_COLS 32
 
@@ -42,9 +43,9 @@ typedef uint32_t PageID;
 #define SLOT_DELETED  0x02
 #define MAX_TUPLE_SIZE (PAGE_DATA_SIZE / 2)
 #define INVALID_SLOT 0xFFFF
+
 #define MAX_XID 100000  // 最多支持 10 万个事务
 #define COMMIT_BITMAP_SIZE (MAX_XID / 8)  // 每个事务1bit
-
 
 // 数据类型枚举
 typedef enum {
@@ -133,10 +134,10 @@ typedef struct Slot {
 
 // 事务状态
 typedef enum {
-    TRANS_NONE,           //       0
-    TRANS_ACTIVE,     // 事务进行中 1
-    TRANS_COMMITTED,  // 事务已提交  2
-    TRANS_ABORTED     // 事务已中止  3
+        TRANS_NONE,           //       0
+    TRANS_ACTIVE,     // 事务进行中
+    TRANS_COMMITTED,  // 事务已提交
+    TRANS_ABORTED     // 事务已中止
 } TransactionState;
 typedef struct {
     uint32_t xid;                 // 事务ID
@@ -147,10 +148,6 @@ typedef struct {
     bool holding_exclusive_lock; // 是否持有排他锁
     bool holding_shared_lock;    // 是否持有共享锁
 } Transaction;
-
-typedef struct {
-    uint8_t committed_flags[MAX_XID];  // xid => 1 表示已提交，0 表示未提交或不存在
-} CommitLog;
 // === 模拟 PGPROC ===
 typedef struct PGPROC {
     Transaction *txn;       // 指向事务对象
@@ -204,6 +201,7 @@ typedef struct {
     uint32_t oid;
     char name[MAX_NAME_LEN];
     char filename[MAX_NAME_LEN];
+    char fillpath[MAX_PATH_LEN]; //fullpath
     uint8_t col_count;
     ColumnDef cols[MAX_COLS];
     PageID first_page;   // 表的第一个页面ID
@@ -211,6 +209,7 @@ PageID last_page;    // 表的最后一个页面ID
 
   // ✅ 新增：元组的最大 OID
     uint32_t max_row_oid;
+
 
     LWLock fsm_lock;
     LWLock extension_lock;
@@ -228,15 +227,21 @@ PageID last_page;    // 表的最后一个页面ID
 
 
 
-
+typedef struct Snapshot {
+    uint32_t xmin;                       // 当前所有活跃事务的最小 xid
+    uint32_t xmax;                       // 当前 next_xid（视为“未来”）
+    uint32_t active_xids[MAX_CONCURRENT_TRANS]; // 当前活跃事务列表（不包含本事务）
+    int active_count;
+} Snapshot;
 
 // 事务管理器
 typedef struct {
     Transaction transactions[MAX_CONCURRENT_TRANS]; // 事务数组
     uint32_t next_xid;         // 下一个可用事务ID
     uint32_t oldest_xid;       // 最老活动事务ID
-   //uint8_t committed_flags[MAX_XID];  // 标志事务是否已提交 ,
+      //uint8_t committed_flags[MAX_XID];  // 标志事务是否已提交 ,
     uint8_t committed_bitmap[COMMIT_BITMAP_SIZE];  // 替代原来的 committed_flags
+    Snapshot snap;
 } TransactionManager;
 
 // 系统目录
@@ -265,6 +270,8 @@ typedef struct {
     int client_fd;             // 客户端 socket fd
     MiniDB* db;                // 指向数据库
     uint32_t current_xid;      // 当前连接的事务 ID
+     uint32_t snapshot_xmin; // 🔥 新增字段
+    Snapshot snap;
     
 } Session;
 

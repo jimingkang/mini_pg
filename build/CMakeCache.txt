@@ -256,7 +256,7 @@ minidb_BINARY_DIR:STATIC=/home/rlk/Downloads/mini_pg/build
 minidb_SOURCE_DIR:STATIC=/home/rlk/Downloads/mini_pg
 
 //Dependencies for the target
-minidb_core_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libz.so;
+minidb_core_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libz.so;general;pthread;
 
 
 ########################

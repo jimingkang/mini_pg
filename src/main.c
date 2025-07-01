@@ -6,6 +6,7 @@
 #include <time.h>
 #include <parser.h>
 #include "executor.h"
+#include "checkpoint.h"
 // 示例程序
 int main() {
     MiniDB db;
@@ -13,6 +14,7 @@ int main() {
     // 初始化数据库
     printf("Initializing database...\n");
     init_db(&db, "/home/rlk/Downloads/mini_pg/build");
+
    // print_db_status(&db);
     Session session;
 
@@ -46,6 +48,7 @@ int main() {
         session_rollback_transaction(&db,&session);
         return 1;
     }
+   // wal_log_checkpoint(&db);
     
     // 打印中间状态
    // print_db_status(&db);
@@ -149,7 +152,7 @@ int main() {
     printf("Committed Query transaction %u\n", tx3);
      
 
-
+  //  wal_log_checkpoint(&db);
  
     // 开始新事务
     uint32_t tx4= session_begin_transaction(&session);
@@ -212,7 +215,7 @@ stmt.values[0]=strdup("456");
         return 1;
     }
     printf("Committed 5 transaction %u\n", tx5);
-    
+    /*
     // ================== 事务 4 (演示回滚) ==================
     printf("\n===== Transaction 4: Rollback Demo =====\n");
     
@@ -282,12 +285,12 @@ stmt.values[0]=strdup("456");
         return 1;
     }
     printf("Committed transaction %u\n", tx7);
+*/
 
-
-     
-    
-    // 创建检查点
-    db_create_checkpoint(&db);
+    //wal_log_checkpoint(&db);
+    // 创建检查点线程
+   // db_create_checkpoint(&db);
+   //    start_checkpoint_thread(&db);
     
     // 打印最终状态
     printf("\nFinal database status:\n");

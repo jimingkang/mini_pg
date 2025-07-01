@@ -74,7 +74,6 @@ uint32_t txmgr_start_transaction(MiniDB *db) {
     }
     
     printf("Started transaction %u (slot %d)\n", xid, slot);
-    
     // 记录WAL
     wal_log_begin(xid);
     
@@ -93,55 +92,56 @@ static Transaction *find_transaction(TransactionManager *txmgr, uint32_t xid) {
     return NULL;
 }
 
-// 提交事务
+
 void txmgr_commit_transaction(MiniDB *db, uint32_t xid) {
     Transaction *trans = find_transaction(&(db->tx_mgr), xid);
     if (!trans) {
         fprintf(stderr, "Error: Commit failed - transaction %u not found\n", xid);
         return;
     }
-    
+
     if (trans->state != TRANS_ACTIVE) {
         fprintf(stderr, "Error: Commit failed - transaction %u is not active (state: %d)\n", 
                 xid, trans->state);
         return;
     }
-    
-    // 更新事务状态
+
+    // 设置为已提交状态
     trans->state = TRANS_COMMITTED;
-    //db->tx_mgr.committed_flags[xid] = 1;  // 内存中标记
+
+    // 设置提交位图
     SET_COMMITTED(xid, &db->tx_mgr);
-    
+    printf("SET_COMMITTED: xid=%u, byte=%d, bit=%d\n", xid, xid/8, xid%8);
+    printf("txmgr->committed_bitmap[%d] = %02x\n", xid / 8, db->tx_mgr.committed_bitmap[xid / 8]);
+
     // 记录WAL
     wal_log_commit(xid);
 
-    
     printf("Committed transaction %u\n", xid);
-    
-    // 更新最老事务ID（如果需要）
+
+    // 更新最老事务 ID
     if (xid == db->tx_mgr.oldest_xid) {
         uint32_t new_oldest = UINT32_MAX;
-        
-        // 查找最小活动事务ID
         for (int i = 0; i < MAX_CONCURRENT_TRANS; i++) {
-            if (db->tx_mgr.transactions[i].state == TRANS_ACTIVE && 
+            if (db->tx_mgr.transactions[i].state == TRANS_ACTIVE &&
                 db->tx_mgr.transactions[i].xid < new_oldest) {
                 new_oldest = db->tx_mgr.transactions[i].xid;
             }
         }
-        
-        // 如果没有活动事务，重置为下一个可用XID
-        if (new_oldest == UINT32_MAX) {
-            db->tx_mgr.oldest_xid =db->tx_mgr.next_xid;
-        } else {
-            db->tx_mgr.oldest_xid = new_oldest;
-        }
-        trans->xid = 0;
-        trans->state = TRANS_NONE;
-            save_tx_state(&db->tx_mgr, db->data_dir);  // ✅ 保存事务状态
+        db->tx_mgr.oldest_xid = (new_oldest == UINT32_MAX)
+            ? db->tx_mgr.next_xid
+            : new_oldest;
+
         printf("Updated oldest XID to %u\n", db->tx_mgr.oldest_xid);
     }
+
+    // 💡 移除事务槽，释放资源（更安全）
+    trans->xid = 0;
+    trans->state = TRANS_NONE;
+
+    save_tx_state(&db->tx_mgr, db->data_dir);  // ✅ 保存 bitmap
 }
+
 
 // 中止事务
 void txmgr_abort_transaction(MiniDB * db, uint32_t xid) {
@@ -295,6 +295,7 @@ bool load_tx_state(TransactionManager* txmgr, const char* db_path) {
         for (int i = 0; i < MAX_CONCURRENT_TRANS; ++i) {
             txmgr->transactions[i].xid = 0;
             txmgr->transactions[i].state = TRANS_NONE;
+              
         }
             // 初始化 committed_flags
     memset(txmgr->committed_bitmap, 0, sizeof(txmgr->committed_bitmap));
@@ -357,4 +358,37 @@ bool txmgr_is_committed(const TransactionManager* txmgr, uint32_t xid) {
     if (xid >= MAX_XID || xid == INVALID_XID) return false;
       return IS_COMMITTED(xid, txmgr);
 }
+uint32_t old_compute_snapshot_xmin(TransactionManager* txmgr) {
+    uint32_t xmin = txmgr->next_xid;
+    for (int i = 0; i < MAX_CONCURRENT_TRANS; i++) {
+        if (txmgr->transactions[i].state == TRANS_ACTIVE &&
+            txmgr->transactions[i].xid < xmin) {
+            xmin = txmgr->transactions[i].xid;
+        }
+    }
+    printf("compute_snapshot_xmin :%d\n",xmin);
+    return xmin;
+}
+void compute_snapshot(TransactionManager *txmgr, uint32_t current_xid, Snapshot *snap) {
+    snap->xmin = txmgr->next_xid;
+    snap->xmax = txmgr->next_xid;
+    snap->active_count = 0;
 
+    for (int i = 0; i < MAX_CONCURRENT_TRANS; i++) {
+        uint32_t xid = txmgr->transactions[i].xid;
+
+        if (xid == 0 || xid == current_xid) continue;
+        // 只保留未提交事务为活跃事务
+        if (!txmgr_is_committed(txmgr, xid)) {
+            snap->active_xids[snap->active_count++] = xid;
+
+            if (xid < snap->xmin) {
+                snap->xmin = xid;
+            }
+        }
+        //if (xid != 0 && xid != current_xid) {
+        //    if (xid < snap->xmin) snap->xmin = xid;
+        //    snap->active_xids[snap->active_count++] = xid;
+        //}
+    }
+}

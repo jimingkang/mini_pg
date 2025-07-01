@@ -11,7 +11,9 @@
 #define PAGE_CACHE_SIZE 128  // 缓存页数上限，可按需调整
 
 typedef struct PageCacheEntry {
-    uint32_t oid;            // 页面所在行的 OID（或对应的唯一页标识符）=page_id
+   // uint32_t oid;            // 页面所在行的 OID（或对应的唯一页标识符）=page_id
+     uint32_t table_oid;   // ✅ 明确指出：这个页属于哪个表
+    uint32_t page_id;     // ✅ 表内页号（0,1,2...）
     Page page;              // 缓存的页面内容
     bool dirty;             // 是否被修改过，需写回磁盘
     bool valid;             // 是否为有效缓存
@@ -43,8 +45,10 @@ void free_page(Page* page) ;
 
 //cache
 void init_page_cache();
-Page* page_cache_load_or_fetch(uint32_t oid, const char* filename) ;
+
+Page* page_cache_load_or_fetch(uint32_t page_id, TableMeta * meta);
 Page* page_cache_get(uint32_t oid, TableMeta* meta, FILE* table_file) ;
 bool page_cache_flush(uint32_t oid, const char* filename);
 void page_cache_mark_dirty(uint32_t oid);
+void flush_all_dirty_pages(MiniDB *db);
 #endif // PAGE_H

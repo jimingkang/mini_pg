@@ -426,3 +426,92 @@ TableMeta *find_table(SystemCatalog *catalog, const char *table_name) {
     }
     return NULL;
 }
+
+
+bool new_db_insert(MiniDB *db, const char *table_name, const Tuple *values, Session session) {
+    if (!db || !table_name || !values || session.current_xid == INVALID_XID) return false;
+
+    int idx = find_table(&db->catalog, table_name);
+    TableMeta *meta = &db->catalog.tables[idx];
+    if (!meta) return false;
+
+    Tuple *new_tuple = (Tuple *)values;
+    new_tuple->oid = ++meta->max_row_oid;
+    new_tuple->xmin = session.current_xid;
+
+    char fullpath[256];
+    snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+
+    FILE* fp = fopen(fullpath, "r+b");
+    if (!fp) {
+        fp = fopen(fullpath, "w+b");
+    }
+    fseek(fp, 0, SEEK_END);
+    if (ftell(fp) == 0) {
+        Page empty;
+        page_init(&empty, 0);
+        fwrite(&empty, sizeof(Page), 1, fp);
+     
+    }
+    fclose(fp);
+
+    LWLockAcquireExclusive(&meta->fsm_lock);
+    Page *page = NULL;
+    PageID page_id;
+    bool inserted = false;
+
+    //for (page_id = 0; page_id < db->next_page_id; page_id++) {
+    for (page_id = meta->first_page; page_id <= meta->last_page; page_id++) {
+        page = page_cache_load_or_fetch(page_id, fullpath);
+        if (!page) continue;
+
+        size_t required_space = new_tuple->col_count * sizeof(Column) + 128;
+        if (page_free_space(page) >= required_space) {
+            LWLockAcquireExclusive(&page->lock);
+            uint16_t slot_index;
+            if (page_insert_tuple(page, new_tuple, &slot_index)) {
+                page_cache_mark_dirty(page_id);
+                inserted = true;
+                LWLockRelease(&page->lock);
+                break;
+            }
+            LWLockRelease(&page->lock);
+        }
+    }
+    LWLockRelease(&meta->fsm_lock);
+
+    if (!inserted) {
+        LWLockAcquireExclusive(&meta->extension_lock);
+        //page_id = db->next_page_id++;
+         PageID new_page_id = ++meta->last_page;
+        page = page_cache_load_or_fetch(new_page_id, fullpath);
+        if (!page) {
+            Page new_page;
+            //page_init(&new_page, page_id);
+            page_init(&new_page, new_page_id);
+            LWLockInit(&new_page.lock, 0);
+            global_page_cache.entries[page_id % PAGE_CACHE_SIZE].page = new_page;
+            //global_page_cache.entries[page_id % PAGE_CACHE_SIZE].oid = page_id;//oid 表示page_id
+            global_page_cache.entries[new_page_id % PAGE_CACHE_SIZE].oid = new_page_id;
+            global_page_cache.entries[page_id % PAGE_CACHE_SIZE].valid = true;
+            global_page_cache.entries[page_id % PAGE_CACHE_SIZE].dirty = true;
+            page = &global_page_cache.entries[page_id % PAGE_CACHE_SIZE].page;
+        }
+        LWLockAcquireExclusive(&page->lock);
+        uint16_t slot_index;
+        if (!page_insert_tuple(page, new_tuple, &slot_index)) {
+            LWLockRelease(&page->lock);
+            LWLockRelease(&meta->extension_lock);
+            return false;
+        }
+        //page_cache_mark_dirty(page_id);
+        page_cache_mark_dirty(new_page_id);
+        LWLockRelease(&page->lock);
+        LWLockRelease(&meta->extension_lock);
+    }
+
+    page_cache_flush(page_id, fullpath);
+   
+    //save_tx_state(&db->tx_mgr, db->data_dir);
+    return true;
+}

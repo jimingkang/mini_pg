@@ -37,6 +37,7 @@ add_library(minidb_core STATIC
     src/page.c
    src/tuple.c
     src/lock.c
+    src/checkpoint.c
    src/server/server.c
    src/server/executor.c
    src/server/sql_exec.c
@@ -45,7 +46,7 @@ add_library(minidb_core STATIC
 
 )
 
-target_link_libraries(minidb_core ${ZLIB_LIBRARIES})
+target_link_libraries(minidb_core ${ZLIB_LIBRARIES} pthread)
 
 # ================== 主程序 ==================
 add_executable(minidb

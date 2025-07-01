@@ -29,12 +29,17 @@ PGPROC* proclist_pop_front(proclist_head *list) {
 
 void LWLockInit(LWLock *lock, uint16_t tranche_id) {
     atomic_store(&lock->state, 0);
-    proclist_init(&lock->waiters);
+   // proclist_init(&lock->waiters);
     lock->tranche = tranche_id;
+    lock->state=0;
 }
 
 
 bool LWLockAcquireExclusive(LWLock *lock) {
+   // if (lock->exclusive_owner == pthread_self()) {
+  //  fprintf(stderr, "Deadlock detected: thread %lu already owns lock\n", pthread_self());
+   // abort();
+//}
    // printf("LWLockAcquireExclusive ");
     uint32_t expected = 0;
     while (!atomic_compare_exchange_weak(&lock->state, &expected, 1)) {
@@ -209,13 +214,23 @@ void unlock_row(const char* table, uint32_t oid, uint32_t xid) {
     }
 
     RowLock* curr = global_row_locks.buckets[h];
+    RowLock* prev = NULL;
     while (curr) {
         if (row_lock_tag_equal(&curr->tag, &tag)) {
             if (curr->holder_xid == xid) {
-                curr->holder_xid = 0;
+               // curr->holder_xid = 0;
+               // ❗移除节点
+                if (prev) {
+                    prev->next = curr->next;
+                } else {
+                    global_row_locks.buckets[h] = curr->next;
+                }
+                free(curr); // ✅释放内存
+                
                 break;
             }
         }
+            prev = curr;
         curr = curr->next;
     }
 

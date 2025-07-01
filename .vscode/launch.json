@@ -19,7 +19,7 @@
       "name": "Debug mini_pg (remote)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/home/rlk/Downloads/mini_pg/build/bin/minidb",
+      "program": "/home/rlk/Downloads/mini_pg/build/bin/test_minidb",
       "args": [],
       "stopAtEntry": false,
       "cwd": "/home/rlk/Downloads/mini_pg/build",

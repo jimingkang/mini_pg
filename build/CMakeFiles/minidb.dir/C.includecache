@@ -14,6 +14,10 @@ minidb.h
 tuple.h
 ../include/tuple.h
 
+../include/checkpoint.h
+minidb.h
+../include/minidb.h
+
 ../include/minidb.h
 stdio.h
 -
@@ -123,4 +127,6 @@ parser.h
 -
 executor.h
 /home/rlk/Downloads/mini_pg/src/executor.h
+checkpoint.h
+/home/rlk/Downloads/mini_pg/src/checkpoint.h
 

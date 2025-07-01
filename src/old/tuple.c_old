@@ -70,3 +70,212 @@ void print_tuple(const Tuple *tuple) {
     }
     printf("\n");
 }
+
+
+bool old_eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) {
+       fprintf(stderr, "eval_condition: tuple id=%d,name=%s\n", t->columns[0].value.int_val,t->columns[1].value.str_val);
+    for (int i = 0; i < t->col_count; i++) {
+        if (strcmp(meta->cols[i].name, cond->column) == 0) {
+            if (strcmp(cond->op, "=") == 0) {
+               if (meta->cols[i].type == TEXT_TYPE) {
+                fprintf(stderr, "meta->cols[i].type =%d\n",meta->cols[i].type );
+                return strcmp(t->columns[i].value.str_val, cond->value) == 0;
+               } else if (meta->cols[i].type == INT4_TYPE) {
+                int cond_val = atoi(cond->value);
+                fprintf(stderr, "cond_val =%d\n",cond_val );
+                return t->columns[i].value.int_val == cond_val;
+               }
+            }
+        }
+    }
+    return false;
+}
+
+bool newold_is_tuple_visible(TableMeta * meta, TransactionManager *txmgr, const Tuple* tuple, uint32_t current_xid,uint32_t snapshot_xmin) {
+    // 1. 当前事务插入且未删除 → 可见
+    if (tuple->xmin == current_xid && tuple->xmax == 0) {
+        return true;
+    }
+
+     
+
+    // 2. 尚未插入（未来事务） → 不可见
+    //if (tuple->xmin > current_xid) {
+    //   return false;
+    //}
+    // 3. 插入事务虽然已提交，但比我新 → 不可见（关键点，必须放在未提交判断前）
+   // if (txmgr_is_committed(txmgr, tuple->xmin) && tuple->xmin > current_xid) {
+   //     return false;
+    //}
+
+
+    // 4. 插入事务未提交 → 不可见
+    if (!txmgr_is_committed(txmgr, tuple->xmin)) {
+        return false;
+    }
+    
+
+// ❗插入事务虽已提交，但比我事务晚（不是我自己）→ 不可见
+if (tuple->xmin > snapshot_xmin && tuple->xmin != current_xid) {
+    return false;
+}
+
+  
+    // 5. 插入事务已提交
+    if (tuple->xmax == 0) {
+        return true; // 未删除
+    }
+
+    // 6. 删除事务是当前事务 → 不可见
+    if (tuple->xmax == current_xid) {
+        return false;
+    }
+
+    // 7. 删除事务未提交 → 删除无效，可见
+    if (!txmgr_is_committed(txmgr, tuple->xmax)) {
+       // return true;
+       // ❗此处应检查是否有更“新的版本”已插入（如 update 之后的行）
+        if (has_newer_visible_version(meta, txmgr, tuple, current_xid,snapshot_xmin)) {
+        return false;
+        } else {
+        
+                return true;
+        }
+    }
+
+
+    // 8. 删除事务在当前事务之前 → 删除生效，不可见
+    if (tuple->xmax < current_xid) {
+        return false;
+    }
+
+    // 9. 删除事务是未来的 → 删除尚未生效，可见
+    return true;
+}
+bool old_is_tuple_visible(TransactionManager *txmgr,const Tuple* tuple, uint32_t current_xid) {
+    // 1. 插入事务没提交，当前事务又不是插入者自己 → 不可见
+    if (!txmgr_is_committed(txmgr,tuple->xmin) && tuple->xmin != current_xid) {
+        return false;
+    }
+
+    // 2. 如果已被删除，且删除事务已提交 → 不可见
+    if (tuple->xmax != 0 && txmgr_is_committed(txmgr,tuple->xmax)) {
+        return false;
+    }
+
+    // 否则视为可见
+    return true;
+}
+bool no_excluded_pre_updated_is_tuple_visible(TransactionManager *txmgr, const Tuple* tuple, uint32_t current_xid) {
+    // 当前事务能看到它自己插入的 tuple
+    if (tuple->xmin == current_xid && tuple->xmax == 0) return true;
+    if (tuple->xmin < current_xid && tuple->xmax == 0 && txmgr_is_committed(txmgr, tuple->xmin)) {
+    //if (tuple->xmin < current_xid && tuple->xmax == 0 ) {
+    // 这是一个旧事务提交的、尚未被删除的记录
+    return true;
+}
+
+    // 插入事务未提交，对其他事务不可见
+    if (!txmgr_is_committed(txmgr,tuple->xmin))
+     return false;
+
+    // 删除事务未提交，还能看到
+    if (tuple->xmax != 0 && !txmgr_is_committed(txmgr,tuple->xmax)) 
+    return true;
+    
+
+      // 删除事务是当前事务本身（第二次 UPDATE 里先看到旧的再写新版本）
+    if (tuple->xmax == current_xid) 
+    return false;
+
+    // 删除事务已提交
+    if (tuple->xmax != 0 && txmgr_is_committed(txmgr,tuple->xmax)) return false;
+
+    return true;
+}
+
+bool new_old_is_tuple_visible(TransactionManager *txmgr, const Tuple* tuple, uint32_t current_xid) {
+    // 当前事务插入且尚未删除
+    if (tuple->xmin == current_xid && tuple->xmax == 0) return true;
+
+    // 旧事务插入，已提交，但尚未被删除
+    if (txmgr_is_committed(txmgr, tuple->xmin) && tuple->xmin < current_xid) {
+  
+        if (tuple->xmax == 0) {
+            return true;
+        }
+         // 被当前事务逻辑删除，应不可见
+        if (tuple->xmax == current_xid) {
+            return false;
+        }
+         // 被其他已提交事务逻辑删除
+        if (!txmgr_is_committed(txmgr, tuple->xmax)) {
+            return true; // 删除未生效
+        }
+          // 2.4 删除事务已提交，且小于当前事务 → 删除生效，不可见
+        if (txmgr_is_committed(txmgr, tuple->xmax) && tuple->xmax < current_xid)
+            return false;
+
+        // 被已提交事务删除，但删除事务在当前事务之后
+        if (tuple->xmax > current_xid) {
+            return true;
+        }
+
+       
+
+       
+    }
+
+    return false;
+}
+
+/*
+bool is_tuple_visible(TableMeta *meta, TransactionManager *txmgr, const Tuple *tuple,
+                      uint32_t current_xid, uint32_t snapshot_xmin) {
+    // 1. 当前事务插入，未删除 → 可见
+    if (tuple->xmin == current_xid && tuple->xmax == 0) {
+        return true;
+    }
+
+    // 2. 插入事务未提交 → 不可见
+    if (!txmgr_is_committed(txmgr, tuple->xmin)) {
+        return false;
+    }
+
+    // 3. 插入事务虽已提交，但在 snapshot_xmin 之后 → 不可见（不是我自己）
+    if (tuple->xmin > snapshot_xmin && tuple->xmin != current_xid) {
+        return false;
+    }
+
+    // 到这里，说明插入事务是“对我来说”可见的。
+
+    // 4. 行未被删除 → 可见
+    if (tuple->xmax == 0) {
+        return true;
+    }
+
+    // 以下处理删除事务
+
+    // 5. 删除事务是当前事务 → 不可见（我删的）
+    if (tuple->xmax == current_xid) {
+        return false;
+    }
+
+    // 6. 删除事务未提交
+    if (!txmgr_is_committed(txmgr, tuple->xmax)) {
+        // 存在更高版本并可见，代表已经有新值 → 不可见
+        if (has_newer_visible_version(meta, txmgr, tuple, current_xid, snapshot_xmin)) {
+            return false;
+        }
+        return true; // 否则，仍可见
+    }
+
+    // 7. 删除事务已提交，且早于 snapshot → 不可见
+    if (tuple->xmax <= snapshot_xmin) {
+        return false;
+    }
+
+    // 8. 删除事务提交时间晚于我的 snapshot → 删除尚未生效 → 可见
+    return true;
+}
+*/

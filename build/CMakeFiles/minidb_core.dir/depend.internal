@@ -10,6 +10,15 @@ CMakeFiles/minidb_core.dir/src/catalog.c.o
  ../include/txmgr.h
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/catalog.c
+CMakeFiles/minidb_core.dir/src/checkpoint.c.o
+ ../include/checkpoint.h
+ ../include/minidb.h
+ ../include/page.h
+ ../include/server/parser.h
+ ../include/txmgr.h
+ ../include/types.h
+ ../include/wal.h
+ /home/rlk/Downloads/mini_pg/src/checkpoint.c
 CMakeFiles/minidb_core.dir/src/lock.c.o
  ../include/lock.h
  ../include/minidb.h

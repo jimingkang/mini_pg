@@ -99,7 +99,7 @@ void page_compact(Page* page) {
 }
 
 // 插入元组到页面
-bool page_insert_tuple(Page* page, const Tuple* tuple, uint16_t* slot_out) {
+bool Old_page_insert_tuple(Page* page, const Tuple* tuple, uint16_t* slot_out) {
     if (!page || !tuple || !slot_out) return false;
     if (page->header.slot_count >= MAX_SLOTS) return false;
 
@@ -144,6 +144,54 @@ bool page_insert_tuple(Page* page, const Tuple* tuple, uint16_t* slot_out) {
     *slot_out = slot_index;
     return true;
 }
+
+bool page_insert_tuple(Page* page, const Tuple* tuple, uint16_t* slot_out) {
+    if (!page || !tuple || !slot_out) return false;
+
+    // 序列化元组
+    uint8_t buffer[MAX_TUPLE_SIZE];
+    size_t tuple_size = serialize_tuple(tuple, buffer);
+    if (tuple_size == 0) return false;
+
+    size_t required_space = tuple_size;
+    if (page_free_space(page) < required_space) {
+        page_compact(page);
+        if (page_free_space(page) < required_space) return false;
+    }
+
+    Slot* slots = page_slots(page);
+
+    // ✅ 找可用槽位（回收已删除槽）
+    int slot_index = -1;
+    for (int i = 0; i < page->header.slot_count; i++) {
+        if ((slots[i].flags & SLOT_OCCUPIED) == 0) {
+            slot_index = i;
+            break;
+        }
+    }
+
+    // 如果没有空槽，分配新槽
+    if (slot_index == -1) {
+        if (page->header.slot_count >= MAX_SLOTS) return false;
+        slot_index = page->header.slot_count++;
+    }
+
+    // 分配数据空间
+    uint16_t data_offset = page->header.free_start;
+    page->header.free_start += tuple_size;
+
+    Slot* slot = &slots[slot_index];
+    slot->offset = data_offset;
+    slot->length = tuple_size;
+    slot->flags = SLOT_OCCUPIED;
+
+    memcpy(page->data + data_offset, buffer, tuple_size);
+    page->header.tuple_count++;
+
+    *slot_out = slot_index;
+    return true;
+}
+
 
 // 从页面删除元组
 bool page_delete_tuple(Page* page, uint16_t slot) {
@@ -344,7 +392,7 @@ Page* page_cache_get(uint32_t oid, TableMeta* meta, FILE* table_file) {
       LWLockAcquireExclusive(&global_page_cache.lock);
     // 查找缓存
     for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
-        if (global_page_cache.entries[i].valid && global_page_cache.entries[i].oid == oid) {
+        if (global_page_cache.entries[i].valid && global_page_cache.entries[i].page_id == oid) {
             //pthread_mutex_unlock(&global_page_cache.lock);
             LWLockRelease(&global_page_cache.lock);
             return &global_page_cache.entries[i].page;
@@ -357,7 +405,7 @@ Page* page_cache_get(uint32_t oid, TableMeta* meta, FILE* table_file) {
             long offset = (long)oid * sizeof(Page);
             fseek(table_file, offset, SEEK_SET);
             fread(&global_page_cache.entries[i].page, sizeof(Page), 1, table_file);
-            global_page_cache.entries[i].oid = oid;
+            global_page_cache.entries[i].page_id = oid;
             global_page_cache.entries[i].valid = true;
             global_page_cache.entries[i].dirty = false;
 
@@ -385,7 +433,7 @@ void page_cache_mark_dirty(uint32_t page_id) {
 
     LWLockRelease(&global_page_cache.lock);
 }
-Page* page_cache_load_or_fetch(uint32_t page_id, const char* filename) {
+Page* page_cache_load_or_fetch(uint32_t page_id, TableMeta * meta) {
     LWLockAcquireExclusive(&global_page_cache.lock);
     for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
         if (global_page_cache.entries[i].valid && global_page_cache.entries[i].page.header.page_id == page_id) {
@@ -393,7 +441,7 @@ Page* page_cache_load_or_fetch(uint32_t page_id, const char* filename) {
             return &global_page_cache.entries[i].page;
         }
     }
-    FILE* fp = fopen(filename, "r+b");
+    FILE* fp = fopen(meta->fillpath, "r+b");
     if (!fp) {
         perror("fopen failed");
         LWLockRelease(&global_page_cache.lock);
@@ -422,9 +470,9 @@ Page* page_cache_load_or_fetch(uint32_t page_id, const char* filename) {
         }
     }
     if (slot == -1) slot = rand() % PAGE_CACHE_SIZE;
-
+    global_page_cache.entries[slot].table_oid = meta->oid;
     global_page_cache.entries[slot].page = page;
-    global_page_cache.entries[slot].oid = page_id;
+    global_page_cache.entries[slot].page_id = page_id;
     global_page_cache.entries[slot].valid = true;
     global_page_cache.entries[slot].dirty = false;
 
@@ -435,7 +483,7 @@ Page* page_cache_load_or_fetch(uint32_t page_id, const char* filename) {
 bool page_cache_flush(uint32_t page_id, const char* filename) {
     LWLockAcquireExclusive(&global_page_cache.lock);
     for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
-        if (global_page_cache.entries[i].valid && global_page_cache.entries[i].page.header.page_id == page_id) {
+        if (global_page_cache.entries[i].valid && global_page_cache.entries[i].page_id == page_id) {
             if (!global_page_cache.entries[i].dirty) {
                 LWLockRelease(&global_page_cache.lock);
                 return true;
@@ -470,7 +518,7 @@ Page* old_page_cache_load_or_fetch(uint32_t oid, const char* filename) {
 
     for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
         PageCacheEntry* entry = &global_page_cache.entries[i];
-        if (entry->valid && entry->oid == oid) {
+        if (entry->valid && entry->page_id == oid) {
             //pthread_mutex_unlock(&global_page_cache.lock);
             LWLockRelease(&global_page_cache.lock);
             return &entry->page;
@@ -508,7 +556,7 @@ Page* old_page_cache_load_or_fetch(uint32_t oid, const char* filename) {
             }
 
             fclose(file);
-            entry->oid = oid;
+            entry->page_id = oid;
             entry->valid = true;
             entry->dirty = false;
             // 初始化页面锁
@@ -528,7 +576,7 @@ Page* old_page_cache_load_or_fetch(uint32_t oid, const char* filename) {
 bool old_flush_page_cache(uint32_t oid, const char* filename) {
     LWLockAcquireExclusive(&global_page_cache.lock);
     for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
-        if (global_page_cache.entries[i].valid && global_page_cache.entries[i].oid == oid) {
+        if (global_page_cache.entries[i].valid && global_page_cache.entries[i].page_id == oid) {
             if (!global_page_cache.entries[i].dirty) {
                 LWLockRelease(&global_page_cache.lock);
                 return true;
@@ -556,4 +604,51 @@ bool old_flush_page_cache(uint32_t oid, const char* filename) {
     }
     LWLockRelease(&global_page_cache.lock);
     return false;
+}
+void flush_all_dirty_pages(MiniDB *db) {
+    LWLockAcquireExclusive(&global_page_cache.lock);
+
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        PageCacheEntry *entry = &global_page_cache.entries[i];
+        if (!entry->valid || !entry->dirty) continue;
+
+        TableMeta *meta = NULL;
+        for (int j = 0; j < db->catalog.table_count; j++) {
+            if (db->catalog.tables[j].oid == entry->table_oid) {
+                meta = &db->catalog.tables[j];
+                break;
+            }
+        }
+
+        if (!meta) {
+            printf("[checkpoint] 无法找到对应表 OID: %x，跳过 page_id=%x\n", entry->table_oid, entry->page_id);
+            continue;
+        }
+
+        char fullpath[256];
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+
+        FILE *fp = fopen(fullpath, "r+b");
+        if (!fp) {
+            perror("[checkpoint] 打开数据文件失败");
+            continue;
+        }
+
+        if (fseek(fp, entry->page_id * PAGE_SIZE, SEEK_SET) != 0) {
+            perror("[checkpoint] fseek 失败");
+            fclose(fp);
+            continue;
+        }
+
+        if (fwrite(&entry->page, sizeof(Page), 1, fp) != 1) {
+            perror("[checkpoint] fwrite 失败");
+        } else {
+            entry->dirty = false;
+            printf("[checkpoint] Flushed table_oid=%u, page_id=%u\n", entry->table_oid, entry->page_id);
+        }
+
+        fclose(fp);
+    }
+
+    LWLockRelease(&global_page_cache.lock);
 }

@@ -87,6 +87,8 @@ void init_system_catalog(SystemCatalog *catalog, const char *db_path) {
             fread(&name_len, sizeof(uint8_t), 1, fp);
             fread(meta->name, 1, name_len, fp);
             meta->name[name_len] = '\0';
+            
+            strcpy(meta->fillpath,full_path);
 
             snprintf(meta->filename, MAX_NAME_LEN, "%s.tbl", meta->name);
 
