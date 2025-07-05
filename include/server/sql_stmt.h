@@ -5,18 +5,27 @@
 #include <stdlib.h>
 #include <string.h>
 
+// MiniSQL 语法树结构定义
+
 // SQLStatement 类型枚举
 typedef enum {
     STMT_INSERT,
     STMT_SELECT
-} StatementType;
+} MiniStatementType;
 
-// 自定义表达式类型（避免与 SQLite 冲突）
+// 表达式类型定义
+typedef enum {
+    EXPR_COLUMN,
+    EXPR_LITERAL
+} MiniExprType;
+
+// MiniExpr 表达式结构
 typedef struct MiniExpr {
-    enum { EXPR_COLUMN, EXPR_LITERAL } type;
+    MiniExprType type;
     char* value;  // 对于列名和常量统一用字符串存
 } MiniExpr;
 
+// 表达式列表结构
 typedef struct MiniExprList {
     int count;
     MiniExpr** items;
@@ -28,7 +37,7 @@ typedef struct {
     char** column_names;
     int column_count;
     MiniExprList* values;
-} InsertStmt;
+} MiniInsertStmt;
 
 // SELECT 语句结构
 typedef struct {
@@ -36,21 +45,33 @@ typedef struct {
     int column_count;
     char* table_name;
     MiniExpr* where_expr;
-} SelectStmt;
+} MiniSelectStmt;
 
 // 顶层 SQLStatement
-typedef struct SQLStatement {
-    StatementType type;
+typedef struct MiniSQLStatement {
+    MiniStatementType type;
     union {
-        InsertStmt* insert_stmt;
-        SelectStmt* select_stmt;
+        MiniInsertStmt* insert_stmt;
+        MiniSelectStmt* select_stmt;
     };
-} SQLStatement;
-typedef struct Expr Expr;
-typedef struct Select Select;
-// ---------- sql_parser.c 函数接口 ----------
-MiniExpr* convertExpr(Expr* sqlite_expr);
-MiniExprList* convertExprList(Select* sel);
+} MiniSQLStatement;
 
+// 解析器 API
+MiniSQLStatement* mini_pg_parse_sql(const char* sql);
+void free_mini_pg_stmt(MiniSQLStatement* stmt);
+
+// 工具函数
+typedef struct {
+    int count;
+    char** names;
+} IdList;
+
+IdList make_idlist(const char* name);
+IdList append_idlist(IdList list, const char* name);
+
+// 解析上下文
+typedef struct {
+    MiniSQLStatement* result;
+} ParserContext;
 
 #endif

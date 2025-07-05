@@ -20,13 +20,13 @@ endif()
 
 # 查找 zlib 依赖
 find_package(ZLIB REQUIRED)
-#find_package(SQLite3 REQUIRED)
+
 
 # 包含目录
 include_directories(
     include
     include/server
-        include/sqlite
+    #include/sqlite
     ${ZLIB_INCLUDE_DIRS}  
 )
 
@@ -45,10 +45,10 @@ add_library(minipg_core STATIC
    src/server/sql_exec.c
    src/server/parser.c
     src/server/sql_parser.c
-    src/sqlite/build.c
-    src/sqlite/util.c
-    src/sqlite/sqlite3.c
-    src/sqlite/tokenize.c
+    #src/sqlite/build.c
+   # src/sqlite/util.c
+   # src/sqlite/sqlite3.c
+   # src/sqlite/tokenize.c
    #src/client/client.c
 
 )
