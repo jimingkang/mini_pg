@@ -6,5 +6,5 @@ C_FLAGS = -g   -std=gnu11
 
 C_DEFINES = 
 
-C_INCLUDES = -I/home/rlk/Downloads/mini_pg/include -I/home/rlk/Downloads/mini_pg/include/server -I/home/rlk/Downloads/mini_pg/include/server/sqllite 
+C_INCLUDES = -I/home/rlk/Downloads/mini_pg/include -I/home/rlk/Downloads/mini_pg/include/server -I/home/rlk/Downloads/mini_pg/include/sqlite 
 

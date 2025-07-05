@@ -6,25 +6,25 @@
 
 #IncludeRegexTransform: 
 
-../include/server/sqllite/tclsqlite.h
+../include/sqlite/tclsqlite.h
 sqlite_tcl.h
-../include/server/sqllite/sqlite_tcl.h
+../include/sqlite/sqlite_tcl.h
 tcl.h
 -
 
-/home/rlk/Downloads/mini_pg/src/sqllite/sqlite3.c
+/home/rlk/Downloads/mini_pg/src/sqlite/sqlite3.c
 vxWorks.h
 -
 pthread.h
 -
 mingw.h
-/home/rlk/Downloads/mini_pg/src/sqllite/mingw.h
+/home/rlk/Downloads/mini_pg/src/sqlite/mingw.h
 _mingw.h
-/home/rlk/Downloads/mini_pg/src/sqllite/_mingw.h
+/home/rlk/Downloads/mini_pg/src/sqlite/_mingw.h
 stdarg.h
 -
 sqlite_cfg.h
-/home/rlk/Downloads/mini_pg/src/sqllite/sqlite_cfg.h
+/home/rlk/Downloads/mini_pg/src/sqlite/sqlite_cfg.h
 stdint.h
 -
 inttypes.h
@@ -60,7 +60,7 @@ malloc.h
 pthread.h
 -
 windows.h
-/home/rlk/Downloads/mini_pg/src/sqllite/windows.h
+/home/rlk/Downloads/mini_pg/src/sqlite/windows.h
 sys/cygwin.h
 -
 sys/stat.h
@@ -118,9 +118,9 @@ dlfcn.h
 Windows.h
 -
 tclsqlite.h
-/home/rlk/Downloads/mini_pg/src/sqllite/tclsqlite.h
+/home/rlk/Downloads/mini_pg/src/sqlite/tclsqlite.h
 sqlite3rtree.h
-/home/rlk/Downloads/mini_pg/src/sqllite/sqlite3rtree.h
+/home/rlk/Downloads/mini_pg/src/sqlite/sqlite3rtree.h
 ctype.h
 -
 unicode/utypes.h

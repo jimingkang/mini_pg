@@ -20,16 +20,18 @@ endif()
 
 # 查找 zlib 依赖
 find_package(ZLIB REQUIRED)
+#find_package(SQLite3 REQUIRED)
 
 # 包含目录
 include_directories(
     include
     include/server
-    ${ZLIB_INCLUDE_DIRS}
+        include/sqlite
+    ${ZLIB_INCLUDE_DIRS}  
 )
 
 # ================== 核心库 ==================
-add_library(minidb_core STATIC
+add_library(minipg_core STATIC
     src/minidb.c
     src/txmgr.c
     src/wal.c
@@ -42,41 +44,47 @@ add_library(minidb_core STATIC
    src/server/executor.c
    src/server/sql_exec.c
    src/server/parser.c
+    src/server/sql_parser.c
+    src/sqlite/build.c
+    src/sqlite/util.c
+    src/sqlite/sqlite3.c
+    src/sqlite/tokenize.c
    #src/client/client.c
 
 )
 
-target_link_libraries(minidb_core ${ZLIB_LIBRARIES} pthread)
+target_link_libraries(minipg_core ${ZLIB_LIBRARIES} dl pthread)
 
 # ================== 主程序 ==================
-add_executable(minidb
+add_executable(minipg
     src/main.c
 )
 
-target_link_libraries(minidb minidb_core )
+target_link_libraries(minipg minipg_core )
 
 # ================== 测试程序 ==================
-add_executable(test_minidb
+add_executable(test_minipg
 #    test/test_minidb.c
 #    test/test_txmgr.c
 #    test/test_wal.c
 #    test/test_page.c
 #    test/test_tuple.c
   #  test/test_users.c
-    test/test_users_thread.c
+   #test/test_users_thread.c
+   test/test_sqlite_parser.c
 
 )
 
-target_link_libraries(test_minidb minidb_core pthread)
-#target_link_libraries(minidb_core)
+target_link_libraries(test_minipg minipg_core dl pthread)
+#target_link_libraries(minipg_core)
 
 # ================== 安装目标 ==================
-install(TARGETS minidb DESTINATION bin)
-install(DIRECTORY include/ DESTINATION include/minidb)
+install(TARGETS minipg DESTINATION bin)
+install(DIRECTORY include/ DESTINATION include/minipg)
 
 # ================== 测试配置 ==================
 #enable_testing()
-#add_test(NAME test_minidb COMMAND test_minidb)
+#add_test(NAME test_minipg COMMAND test_minipg)
 
 # ================== 可选：代码格式化 ==================
 find_program(CLANG_FORMAT "clang-format")

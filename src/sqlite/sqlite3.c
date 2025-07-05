@@ -21105,7 +21105,7 @@ SQLITE_PRIVATE char *sqlite3DbSpanDup(sqlite3*,const char*,const char*);
 SQLITE_PRIVATE void *sqlite3Realloc(void*, u64);
 SQLITE_PRIVATE void *sqlite3DbReallocOrFree(sqlite3 *, void *, u64);
 SQLITE_PRIVATE void *sqlite3DbRealloc(sqlite3 *, void *, u64);
-SQLITE_PRIVATE void sqlite3DbFree(sqlite3*, void*);
+ void sqlite3DbFree(sqlite3*, void*);
 SQLITE_PRIVATE void sqlite3DbFreeNN(sqlite3*, void*);
 SQLITE_PRIVATE void sqlite3DbNNFreeNN(sqlite3*, void*);
 SQLITE_PRIVATE int sqlite3MallocSize(const void*);
@@ -31258,7 +31258,7 @@ SQLITE_PRIVATE void sqlite3DbNNFreeNN(sqlite3 *db, void *p){
   sqlite3MemdebugSetType(p, MEMTYPE_HEAP);
   sqlite3_free(p);
 }
-SQLITE_PRIVATE void sqlite3DbFree(sqlite3 *db, void *p){
+ void sqlite3DbFree(sqlite3 *db, void *p){
   assert( db==0 || sqlite3_mutex_held(db->mutex) );
   if( p ) sqlite3DbFreeNN(db, p);
 }

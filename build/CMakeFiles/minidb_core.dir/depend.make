@@ -87,63 +87,6 @@ CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../include/txmgr.h
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../include/types.h
 CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o: ../src/server/sql_exec.c
 
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/parse.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sql_stmt.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/btree.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/hash.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/msvc.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/mutex.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/opcodes.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/os.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/os_setup.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/pager.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/pcache.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/sqlite3.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/sqliteInt.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/sqliteLimit.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/vdbe.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/vxworks.h
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o: ../src/server/sql_parser.c
-
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/parse.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sql_stmt.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/btree.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/hash.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/msvc.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/mutex.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/opcodes.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/os.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/os_setup.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/pager.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/pcache.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/sqlite3.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/sqliteInt.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/sqliteLimit.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/vdbe.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/vxworks.h
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o: ../src/sqllite/build.c
-
-CMakeFiles/minidb_core.dir/src/sqllite/sqlite3.c.o: ../include/server/sqllite/tclsqlite.h
-CMakeFiles/minidb_core.dir/src/sqllite/sqlite3.c.o: ../src/sqllite/sqlite3.c
-
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/parse.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sql_stmt.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/btree.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/hash.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/msvc.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/mutex.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/opcodes.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/os.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/os_setup.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/pager.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/pcache.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/sqlite3.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/sqliteInt.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/sqliteLimit.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/vdbe.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/vxworks.h
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o: ../src/sqllite/util.c
-
 CMakeFiles/minidb_core.dir/src/tuple.c.o: ../include/catalog.h
 CMakeFiles/minidb_core.dir/src/tuple.c.o: ../include/minidb.h
 CMakeFiles/minidb_core.dir/src/tuple.c.o: ../include/page.h

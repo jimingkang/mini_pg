@@ -51,7 +51,7 @@ set(CMAKE_MAKEFILE_PRODUCTS
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
-  "CMakeFiles/test_minidb.dir/DependInfo.cmake"
+  "CMakeFiles/test_minipg.dir/DependInfo.cmake"
   "CMakeFiles/minipg.dir/DependInfo.cmake"
   "CMakeFiles/minipg_core.dir/DependInfo.cmake"
   )

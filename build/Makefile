@@ -179,17 +179,17 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named test_minidb
+# Target rules for targets named test_minipg
 
 # Build rule for target.
-test_minidb: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 test_minidb
-.PHONY : test_minidb
+test_minipg: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 test_minipg
+.PHONY : test_minipg
 
 # fast build rule for target.
-test_minidb/fast:
-	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/build
-.PHONY : test_minidb/fast
+test_minipg/fast:
+	$(MAKE) -f CMakeFiles/test_minipg.dir/build.make CMakeFiles/test_minipg.dir/build
+.PHONY : test_minipg/fast
 
 #=============================================================================
 # Target rules for targets named minipg
@@ -514,86 +514,113 @@ src/server/sql_parser.c.s:
 	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/sql_parser.c.s
 .PHONY : src/server/sql_parser.c.s
 
-src/sqllite/build.o: src/sqllite/build.c.o
+src/sqlite/build.o: src/sqlite/build.c.o
 
-.PHONY : src/sqllite/build.o
-
-# target to build an object file
-src/sqllite/build.c.o:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/build.c.o
-.PHONY : src/sqllite/build.c.o
-
-src/sqllite/build.i: src/sqllite/build.c.i
-
-.PHONY : src/sqllite/build.i
-
-# target to preprocess a source file
-src/sqllite/build.c.i:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/build.c.i
-.PHONY : src/sqllite/build.c.i
-
-src/sqllite/build.s: src/sqllite/build.c.s
-
-.PHONY : src/sqllite/build.s
-
-# target to generate assembly for a file
-src/sqllite/build.c.s:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/build.c.s
-.PHONY : src/sqllite/build.c.s
-
-src/sqllite/sqlite3.o: src/sqllite/sqlite3.c.o
-
-.PHONY : src/sqllite/sqlite3.o
+.PHONY : src/sqlite/build.o
 
 # target to build an object file
-src/sqllite/sqlite3.c.o:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.o
-.PHONY : src/sqllite/sqlite3.c.o
+src/sqlite/build.c.o:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/build.c.o
+.PHONY : src/sqlite/build.c.o
 
-src/sqllite/sqlite3.i: src/sqllite/sqlite3.c.i
+src/sqlite/build.i: src/sqlite/build.c.i
 
-.PHONY : src/sqllite/sqlite3.i
+.PHONY : src/sqlite/build.i
 
 # target to preprocess a source file
-src/sqllite/sqlite3.c.i:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.i
-.PHONY : src/sqllite/sqlite3.c.i
+src/sqlite/build.c.i:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/build.c.i
+.PHONY : src/sqlite/build.c.i
 
-src/sqllite/sqlite3.s: src/sqllite/sqlite3.c.s
+src/sqlite/build.s: src/sqlite/build.c.s
 
-.PHONY : src/sqllite/sqlite3.s
+.PHONY : src/sqlite/build.s
 
 # target to generate assembly for a file
-src/sqllite/sqlite3.c.s:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.s
-.PHONY : src/sqllite/sqlite3.c.s
+src/sqlite/build.c.s:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/build.c.s
+.PHONY : src/sqlite/build.c.s
 
-src/sqllite/util.o: src/sqllite/util.c.o
+src/sqlite/sqlite3.o: src/sqlite/sqlite3.c.o
 
-.PHONY : src/sqllite/util.o
+.PHONY : src/sqlite/sqlite3.o
 
 # target to build an object file
-src/sqllite/util.c.o:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/util.c.o
-.PHONY : src/sqllite/util.c.o
+src/sqlite/sqlite3.c.o:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.o
+.PHONY : src/sqlite/sqlite3.c.o
 
-src/sqllite/util.i: src/sqllite/util.c.i
+src/sqlite/sqlite3.i: src/sqlite/sqlite3.c.i
 
-.PHONY : src/sqllite/util.i
+.PHONY : src/sqlite/sqlite3.i
 
 # target to preprocess a source file
-src/sqllite/util.c.i:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/util.c.i
-.PHONY : src/sqllite/util.c.i
+src/sqlite/sqlite3.c.i:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.i
+.PHONY : src/sqlite/sqlite3.c.i
 
-src/sqllite/util.s: src/sqllite/util.c.s
+src/sqlite/sqlite3.s: src/sqlite/sqlite3.c.s
 
-.PHONY : src/sqllite/util.s
+.PHONY : src/sqlite/sqlite3.s
 
 # target to generate assembly for a file
-src/sqllite/util.c.s:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/util.c.s
-.PHONY : src/sqllite/util.c.s
+src/sqlite/sqlite3.c.s:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.s
+.PHONY : src/sqlite/sqlite3.c.s
+
+src/sqlite/tokenize.o: src/sqlite/tokenize.c.o
+
+.PHONY : src/sqlite/tokenize.o
+
+# target to build an object file
+src/sqlite/tokenize.c.o:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.o
+.PHONY : src/sqlite/tokenize.c.o
+
+src/sqlite/tokenize.i: src/sqlite/tokenize.c.i
+
+.PHONY : src/sqlite/tokenize.i
+
+# target to preprocess a source file
+src/sqlite/tokenize.c.i:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.i
+.PHONY : src/sqlite/tokenize.c.i
+
+src/sqlite/tokenize.s: src/sqlite/tokenize.c.s
+
+.PHONY : src/sqlite/tokenize.s
+
+# target to generate assembly for a file
+src/sqlite/tokenize.c.s:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.s
+.PHONY : src/sqlite/tokenize.c.s
+
+src/sqlite/util.o: src/sqlite/util.c.o
+
+.PHONY : src/sqlite/util.o
+
+# target to build an object file
+src/sqlite/util.c.o:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/util.c.o
+.PHONY : src/sqlite/util.c.o
+
+src/sqlite/util.i: src/sqlite/util.c.i
+
+.PHONY : src/sqlite/util.i
+
+# target to preprocess a source file
+src/sqlite/util.c.i:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/util.c.i
+.PHONY : src/sqlite/util.c.i
+
+src/sqlite/util.s: src/sqlite/util.c.s
+
+.PHONY : src/sqlite/util.s
+
+# target to generate assembly for a file
+src/sqlite/util.c.s:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/util.c.s
+.PHONY : src/sqlite/util.c.s
 
 src/tuple.o: src/tuple.c.o
 
@@ -676,32 +703,32 @@ src/wal.c.s:
 	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/wal.c.s
 .PHONY : src/wal.c.s
 
-test/test_users_thread.o: test/test_users_thread.c.o
+test/test_sqlite_parser.o: test/test_sqlite_parser.c.o
 
-.PHONY : test/test_users_thread.o
+.PHONY : test/test_sqlite_parser.o
 
 # target to build an object file
-test/test_users_thread.c.o:
-	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users_thread.c.o
-.PHONY : test/test_users_thread.c.o
+test/test_sqlite_parser.c.o:
+	$(MAKE) -f CMakeFiles/test_minipg.dir/build.make CMakeFiles/test_minipg.dir/test/test_sqlite_parser.c.o
+.PHONY : test/test_sqlite_parser.c.o
 
-test/test_users_thread.i: test/test_users_thread.c.i
+test/test_sqlite_parser.i: test/test_sqlite_parser.c.i
 
-.PHONY : test/test_users_thread.i
+.PHONY : test/test_sqlite_parser.i
 
 # target to preprocess a source file
-test/test_users_thread.c.i:
-	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users_thread.c.i
-.PHONY : test/test_users_thread.c.i
+test/test_sqlite_parser.c.i:
+	$(MAKE) -f CMakeFiles/test_minipg.dir/build.make CMakeFiles/test_minipg.dir/test/test_sqlite_parser.c.i
+.PHONY : test/test_sqlite_parser.c.i
 
-test/test_users_thread.s: test/test_users_thread.c.s
+test/test_sqlite_parser.s: test/test_sqlite_parser.c.s
 
-.PHONY : test/test_users_thread.s
+.PHONY : test/test_sqlite_parser.s
 
 # target to generate assembly for a file
-test/test_users_thread.c.s:
-	$(MAKE) -f CMakeFiles/test_minidb.dir/build.make CMakeFiles/test_minidb.dir/test/test_users_thread.c.s
-.PHONY : test/test_users_thread.c.s
+test/test_sqlite_parser.c.s:
+	$(MAKE) -f CMakeFiles/test_minipg.dir/build.make CMakeFiles/test_minipg.dir/test/test_sqlite_parser.c.s
+.PHONY : test/test_sqlite_parser.c.s
 
 # Help Target
 help:
@@ -716,7 +743,7 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... package"
-	@echo "... test_minidb"
+	@echo "... test_minipg"
 	@echo "... minipg"
 	@echo "... install/strip"
 	@echo "... minipg_core"
@@ -753,15 +780,18 @@ help:
 	@echo "... src/server/sql_parser.o"
 	@echo "... src/server/sql_parser.i"
 	@echo "... src/server/sql_parser.s"
-	@echo "... src/sqllite/build.o"
-	@echo "... src/sqllite/build.i"
-	@echo "... src/sqllite/build.s"
-	@echo "... src/sqllite/sqlite3.o"
-	@echo "... src/sqllite/sqlite3.i"
-	@echo "... src/sqllite/sqlite3.s"
-	@echo "... src/sqllite/util.o"
-	@echo "... src/sqllite/util.i"
-	@echo "... src/sqllite/util.s"
+	@echo "... src/sqlite/build.o"
+	@echo "... src/sqlite/build.i"
+	@echo "... src/sqlite/build.s"
+	@echo "... src/sqlite/sqlite3.o"
+	@echo "... src/sqlite/sqlite3.i"
+	@echo "... src/sqlite/sqlite3.s"
+	@echo "... src/sqlite/tokenize.o"
+	@echo "... src/sqlite/tokenize.i"
+	@echo "... src/sqlite/tokenize.s"
+	@echo "... src/sqlite/util.o"
+	@echo "... src/sqlite/util.i"
+	@echo "... src/sqlite/util.s"
 	@echo "... src/tuple.o"
 	@echo "... src/tuple.i"
 	@echo "... src/tuple.s"
@@ -771,9 +801,9 @@ help:
 	@echo "... src/wal.o"
 	@echo "... src/wal.i"
 	@echo "... src/wal.s"
-	@echo "... test/test_users_thread.o"
-	@echo "... test/test_users_thread.i"
-	@echo "... test/test_users_thread.s"
+	@echo "... test/test_sqlite_parser.o"
+	@echo "... test/test_sqlite_parser.i"
+	@echo "... test/test_sqlite_parser.s"
 .PHONY : help
 
 

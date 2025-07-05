@@ -87,62 +87,17 @@ CMakeFiles/minipg_core.dir/src/server/sql_exec.c.o: ../include/txmgr.h
 CMakeFiles/minipg_core.dir/src/server/sql_exec.c.o: ../include/types.h
 CMakeFiles/minipg_core.dir/src/server/sql_exec.c.o: ../src/server/sql_exec.c
 
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/parse.h
 CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sql_stmt.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/btree.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/hash.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/msvc.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/mutex.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/opcodes.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/os.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/os_setup.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/pager.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/pcache.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/sqlite3.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/sqliteInt.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/sqliteLimit.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/vdbe.h
-CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../include/server/sqllite/vxworks.h
 CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o: ../src/server/sql_parser.c
 
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/parse.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sql_stmt.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/btree.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/hash.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/msvc.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/mutex.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/opcodes.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/os.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/os_setup.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/pager.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/pcache.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/sqlite3.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/sqliteInt.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/sqliteLimit.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/vdbe.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../include/server/sqllite/vxworks.h
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../src/sqllite/build.c
+CMakeFiles/minipg_core.dir/src/sqlite/build.c.o: ../src/sqlite/build.c
 
-CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.o: ../include/server/sqllite/tclsqlite.h
-CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.o: ../src/sqllite/sqlite3.c
+CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.o: ../include/sqlite/tclsqlite.h
+CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.o: ../src/sqlite/sqlite3.c
 
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/parse.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sql_stmt.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/btree.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/hash.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/msvc.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/mutex.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/opcodes.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/os.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/os_setup.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/pager.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/pcache.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/sqlite3.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/sqliteInt.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/sqliteLimit.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/vdbe.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../include/server/sqllite/vxworks.h
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../src/sqllite/util.c
+CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.o: ../src/sqlite/tokenize.c
+
+CMakeFiles/minipg_core.dir/src/sqlite/util.c.o: ../src/sqlite/util.c
 
 CMakeFiles/minipg_core.dir/src/tuple.c.o: ../include/catalog.h
 CMakeFiles/minipg_core.dir/src/tuple.c.o: ../include/minidb.h

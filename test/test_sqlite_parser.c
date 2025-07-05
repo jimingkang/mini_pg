@@ -32,7 +32,8 @@ int main() {
     sqlite3* db = NULL;
     sqlite3_open(":memory:", &db);  // 初始化 SQLite 内部状态
 
-    const char* sql = "SELECT name FROM users WHERE age > 18;";
+  //  const char* sql = "SELECT name FROM users WHERE age > 18;";
+     const char* sql =  "CREATE TABLE users (id INT, name TEXT);";
     SQLStatement* stmt = mini_pg_parse_sql(db, sql);
 
     if (!stmt) {

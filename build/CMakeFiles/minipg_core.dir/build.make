@@ -226,44 +226,57 @@ CMakeFiles/minipg_core.dir/src/server/sql_parser.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minipg_core.dir/src/server/sql_parser.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/server/sql_parser.c -o CMakeFiles/minipg_core.dir/src/server/sql_parser.c.s
 
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: CMakeFiles/minipg_core.dir/flags.make
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.o: ../src/sqllite/build.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/minipg_core.dir/src/sqllite/build.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minipg_core.dir/src/sqllite/build.c.o   -c /home/rlk/Downloads/mini_pg/src/sqllite/build.c
+CMakeFiles/minipg_core.dir/src/sqlite/build.c.o: CMakeFiles/minipg_core.dir/flags.make
+CMakeFiles/minipg_core.dir/src/sqlite/build.c.o: ../src/sqlite/build.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/minipg_core.dir/src/sqlite/build.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minipg_core.dir/src/sqlite/build.c.o   -c /home/rlk/Downloads/mini_pg/src/sqlite/build.c
 
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/minipg_core.dir/src/sqllite/build.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/src/sqllite/build.c > CMakeFiles/minipg_core.dir/src/sqllite/build.c.i
+CMakeFiles/minipg_core.dir/src/sqlite/build.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/minipg_core.dir/src/sqlite/build.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/src/sqlite/build.c > CMakeFiles/minipg_core.dir/src/sqlite/build.c.i
 
-CMakeFiles/minipg_core.dir/src/sqllite/build.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minipg_core.dir/src/sqllite/build.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/sqllite/build.c -o CMakeFiles/minipg_core.dir/src/sqllite/build.c.s
+CMakeFiles/minipg_core.dir/src/sqlite/build.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minipg_core.dir/src/sqlite/build.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/sqlite/build.c -o CMakeFiles/minipg_core.dir/src/sqlite/build.c.s
 
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: CMakeFiles/minipg_core.dir/flags.make
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.o: ../src/sqllite/util.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/minipg_core.dir/src/sqllite/util.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minipg_core.dir/src/sqllite/util.c.o   -c /home/rlk/Downloads/mini_pg/src/sqllite/util.c
+CMakeFiles/minipg_core.dir/src/sqlite/util.c.o: CMakeFiles/minipg_core.dir/flags.make
+CMakeFiles/minipg_core.dir/src/sqlite/util.c.o: ../src/sqlite/util.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/minipg_core.dir/src/sqlite/util.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minipg_core.dir/src/sqlite/util.c.o   -c /home/rlk/Downloads/mini_pg/src/sqlite/util.c
 
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/minipg_core.dir/src/sqllite/util.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/src/sqllite/util.c > CMakeFiles/minipg_core.dir/src/sqllite/util.c.i
+CMakeFiles/minipg_core.dir/src/sqlite/util.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/minipg_core.dir/src/sqlite/util.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/src/sqlite/util.c > CMakeFiles/minipg_core.dir/src/sqlite/util.c.i
 
-CMakeFiles/minipg_core.dir/src/sqllite/util.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minipg_core.dir/src/sqllite/util.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/sqllite/util.c -o CMakeFiles/minipg_core.dir/src/sqllite/util.c.s
+CMakeFiles/minipg_core.dir/src/sqlite/util.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minipg_core.dir/src/sqlite/util.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/sqlite/util.c -o CMakeFiles/minipg_core.dir/src/sqlite/util.c.s
 
-CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.o: CMakeFiles/minipg_core.dir/flags.make
-CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.o: ../src/sqllite/sqlite3.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.o   -c /home/rlk/Downloads/mini_pg/src/sqllite/sqlite3.c
+CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.o: CMakeFiles/minipg_core.dir/flags.make
+CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.o: ../src/sqlite/sqlite3.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.o   -c /home/rlk/Downloads/mini_pg/src/sqlite/sqlite3.c
 
-CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/src/sqllite/sqlite3.c > CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.i
+CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/src/sqlite/sqlite3.c > CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.i
 
-CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/sqllite/sqlite3.c -o CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.s
+CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/sqlite/sqlite3.c -o CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.s
+
+CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.o: CMakeFiles/minipg_core.dir/flags.make
+CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.o: ../src/sqlite/tokenize.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.o   -c /home/rlk/Downloads/mini_pg/src/sqlite/tokenize.c
+
+CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/src/sqlite/tokenize.c > CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.i
+
+CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/sqlite/tokenize.c -o CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.s
 
 # Object files for target minipg_core
 minipg_core_OBJECTS = \
@@ -280,9 +293,10 @@ minipg_core_OBJECTS = \
 "CMakeFiles/minipg_core.dir/src/server/sql_exec.c.o" \
 "CMakeFiles/minipg_core.dir/src/server/parser.c.o" \
 "CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o" \
-"CMakeFiles/minipg_core.dir/src/sqllite/build.c.o" \
-"CMakeFiles/minipg_core.dir/src/sqllite/util.c.o" \
-"CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.o"
+"CMakeFiles/minipg_core.dir/src/sqlite/build.c.o" \
+"CMakeFiles/minipg_core.dir/src/sqlite/util.c.o" \
+"CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.o" \
+"CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.o"
 
 # External object files for target minipg_core
 minipg_core_EXTERNAL_OBJECTS =
@@ -300,12 +314,13 @@ lib/libminipg_core.a: CMakeFiles/minipg_core.dir/src/server/executor.c.o
 lib/libminipg_core.a: CMakeFiles/minipg_core.dir/src/server/sql_exec.c.o
 lib/libminipg_core.a: CMakeFiles/minipg_core.dir/src/server/parser.c.o
 lib/libminipg_core.a: CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o
-lib/libminipg_core.a: CMakeFiles/minipg_core.dir/src/sqllite/build.c.o
-lib/libminipg_core.a: CMakeFiles/minipg_core.dir/src/sqllite/util.c.o
-lib/libminipg_core.a: CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.o
+lib/libminipg_core.a: CMakeFiles/minipg_core.dir/src/sqlite/build.c.o
+lib/libminipg_core.a: CMakeFiles/minipg_core.dir/src/sqlite/util.c.o
+lib/libminipg_core.a: CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.o
+lib/libminipg_core.a: CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.o
 lib/libminipg_core.a: CMakeFiles/minipg_core.dir/build.make
 lib/libminipg_core.a: CMakeFiles/minipg_core.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Linking C static library lib/libminipg_core.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Linking C static library lib/libminipg_core.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/minipg_core.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/minipg_core.dir/link.txt --verbose=$(VERBOSE)
 

@@ -12,7 +12,7 @@ set(CMAKE_C_COMPILER_ID "GNU")
 set(CMAKE_C_TARGET_INCLUDE_PATH
   "../include"
   "../include/server"
-  "../include/server/sqllite"
+  "../include/sqlite"
   )
 
 # Targets to which this target links.

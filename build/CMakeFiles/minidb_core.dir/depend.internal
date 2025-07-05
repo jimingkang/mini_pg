@@ -87,63 +87,6 @@ CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o
  ../include/txmgr.h
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/server/sql_exec.c
-CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o
- ../include/server/parse.h
- ../include/server/sql_stmt.h
- ../include/server/sqllite/btree.h
- ../include/server/sqllite/hash.h
- ../include/server/sqllite/msvc.h
- ../include/server/sqllite/mutex.h
- ../include/server/sqllite/opcodes.h
- ../include/server/sqllite/os.h
- ../include/server/sqllite/os_setup.h
- ../include/server/sqllite/pager.h
- ../include/server/sqllite/pcache.h
- ../include/server/sqllite/sqlite3.h
- ../include/server/sqllite/sqliteInt.h
- ../include/server/sqllite/sqliteLimit.h
- ../include/server/sqllite/vdbe.h
- ../include/server/sqllite/vxworks.h
- /home/rlk/Downloads/mini_pg/src/server/sql_parser.c
-CMakeFiles/minidb_core.dir/src/sqllite/build.c.o
- ../include/server/parse.h
- ../include/server/sql_stmt.h
- ../include/server/sqllite/btree.h
- ../include/server/sqllite/hash.h
- ../include/server/sqllite/msvc.h
- ../include/server/sqllite/mutex.h
- ../include/server/sqllite/opcodes.h
- ../include/server/sqllite/os.h
- ../include/server/sqllite/os_setup.h
- ../include/server/sqllite/pager.h
- ../include/server/sqllite/pcache.h
- ../include/server/sqllite/sqlite3.h
- ../include/server/sqllite/sqliteInt.h
- ../include/server/sqllite/sqliteLimit.h
- ../include/server/sqllite/vdbe.h
- ../include/server/sqllite/vxworks.h
- /home/rlk/Downloads/mini_pg/src/sqllite/build.c
-CMakeFiles/minidb_core.dir/src/sqllite/sqlite3.c.o
- ../include/server/sqllite/tclsqlite.h
- /home/rlk/Downloads/mini_pg/src/sqllite/sqlite3.c
-CMakeFiles/minidb_core.dir/src/sqllite/util.c.o
- ../include/server/parse.h
- ../include/server/sql_stmt.h
- ../include/server/sqllite/btree.h
- ../include/server/sqllite/hash.h
- ../include/server/sqllite/msvc.h
- ../include/server/sqllite/mutex.h
- ../include/server/sqllite/opcodes.h
- ../include/server/sqllite/os.h
- ../include/server/sqllite/os_setup.h
- ../include/server/sqllite/pager.h
- ../include/server/sqllite/pcache.h
- ../include/server/sqllite/sqlite3.h
- ../include/server/sqllite/sqliteInt.h
- ../include/server/sqllite/sqliteLimit.h
- ../include/server/sqllite/vdbe.h
- ../include/server/sqllite/vxworks.h
- /home/rlk/Downloads/mini_pg/src/sqllite/util.c
 CMakeFiles/minidb_core.dir/src/tuple.c.o
  ../include/catalog.h
  ../include/minidb.h

@@ -13,10 +13,6 @@ set(CMAKE_DEPENDS_CHECK_C
   "/home/rlk/Downloads/mini_pg/src/server/parser.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/server/parser.c.o"
   "/home/rlk/Downloads/mini_pg/src/server/server.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/server/server.c.o"
   "/home/rlk/Downloads/mini_pg/src/server/sql_exec.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o"
-  "/home/rlk/Downloads/mini_pg/src/server/sql_parser.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/server/sql_parser.c.o"
-  "/home/rlk/Downloads/mini_pg/src/sqllite/build.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/sqllite/build.c.o"
-  "/home/rlk/Downloads/mini_pg/src/sqllite/sqlite3.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/sqllite/sqlite3.c.o"
-  "/home/rlk/Downloads/mini_pg/src/sqllite/util.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/sqllite/util.c.o"
   "/home/rlk/Downloads/mini_pg/src/tuple.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/tuple.c.o"
   "/home/rlk/Downloads/mini_pg/src/txmgr.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/txmgr.c.o"
   "/home/rlk/Downloads/mini_pg/src/wal.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minidb_core.dir/src/wal.c.o"
@@ -27,7 +23,6 @@ set(CMAKE_C_COMPILER_ID "GNU")
 set(CMAKE_C_TARGET_INCLUDE_PATH
   "../include"
   "../include/server"
-  "../include/server/sqllite"
   )
 
 # Targets to which this target links.

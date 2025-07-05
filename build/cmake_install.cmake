@@ -54,7 +54,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/minidb" TYPE DIRECTORY FILES "/home/rlk/Downloads/mini_pg/include/")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/minipg" TYPE DIRECTORY FILES "/home/rlk/Downloads/mini_pg/include/")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
