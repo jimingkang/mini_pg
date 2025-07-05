@@ -79,7 +79,7 @@ test_minidb_EXTERNAL_OBJECTS =
 
 bin/test_minidb: CMakeFiles/test_minidb.dir/test/test_users_thread.c.o
 bin/test_minidb: CMakeFiles/test_minidb.dir/build.make
-bin/test_minidb: lib/libminidb_core.a
+bin/test_minidb: lib/libminipg_core.a
 bin/test_minidb: /usr/lib/x86_64-linux-gnu/libz.so
 bin/test_minidb: CMakeFiles/test_minidb.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C executable bin/test_minidb"

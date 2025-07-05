@@ -56,17 +56,17 @@ CMAKE_BINARY_DIR = /home/rlk/Downloads/mini_pg/build
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
 
-# Special rule for the target install/strip
-install/strip/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip/fast
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
 
 # Special rule for the target edit_cache
 edit_cache:
@@ -134,17 +134,17 @@ package/fast: package
 
 .PHONY : package/fast
 
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
 
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -192,30 +192,30 @@ test_minidb/fast:
 .PHONY : test_minidb/fast
 
 #=============================================================================
-# Target rules for targets named minidb
+# Target rules for targets named minipg
 
 # Build rule for target.
-minidb: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 minidb
-.PHONY : minidb
+minipg: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 minipg
+.PHONY : minipg
 
 # fast build rule for target.
-minidb/fast:
-	$(MAKE) -f CMakeFiles/minidb.dir/build.make CMakeFiles/minidb.dir/build
-.PHONY : minidb/fast
+minipg/fast:
+	$(MAKE) -f CMakeFiles/minipg.dir/build.make CMakeFiles/minipg.dir/build
+.PHONY : minipg/fast
 
 #=============================================================================
-# Target rules for targets named minidb_core
+# Target rules for targets named minipg_core
 
 # Build rule for target.
-minidb_core: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 minidb_core
-.PHONY : minidb_core
+minipg_core: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 minipg_core
+.PHONY : minipg_core
 
 # fast build rule for target.
-minidb_core/fast:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/build
-.PHONY : minidb_core/fast
+minipg_core/fast:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/build
+.PHONY : minipg_core/fast
 
 src/catalog.o: src/catalog.c.o
 
@@ -223,7 +223,7 @@ src/catalog.o: src/catalog.c.o
 
 # target to build an object file
 src/catalog.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/catalog.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/catalog.c.o
 .PHONY : src/catalog.c.o
 
 src/catalog.i: src/catalog.c.i
@@ -232,7 +232,7 @@ src/catalog.i: src/catalog.c.i
 
 # target to preprocess a source file
 src/catalog.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/catalog.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/catalog.c.i
 .PHONY : src/catalog.c.i
 
 src/catalog.s: src/catalog.c.s
@@ -241,7 +241,7 @@ src/catalog.s: src/catalog.c.s
 
 # target to generate assembly for a file
 src/catalog.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/catalog.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/catalog.c.s
 .PHONY : src/catalog.c.s
 
 src/checkpoint.o: src/checkpoint.c.o
@@ -250,7 +250,7 @@ src/checkpoint.o: src/checkpoint.c.o
 
 # target to build an object file
 src/checkpoint.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/checkpoint.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/checkpoint.c.o
 .PHONY : src/checkpoint.c.o
 
 src/checkpoint.i: src/checkpoint.c.i
@@ -259,7 +259,7 @@ src/checkpoint.i: src/checkpoint.c.i
 
 # target to preprocess a source file
 src/checkpoint.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/checkpoint.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/checkpoint.c.i
 .PHONY : src/checkpoint.c.i
 
 src/checkpoint.s: src/checkpoint.c.s
@@ -268,7 +268,7 @@ src/checkpoint.s: src/checkpoint.c.s
 
 # target to generate assembly for a file
 src/checkpoint.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/checkpoint.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/checkpoint.c.s
 .PHONY : src/checkpoint.c.s
 
 src/lock.o: src/lock.c.o
@@ -277,7 +277,7 @@ src/lock.o: src/lock.c.o
 
 # target to build an object file
 src/lock.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/lock.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/lock.c.o
 .PHONY : src/lock.c.o
 
 src/lock.i: src/lock.c.i
@@ -286,7 +286,7 @@ src/lock.i: src/lock.c.i
 
 # target to preprocess a source file
 src/lock.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/lock.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/lock.c.i
 .PHONY : src/lock.c.i
 
 src/lock.s: src/lock.c.s
@@ -295,7 +295,7 @@ src/lock.s: src/lock.c.s
 
 # target to generate assembly for a file
 src/lock.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/lock.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/lock.c.s
 .PHONY : src/lock.c.s
 
 src/main.o: src/main.c.o
@@ -304,7 +304,7 @@ src/main.o: src/main.c.o
 
 # target to build an object file
 src/main.c.o:
-	$(MAKE) -f CMakeFiles/minidb.dir/build.make CMakeFiles/minidb.dir/src/main.c.o
+	$(MAKE) -f CMakeFiles/minipg.dir/build.make CMakeFiles/minipg.dir/src/main.c.o
 .PHONY : src/main.c.o
 
 src/main.i: src/main.c.i
@@ -313,7 +313,7 @@ src/main.i: src/main.c.i
 
 # target to preprocess a source file
 src/main.c.i:
-	$(MAKE) -f CMakeFiles/minidb.dir/build.make CMakeFiles/minidb.dir/src/main.c.i
+	$(MAKE) -f CMakeFiles/minipg.dir/build.make CMakeFiles/minipg.dir/src/main.c.i
 .PHONY : src/main.c.i
 
 src/main.s: src/main.c.s
@@ -322,7 +322,7 @@ src/main.s: src/main.c.s
 
 # target to generate assembly for a file
 src/main.c.s:
-	$(MAKE) -f CMakeFiles/minidb.dir/build.make CMakeFiles/minidb.dir/src/main.c.s
+	$(MAKE) -f CMakeFiles/minipg.dir/build.make CMakeFiles/minipg.dir/src/main.c.s
 .PHONY : src/main.c.s
 
 src/minidb.o: src/minidb.c.o
@@ -331,7 +331,7 @@ src/minidb.o: src/minidb.c.o
 
 # target to build an object file
 src/minidb.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/minidb.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/minidb.c.o
 .PHONY : src/minidb.c.o
 
 src/minidb.i: src/minidb.c.i
@@ -340,7 +340,7 @@ src/minidb.i: src/minidb.c.i
 
 # target to preprocess a source file
 src/minidb.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/minidb.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/minidb.c.i
 .PHONY : src/minidb.c.i
 
 src/minidb.s: src/minidb.c.s
@@ -349,7 +349,7 @@ src/minidb.s: src/minidb.c.s
 
 # target to generate assembly for a file
 src/minidb.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/minidb.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/minidb.c.s
 .PHONY : src/minidb.c.s
 
 src/page.o: src/page.c.o
@@ -358,7 +358,7 @@ src/page.o: src/page.c.o
 
 # target to build an object file
 src/page.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/page.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/page.c.o
 .PHONY : src/page.c.o
 
 src/page.i: src/page.c.i
@@ -367,7 +367,7 @@ src/page.i: src/page.c.i
 
 # target to preprocess a source file
 src/page.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/page.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/page.c.i
 .PHONY : src/page.c.i
 
 src/page.s: src/page.c.s
@@ -376,7 +376,7 @@ src/page.s: src/page.c.s
 
 # target to generate assembly for a file
 src/page.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/page.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/page.c.s
 .PHONY : src/page.c.s
 
 src/server/executor.o: src/server/executor.c.o
@@ -385,7 +385,7 @@ src/server/executor.o: src/server/executor.c.o
 
 # target to build an object file
 src/server/executor.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/executor.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/executor.c.o
 .PHONY : src/server/executor.c.o
 
 src/server/executor.i: src/server/executor.c.i
@@ -394,7 +394,7 @@ src/server/executor.i: src/server/executor.c.i
 
 # target to preprocess a source file
 src/server/executor.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/executor.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/executor.c.i
 .PHONY : src/server/executor.c.i
 
 src/server/executor.s: src/server/executor.c.s
@@ -403,7 +403,7 @@ src/server/executor.s: src/server/executor.c.s
 
 # target to generate assembly for a file
 src/server/executor.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/executor.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/executor.c.s
 .PHONY : src/server/executor.c.s
 
 src/server/parser.o: src/server/parser.c.o
@@ -412,7 +412,7 @@ src/server/parser.o: src/server/parser.c.o
 
 # target to build an object file
 src/server/parser.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/parser.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/parser.c.o
 .PHONY : src/server/parser.c.o
 
 src/server/parser.i: src/server/parser.c.i
@@ -421,7 +421,7 @@ src/server/parser.i: src/server/parser.c.i
 
 # target to preprocess a source file
 src/server/parser.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/parser.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/parser.c.i
 .PHONY : src/server/parser.c.i
 
 src/server/parser.s: src/server/parser.c.s
@@ -430,7 +430,7 @@ src/server/parser.s: src/server/parser.c.s
 
 # target to generate assembly for a file
 src/server/parser.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/parser.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/parser.c.s
 .PHONY : src/server/parser.c.s
 
 src/server/server.o: src/server/server.c.o
@@ -439,7 +439,7 @@ src/server/server.o: src/server/server.c.o
 
 # target to build an object file
 src/server/server.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/server.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/server.c.o
 .PHONY : src/server/server.c.o
 
 src/server/server.i: src/server/server.c.i
@@ -448,7 +448,7 @@ src/server/server.i: src/server/server.c.i
 
 # target to preprocess a source file
 src/server/server.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/server.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/server.c.i
 .PHONY : src/server/server.c.i
 
 src/server/server.s: src/server/server.c.s
@@ -457,7 +457,7 @@ src/server/server.s: src/server/server.c.s
 
 # target to generate assembly for a file
 src/server/server.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/server.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/server.c.s
 .PHONY : src/server/server.c.s
 
 src/server/sql_exec.o: src/server/sql_exec.c.o
@@ -466,7 +466,7 @@ src/server/sql_exec.o: src/server/sql_exec.c.o
 
 # target to build an object file
 src/server/sql_exec.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/sql_exec.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/sql_exec.c.o
 .PHONY : src/server/sql_exec.c.o
 
 src/server/sql_exec.i: src/server/sql_exec.c.i
@@ -475,7 +475,7 @@ src/server/sql_exec.i: src/server/sql_exec.c.i
 
 # target to preprocess a source file
 src/server/sql_exec.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/sql_exec.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/sql_exec.c.i
 .PHONY : src/server/sql_exec.c.i
 
 src/server/sql_exec.s: src/server/sql_exec.c.s
@@ -484,8 +484,116 @@ src/server/sql_exec.s: src/server/sql_exec.c.s
 
 # target to generate assembly for a file
 src/server/sql_exec.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/server/sql_exec.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/sql_exec.c.s
 .PHONY : src/server/sql_exec.c.s
+
+src/server/sql_parser.o: src/server/sql_parser.c.o
+
+.PHONY : src/server/sql_parser.o
+
+# target to build an object file
+src/server/sql_parser.c.o:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o
+.PHONY : src/server/sql_parser.c.o
+
+src/server/sql_parser.i: src/server/sql_parser.c.i
+
+.PHONY : src/server/sql_parser.i
+
+# target to preprocess a source file
+src/server/sql_parser.c.i:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/sql_parser.c.i
+.PHONY : src/server/sql_parser.c.i
+
+src/server/sql_parser.s: src/server/sql_parser.c.s
+
+.PHONY : src/server/sql_parser.s
+
+# target to generate assembly for a file
+src/server/sql_parser.c.s:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/sql_parser.c.s
+.PHONY : src/server/sql_parser.c.s
+
+src/sqllite/build.o: src/sqllite/build.c.o
+
+.PHONY : src/sqllite/build.o
+
+# target to build an object file
+src/sqllite/build.c.o:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/build.c.o
+.PHONY : src/sqllite/build.c.o
+
+src/sqllite/build.i: src/sqllite/build.c.i
+
+.PHONY : src/sqllite/build.i
+
+# target to preprocess a source file
+src/sqllite/build.c.i:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/build.c.i
+.PHONY : src/sqllite/build.c.i
+
+src/sqllite/build.s: src/sqllite/build.c.s
+
+.PHONY : src/sqllite/build.s
+
+# target to generate assembly for a file
+src/sqllite/build.c.s:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/build.c.s
+.PHONY : src/sqllite/build.c.s
+
+src/sqllite/sqlite3.o: src/sqllite/sqlite3.c.o
+
+.PHONY : src/sqllite/sqlite3.o
+
+# target to build an object file
+src/sqllite/sqlite3.c.o:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.o
+.PHONY : src/sqllite/sqlite3.c.o
+
+src/sqllite/sqlite3.i: src/sqllite/sqlite3.c.i
+
+.PHONY : src/sqllite/sqlite3.i
+
+# target to preprocess a source file
+src/sqllite/sqlite3.c.i:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.i
+.PHONY : src/sqllite/sqlite3.c.i
+
+src/sqllite/sqlite3.s: src/sqllite/sqlite3.c.s
+
+.PHONY : src/sqllite/sqlite3.s
+
+# target to generate assembly for a file
+src/sqllite/sqlite3.c.s:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/sqlite3.c.s
+.PHONY : src/sqllite/sqlite3.c.s
+
+src/sqllite/util.o: src/sqllite/util.c.o
+
+.PHONY : src/sqllite/util.o
+
+# target to build an object file
+src/sqllite/util.c.o:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/util.c.o
+.PHONY : src/sqllite/util.c.o
+
+src/sqllite/util.i: src/sqllite/util.c.i
+
+.PHONY : src/sqllite/util.i
+
+# target to preprocess a source file
+src/sqllite/util.c.i:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/util.c.i
+.PHONY : src/sqllite/util.c.i
+
+src/sqllite/util.s: src/sqllite/util.c.s
+
+.PHONY : src/sqllite/util.s
+
+# target to generate assembly for a file
+src/sqllite/util.c.s:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqllite/util.c.s
+.PHONY : src/sqllite/util.c.s
 
 src/tuple.o: src/tuple.c.o
 
@@ -493,7 +601,7 @@ src/tuple.o: src/tuple.c.o
 
 # target to build an object file
 src/tuple.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/tuple.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/tuple.c.o
 .PHONY : src/tuple.c.o
 
 src/tuple.i: src/tuple.c.i
@@ -502,7 +610,7 @@ src/tuple.i: src/tuple.c.i
 
 # target to preprocess a source file
 src/tuple.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/tuple.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/tuple.c.i
 .PHONY : src/tuple.c.i
 
 src/tuple.s: src/tuple.c.s
@@ -511,7 +619,7 @@ src/tuple.s: src/tuple.c.s
 
 # target to generate assembly for a file
 src/tuple.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/tuple.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/tuple.c.s
 .PHONY : src/tuple.c.s
 
 src/txmgr.o: src/txmgr.c.o
@@ -520,7 +628,7 @@ src/txmgr.o: src/txmgr.c.o
 
 # target to build an object file
 src/txmgr.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/txmgr.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/txmgr.c.o
 .PHONY : src/txmgr.c.o
 
 src/txmgr.i: src/txmgr.c.i
@@ -529,7 +637,7 @@ src/txmgr.i: src/txmgr.c.i
 
 # target to preprocess a source file
 src/txmgr.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/txmgr.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/txmgr.c.i
 .PHONY : src/txmgr.c.i
 
 src/txmgr.s: src/txmgr.c.s
@@ -538,7 +646,7 @@ src/txmgr.s: src/txmgr.c.s
 
 # target to generate assembly for a file
 src/txmgr.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/txmgr.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/txmgr.c.s
 .PHONY : src/txmgr.c.s
 
 src/wal.o: src/wal.c.o
@@ -547,7 +655,7 @@ src/wal.o: src/wal.c.o
 
 # target to build an object file
 src/wal.c.o:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/wal.c.o
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/wal.c.o
 .PHONY : src/wal.c.o
 
 src/wal.i: src/wal.c.i
@@ -556,7 +664,7 @@ src/wal.i: src/wal.c.i
 
 # target to preprocess a source file
 src/wal.c.i:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/wal.c.i
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/wal.c.i
 .PHONY : src/wal.c.i
 
 src/wal.s: src/wal.c.s
@@ -565,7 +673,7 @@ src/wal.s: src/wal.c.s
 
 # target to generate assembly for a file
 src/wal.c.s:
-	$(MAKE) -f CMakeFiles/minidb_core.dir/build.make CMakeFiles/minidb_core.dir/src/wal.c.s
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/wal.c.s
 .PHONY : src/wal.c.s
 
 test/test_users_thread.o: test/test_users_thread.c.o
@@ -601,7 +709,7 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... install/strip"
+	@echo "... install/local"
 	@echo "... edit_cache"
 	@echo "... package_source"
 	@echo "... install"
@@ -609,9 +717,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... package"
 	@echo "... test_minidb"
-	@echo "... install/local"
-	@echo "... minidb"
-	@echo "... minidb_core"
+	@echo "... minipg"
+	@echo "... install/strip"
+	@echo "... minipg_core"
 	@echo "... src/catalog.o"
 	@echo "... src/catalog.i"
 	@echo "... src/catalog.s"
@@ -642,6 +750,18 @@ help:
 	@echo "... src/server/sql_exec.o"
 	@echo "... src/server/sql_exec.i"
 	@echo "... src/server/sql_exec.s"
+	@echo "... src/server/sql_parser.o"
+	@echo "... src/server/sql_parser.i"
+	@echo "... src/server/sql_parser.s"
+	@echo "... src/sqllite/build.o"
+	@echo "... src/sqllite/build.i"
+	@echo "... src/sqllite/build.s"
+	@echo "... src/sqllite/sqlite3.o"
+	@echo "... src/sqllite/sqlite3.i"
+	@echo "... src/sqllite/sqlite3.s"
+	@echo "... src/sqllite/util.o"
+	@echo "... src/sqllite/util.i"
+	@echo "... src/sqllite/util.s"
 	@echo "... src/tuple.o"
 	@echo "... src/tuple.i"
 	@echo "... src/tuple.s"
