@@ -877,3 +877,19 @@ bool convertToTuple(Tuple* tuple, TableMeta* meta, InsertStmt* insert) {
     return true;
 }
 
+void format_tuple(char* buf, size_t buf_size, Tuple* tuple, TableMeta* meta, uint32_t current_xid) {
+    size_t offset = 0;
+
+    for (int i = 0; i < tuple->col_count; ++i) {
+        if (meta->cols[i].type == INT4_TYPE) {
+            offset += snprintf(buf + offset, buf_size - offset, "%d\t", tuple->columns[i].value.int_val);
+        } else if (meta->cols[i].type == TEXT_TYPE) {
+            offset += snprintf(buf + offset, buf_size - offset, "%s\t", tuple->columns[i].value.str_val);
+        } else {
+            offset += snprintf(buf + offset, buf_size - offset, "<UNKNOWN>\t");
+        }
+    }
+
+    snprintf(buf + offset, buf_size - offset, "\n");
+}
+

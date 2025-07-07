@@ -45,9 +45,6 @@ add_library(minipg_core STATIC
    src/server/sql_exec.c
    src/server/parser.c
     src/server/sql_parser.c
-    #src/sqlite/build.c
-   # src/sqlite/util.c
-      # src/sqlite/tokenize.c
     src/sqlite/sqlite3.c
 
    # src/sqlite/parse.c
@@ -59,7 +56,8 @@ target_link_libraries(minipg_core ${ZLIB_LIBRARIES}  ${SQLite3_LIBRARIES} dl pth
 
 # ================== 主程序 ==================
 add_executable(minipg
-    src/main.c
+    #src/main.c
+      src/server/server.c
 )
 
 target_link_libraries(minipg minipg_core )

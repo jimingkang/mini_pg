@@ -57,27 +57,27 @@ include CMakeFiles/minipg.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/minipg.dir/flags.make
 
-CMakeFiles/minipg.dir/src/main.c.o: CMakeFiles/minipg.dir/flags.make
-CMakeFiles/minipg.dir/src/main.c.o: ../src/main.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/minipg.dir/src/main.c.o"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minipg.dir/src/main.c.o   -c /home/rlk/Downloads/mini_pg/src/main.c
+CMakeFiles/minipg.dir/src/server/server.c.o: CMakeFiles/minipg.dir/flags.make
+CMakeFiles/minipg.dir/src/server/server.c.o: ../src/server/server.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/minipg.dir/src/server/server.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/minipg.dir/src/server/server.c.o   -c /home/rlk/Downloads/mini_pg/src/server/server.c
 
-CMakeFiles/minipg.dir/src/main.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/minipg.dir/src/main.c.i"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/src/main.c > CMakeFiles/minipg.dir/src/main.c.i
+CMakeFiles/minipg.dir/src/server/server.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/minipg.dir/src/server/server.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/rlk/Downloads/mini_pg/src/server/server.c > CMakeFiles/minipg.dir/src/server/server.c.i
 
-CMakeFiles/minipg.dir/src/main.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minipg.dir/src/main.c.s"
-	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/main.c -o CMakeFiles/minipg.dir/src/main.c.s
+CMakeFiles/minipg.dir/src/server/server.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/minipg.dir/src/server/server.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/rlk/Downloads/mini_pg/src/server/server.c -o CMakeFiles/minipg.dir/src/server/server.c.s
 
 # Object files for target minipg
 minipg_OBJECTS = \
-"CMakeFiles/minipg.dir/src/main.c.o"
+"CMakeFiles/minipg.dir/src/server/server.c.o"
 
 # External object files for target minipg
 minipg_EXTERNAL_OBJECTS =
 
-bin/minipg: CMakeFiles/minipg.dir/src/main.c.o
+bin/minipg: CMakeFiles/minipg.dir/src/server/server.c.o
 bin/minipg: CMakeFiles/minipg.dir/build.make
 bin/minipg: lib/libminipg_core.a
 bin/minipg: /usr/lib/x86_64-linux-gnu/libz.so

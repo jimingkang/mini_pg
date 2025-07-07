@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/minipg.dir/src/main.c.o"
+  "CMakeFiles/minipg.dir/src/server/server.c.o"
   "bin/minipg"
   "bin/minipg.pdb"
 )

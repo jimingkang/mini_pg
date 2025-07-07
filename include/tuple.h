@@ -45,7 +45,7 @@ bool is_tuple_visible(TableMeta *meta, TransactionManager *txmgr, const Tuple *t
 bool eval_expr(const MiniExpr* expr, const Tuple* t, const TableMeta* meta) ;
 
 bool convertToTuple(Tuple* tuple, TableMeta* meta, InsertStmt* insert) ;
-//bool is_tuple_visible(TransactionManager *txmgr,const Tuple* tuple, uint32_t current_xid) ;
-//bool is_tuple_visible(TableMeta * meta, TransactionManager *txmgr, const Tuple* tuple, uint32_t current_xid);
-//bool is_tuple_visible(TableMeta * meta, TransactionManager *txmgr, const Tuple* tuple, uint32_t current_xid,uint32_t snapshot_xmin);
+
+void format_tuple(char* buf, size_t buf_size, Tuple* tuple, TableMeta* meta, uint32_t current_xid);
+
 #endif // TUPLE_H

@@ -20,4 +20,7 @@ bool db_select(  ResultSet* result, Session session,SelectStmt * stmt);
 //bool exce_update(MiniDB* db, const UpdateStmt* stmt, Session* session);
 //int db_update(const OldUpdateStmt* stmt, Session session,SelectStmt * selectStmt);
 int db_update(const UpdateStmt* stmt, Session session);
+
+
+int execute_select_to_string(sqlite3* sqlite_db, const char* sql,Session session,char * ret);
 #endif

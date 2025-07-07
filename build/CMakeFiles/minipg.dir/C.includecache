@@ -14,10 +14,6 @@ minidb.h
 tuple.h
 ../include/tuple.h
 
-../include/checkpoint.h
-minidb.h
-../include/minidb.h
-
 ../include/minidb.h
 stdio.h
 -
@@ -222,25 +218,29 @@ semaphore.h
 sqliteInt.h
 ../include/sqliteInt.h
 
-/home/rlk/Downloads/mini_pg/src/main.c
-minidb.h
-/home/rlk/Downloads/mini_pg/src/minidb.h
-txmgr.h
-/home/rlk/Downloads/mini_pg/src/txmgr.h
+/home/rlk/Downloads/mini_pg/src/server/server.c
 stdio.h
 -
 stdlib.h
 -
 string.h
 -
-time.h
+unistd.h
 -
-parser.h
+netinet/in.h
 -
-executor.h
-/home/rlk/Downloads/mini_pg/src/executor.h
-checkpoint.h
-/home/rlk/Downloads/mini_pg/src/checkpoint.h
-tuple.h
-/home/rlk/Downloads/mini_pg/src/tuple.h
+sys/socket.h
+-
+sys/types.h
+-
+sys/wait.h
+-
+signal.h
+-
+minidb.h
+/home/rlk/Downloads/mini_pg/src/server/minidb.h
+server/parser.h
+/home/rlk/Downloads/mini_pg/src/server/server/parser.h
+server/executor.h
+/home/rlk/Downloads/mini_pg/src/server/server/executor.h
 

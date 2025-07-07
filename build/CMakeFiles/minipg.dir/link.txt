@@ -1,1 +1,1 @@
-/usr/bin/cc -g   CMakeFiles/minipg.dir/src/main.c.o  -o bin/minipg  lib/libminipg_core.a /usr/lib/x86_64-linux-gnu/libz.so -lsqlite3 -ldl -lpthread 
+/usr/bin/cc -g   CMakeFiles/minipg.dir/src/server/server.c.o  -o bin/minipg  lib/libminipg_core.a /usr/lib/x86_64-linux-gnu/libz.so -lsqlite3 -ldl -lpthread 

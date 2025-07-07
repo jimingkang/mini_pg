@@ -22,19 +22,20 @@ void sigchld_handler(int s) {
     while (waitpid(-1, NULL, WNOHANG) > 0);
 }
 
-char* handle_query(const char* query, MiniDB* db,Session session ) {
+char* handle_query(const char* query, sqlite3* sqlite_db,Session session ) {
      //fprintf(stderr, "query= %s,strncasecmp(query, select, 6)=%d\n",query,strncasecmp(query, "select", 6));
     // 可根据你项目已有的函数替换这里的调用逻辑
     if (strncasecmp(query, "create table", 12) == 0) {
-        if (execute_create_table(db, query,session)) return strdup("Create OK\n");
+        if (execute_create_table(sqlite_db, query,session)) return strdup("Create OK\n");
         else return strdup("Create Failed\n");
-    } else if (strncasecmp(query, "insert", 6) == 0) {
-        if (execute_insert(db, query,session)) return strdup("Insert OK\n");
+    }
+     else if (strncasecmp(query, "insert", 6) == 0) {
+        if (execute_insert(sqlite_db, query,session)) return strdup("Insert OK\n");
         else return strdup("Insert Failed\n");
     } else if (strncasecmp(query, "select", 6) == 0) {
         printf("hit select : query=%s\n",query);
         char* result =malloc(4096);
-       int len=  execute_select_to_string(db, query,session,result); // 你需要实现这个函数
+       int len=  execute_select_to_string(sqlite_db, query,session,result); // 你需要实现这个函数
         return result ? result : strdup("Select Failed\n");
     } 
     /*
@@ -53,8 +54,10 @@ char* handle_query(const char* query, MiniDB* db,Session session ) {
 
 
 
-int main_pg() {
+int main() {
     signal(SIGCHLD, sigchld_handler);
+    sqlite3* sqlite_db = NULL;
+    sqlite3_open(":memory:", &sqlite_db);  // 初始化 SQLite 内部状态
     
     init_db(&global_db, "/home/rlk/Downloads/mini_pg/build");
 
@@ -104,12 +107,12 @@ int main_pg() {
             }else if (strncasecmp(buffer, "update", 6) == 0) {
                 // ✅ 新增部分：解析 + 执行 update
                char* result =malloc(4096);
-                int len=  execute_update_to_string(session.db, buffer,session,result); // 你需要实现这个函数
+                int len=  execute_update_to_string(sqlite_db, buffer,session,result); // 你需要实现这个函数
                   printf("update : get retured string from execute_update_to_string:\n%s\n", result);
                 return result ? result : strdup("update Failed\n");
          } else {
                 // 执行 SQL 时保持 current_xid 状态
-                char* result = handle_query(buffer, session.db, session);
+                char* result = handle_query(buffer, sqlite_db, session);
                  if (!result) {
                     printf("[handle_query] result is NULL!\n");
                 } else {

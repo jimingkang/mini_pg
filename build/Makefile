@@ -298,33 +298,6 @@ src/lock.c.s:
 	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/lock.c.s
 .PHONY : src/lock.c.s
 
-src/main.o: src/main.c.o
-
-.PHONY : src/main.o
-
-# target to build an object file
-src/main.c.o:
-	$(MAKE) -f CMakeFiles/minipg.dir/build.make CMakeFiles/minipg.dir/src/main.c.o
-.PHONY : src/main.c.o
-
-src/main.i: src/main.c.i
-
-.PHONY : src/main.i
-
-# target to preprocess a source file
-src/main.c.i:
-	$(MAKE) -f CMakeFiles/minipg.dir/build.make CMakeFiles/minipg.dir/src/main.c.i
-.PHONY : src/main.c.i
-
-src/main.s: src/main.c.s
-
-.PHONY : src/main.s
-
-# target to generate assembly for a file
-src/main.c.s:
-	$(MAKE) -f CMakeFiles/minipg.dir/build.make CMakeFiles/minipg.dir/src/main.c.s
-.PHONY : src/main.c.s
-
 src/minidb.o: src/minidb.c.o
 
 .PHONY : src/minidb.o
@@ -439,6 +412,7 @@ src/server/server.o: src/server/server.c.o
 
 # target to build an object file
 src/server/server.c.o:
+	$(MAKE) -f CMakeFiles/minipg.dir/build.make CMakeFiles/minipg.dir/src/server/server.c.o
 	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/server.c.o
 .PHONY : src/server/server.c.o
 
@@ -448,6 +422,7 @@ src/server/server.i: src/server/server.c.i
 
 # target to preprocess a source file
 src/server/server.c.i:
+	$(MAKE) -f CMakeFiles/minipg.dir/build.make CMakeFiles/minipg.dir/src/server/server.c.i
 	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/server.c.i
 .PHONY : src/server/server.c.i
 
@@ -457,6 +432,7 @@ src/server/server.s: src/server/server.c.s
 
 # target to generate assembly for a file
 src/server/server.c.s:
+	$(MAKE) -f CMakeFiles/minipg.dir/build.make CMakeFiles/minipg.dir/src/server/server.c.s
 	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/server.c.s
 .PHONY : src/server/server.c.s
 
@@ -675,9 +651,6 @@ help:
 	@echo "... src/lock.o"
 	@echo "... src/lock.i"
 	@echo "... src/lock.s"
-	@echo "... src/main.o"
-	@echo "... src/main.i"
-	@echo "... src/main.s"
 	@echo "... src/minidb.o"
 	@echo "... src/minidb.i"
 	@echo "... src/minidb.s"
