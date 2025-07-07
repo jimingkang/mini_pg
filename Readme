@@ -15,7 +15,6 @@ build>make
 A)所有数据类型都在type.h中,
 ------------------------------------------------
 
-
 // 表元数据
 typedef struct {
     uint32_t oid;
@@ -31,7 +30,7 @@ PageID last_page;    // 表的最后一个页面ID
     LWLock extension_lock;
 } TableMeta;
 
-
+------------------------------------------------------
 
 对于系统目录,有如下定义,类似于pg的information表
 typedef struct {

@@ -1,0 +1,283 @@
+ Paser结构中最后添加:
+ Parse{
+ union {
+    Select *pSelect;
+    Insert *pInsert;
+  } uResult;
+  int stmtType; // 用于指示当前保存的是哪种语句（SELECT或INSERT）
+SQLStatement* pMiniPGStatement;
+};
+
+
+A)select的添加
+ 1 parse.y中添加
+ //select cmd
+//////////////////////// The SELECT statement /////////////////////////////////
+//
+cmd ::= select(X).  {
+  //SelectDest dest = {SRT_Output, 0, 0, 0, 0, 0, 0};
+ // if( (pParse->db->mDbFlags & DBFLAG_EncodingFixed)!=0
+ //  || sqlite3ReadSchema(pParse)==SQLITE_OK
+ // ){
+ //   sqlite3Select(pParse, X, &dest);
+ // }
+ // sqlite3SelectDelete(pParse->db, X);
+ SelectStmt* sstmt = sqlite3MallocZero(sizeof(SelectStmt));
+
+  int n = X->pEList->nExpr;
+  sstmt->column_count = n;
+  sstmt->column_names = sqlite3MallocZero(sizeof(char*) * n);
+  for (int i = 0; i < n; ++i) {
+    sstmt->column_names[i] = sqlite3DbStrDup(pParse->db, X->pEList->a[i].zEName);
+  }
+
+  if (X->pSrc && X->pSrc->nSrc > 0) {
+    sstmt->table_name = sqlite3DbStrDup(pParse->db, X->pSrc->a[0].zName);
+  }
+
+  if (X->pWhere) {
+    sstmt->where_expr = convertExpr(X->pWhere);
+  }
+
+  SQLStatement* stmt = sqlite3MallocZero(sizeof(SQLStatement));
+  stmt->type = STMT_SELECT;
+  stmt->select_stmt = sstmt;
+
+  pParse->pMiniPGStatement = stmt;
+}
+
+%type select {Select*}
+%destructor select {sqlite3SelectDelete(pParse->db, $$);}
+%type selectnowith {Select*}
+%destructor selectnowith {sqlite3SelectDelete(pParse->db, $$);}
+%type oneselect {Select*}
+%destructor oneselect {sqlite3SelectDelete(pParse->db, $$);}
+
+
+ 2.lemon parse.y > parse.c parse.h
+
+3.拷贝相应的代码从parse.c到sqlite2.c中
+      case 159: /* cmd ::= with UPDATE orconf xfullname indexed_opt SET setlist from where_opt_ret */
+{
+  //sqlite3SrcListIndexedBy(pParse, yymsp[-5].minor.yy563, &yymsp[-4].minor.yy0);
+  //sqlite3ExprListCheckLength(pParse,yymsp[-2].minor.yy402,"set list");
+  //if( yymsp[-1].minor.yy563 ){
+   // SrcList *pFromClause = yymsp[-1].minor.yy563;
+   // if( pFromClause->nSrc>1 ){
+   //   Select *pSubquery;
+   //   Token as;
+    //  pSubquery = sqlite3SelectNew(pParse,0,pFromClause,0,0,0,0,SF_NestedFrom,0);
+   //   as.n = 0;
+    //  as.z = 0;
+   //   pFromClause = sqlite3SrcListAppendFromTerm(pParse,0,0,0,&as,pSubquery,0);
+   // }
+   // yymsp[-5].minor.yy563 = sqlite3SrcListAppendList(pParse, yymsp[-5].minor.yy563, pFromClause);
+  //}
+//  sqlite3Update(pParse,yymsp[-5].minor.yy563,yymsp[-2].minor.yy402,yymsp[0].minor.yy590,yymsp[-6].minor.yy502,0,0,0);
+
+ // 构建 UpdateStmt 节点
+   UpdateStmt* update = sqlite3MallocZero(sizeof(UpdateStmt));
+  update->table_name = sqlite3DbStrDup(pParse->db, yymsp[-5].minor.yy563->a[0].zName);
+
+  int n = yymsp[-2].minor.yy402->nExpr;
+  update->column_count = n;
+  update->column_names = sqlite3MallocZero(sizeof(char*) * n);
+  update->values = sqlite3MallocZero(sizeof(MiniExpr*) * n);
+
+  for (int i = 0; i < n; ++i) {
+    update->column_names[i] = sqlite3DbStrDup(pParse->db, yymsp[-2].minor.yy402->a[i].zEName);
+    //update->values[i] = convertExpr(yymsp[-2].minor.yy402->a[i].pExpr);
+   //fprintf(stderr, "[debug] 第 %d 列值表达式 AST 节点: %p\n", i, update->values[i]);
+   MiniExpr* expr = convertExpr(yymsp[-2].minor.yy402->a[i].pExpr);
+    update->values[i] = expr;
+
+    if (!expr) {
+        printf("update->values[%d] = NULL\n", i);
+    } else {
+        printf("update->values[%d] = %p, type = %d, value = %s\n", 
+            i, (void*)expr, expr->type, 
+            expr->value ? expr->value : "NULL");
+    }
+  }
+
+  if (yymsp[0].minor.yy125) {
+    update->where_expr = convertExprtoList(yymsp[0].minor.yy125);
+  }
+
+  SQLStatement* stmt = sqlite3MallocZero(sizeof(SQLStatement));
+  stmt->type = STMT_UPDATE;
+  stmt->update_stmt = update;
+  pParse->pMiniPGStatement = stmt;
+}
+
+B)update的添加
+ C)update的添加
+ 1 parse.y中添加
+ ///update cmd
+ cmd ::= UPDATE orconf(R) xfullname(X) indexed_opt(I)
+        SET setlist(Y) where_opt_ret(W). {
+  // 构建 UpdateStmt
+  UpdateStmt* update = sqlite3MallocZero(sizeof(UpdateStmt));
+  update->table_name = sqlite3DbStrDup(pParse->db, X->a[0].zName); // 表名
+  update->set_count = Y->nExpr;
+
+  update->columns = sqlite3MallocZero(sizeof(char*) * Y->nExpr);
+  update->values = sqlite3MallocZero(sizeof(MiniExpr*) * Y->nExpr);
+  for (int i = 0; i < Y->nExpr; ++i) {
+    update->columns[i] = sqlite3DbStrDup(pParse->db, Y->a[i].zEName);
+    update->values[i] = convertExpr(Y->a[i].pExpr);
+  }
+
+  if (W) {
+    update->where_expr = convertExpr(W);
+  }
+
+  SQLStatement* stmt = sqlite3MallocZero(sizeof(SQLStatement));
+  stmt->type = STMT_UPDATE;
+  stmt->update_stmt = update;
+
+  pParse->pMiniPGStatement = stmt;
+
+  2.编译
+  lemon parse.y > parse.c parse.h
+  3.拷贝相应的代码从parse.c到sqlite2.c中
+
+   case 159: /* cmd ::= with UPDATE orconf xfullname indexed_opt SET setlist from where_opt_ret */
+{
+  //sqlite3SrcListIndexedBy(pParse, yymsp[-5].minor.yy563, &yymsp[-4].minor.yy0);
+  //sqlite3ExprListCheckLength(pParse,yymsp[-2].minor.yy402,"set list");
+  //if( yymsp[-1].minor.yy563 ){
+   // SrcList *pFromClause = yymsp[-1].minor.yy563;
+   // if( pFromClause->nSrc>1 ){
+   //   Select *pSubquery;
+   //   Token as;
+    //  pSubquery = sqlite3SelectNew(pParse,0,pFromClause,0,0,0,0,SF_NestedFrom,0);
+   //   as.n = 0;
+    //  as.z = 0;
+   //   pFromClause = sqlite3SrcListAppendFromTerm(pParse,0,0,0,&as,pSubquery,0);
+   // }
+   // yymsp[-5].minor.yy563 = sqlite3SrcListAppendList(pParse, yymsp[-5].minor.yy563, pFromClause);
+  //}
+//  sqlite3Update(pParse,yymsp[-5].minor.yy563,yymsp[-2].minor.yy402,yymsp[0].minor.yy590,yymsp[-6].minor.yy502,0,0,0);
+
+ // 构建 UpdateStmt 节点
+   UpdateStmt* update = sqlite3MallocZero(sizeof(UpdateStmt));
+  update->table_name = sqlite3DbStrDup(pParse->db, yymsp[-5].minor.yy563->a[0].zName);
+
+  int n = yymsp[-2].minor.yy402->nExpr;
+  update->column_count = n;
+  update->column_names = sqlite3MallocZero(sizeof(char*) * n);
+  update->values = sqlite3MallocZero(sizeof(MiniExpr*) * n);
+
+  for (int i = 0; i < n; ++i) {
+    update->column_names[i] = sqlite3DbStrDup(pParse->db, yymsp[-2].minor.yy402->a[i].zEName);
+    //update->values[i] = convertExpr(yymsp[-2].minor.yy402->a[i].pExpr);
+   //fprintf(stderr, "[debug] 第 %d 列值表达式 AST 节点: %p\n", i, update->values[i]);
+   MiniExpr* expr = convertExpr(yymsp[-2].minor.yy402->a[i].pExpr);
+    update->values[i] = expr;
+
+    if (!expr) {
+        printf("update->values[%d] = NULL\n", i);
+    } else {
+        printf("update->values[%d] = %p, type = %d, value = %s\n", 
+            i, (void*)expr, expr->type, 
+            expr->value ? expr->value : "NULL");
+    }
+  }
+
+  if (yymsp[0].minor.yy125) {
+    update->where_expr = convertExprtoList(yymsp[0].minor.yy125);
+  }
+
+  SQLStatement* stmt = sqlite3MallocZero(sizeof(SQLStatement));
+  stmt->type = STMT_UPDATE;
+  stmt->update_stmt = update;
+  pParse->pMiniPGStatement = stmt;
+}
+
+C)Insert的命令的添加
+
+1 parse.y中添加
+ //insert cmd
+ cmd ::= insert_cmd(A) INTO xfullname(B) idlist_opt(C) VALUES LP exprlist(D) RP SEMI.
+{
+  
+    InsertStmt* insert = sqlite3MallocZero(sizeof(InsertStmt));
+    insert->table_name = sqlite3DbStrDup(pParse->db, A->zName);
+
+    if (B) {
+        insert->column_count = B->nId;
+        insert->column_names = sqlite3MallocZero(sizeof(char*) * B->nId);
+        for (int i = 0; i < B->nId; ++i) {
+            insert->column_names[i] = sqlite3DbStrDup(pParse->db, B->a[i].zName);
+        }
+    }
+
+    if (C) {
+        insert->values = sqlite3MallocZero(sizeof(MiniExprList));
+        insert->values->count = C->nExpr;
+        insert->values->items = sqlite3MallocZero(sizeof(MiniExpr*) * C->nExpr);
+        for (int i = 0; i < C->nExpr; ++i) {
+            insert->values->items[i] = convertExpr(C->a[i].pExpr);
+        }
+    }
+      if (D) {
+    insert->values = sqlite3MallocZero(sizeof(MiniExprList));
+    insert->values->count = D->nExpr;
+    insert->values->items = sqlite3MallocZero(sizeof(MiniExpr*) * D->nExpr);
+    for (int i = 0; i < D->nExpr; ++i) {
+      insert->values->items[i] = convertExpr(D->a[i].pExpr);
+    }
+  }
+    SQLStatement* stmt = sqlite3MallocZero(sizeof(SQLStatement));
+    stmt->type = STMT_INSERT;
+    stmt->insert_stmt = insert;
+    pParse->pMiniPGStatement = stmt;
+
+}
+
+
+
+2.编译
+  lemon parse.y > parse.c parse.h
+3.拷贝相应的代码从parse.c到sqlite2.c中
+
+    
+      case 164: /* cmd ::= insert_cmd INTO xfullname idlist_opt VALUES LP exprlist RP SEMI */
+{
+    InsertStmt* insert = sqlite3MallocZero(sizeof(InsertStmt));
+
+    // 表名应该是 yymsp[-6].minor.yy563->zName，而不是 yymsp[-8].minor.yy502（yymsp[-8].minor.yy502 是 INSERT token）
+    insert->table_name = sqlite3DbStrDup(pParse->db, yymsp[-6].minor.yy563->a[0].zName);
+
+    // 列名
+    if (yymsp[-5].minor.yy204) {
+        insert->column_count = yymsp[-5].minor.yy204->nId;
+        insert->column_names = sqlite3MallocZero(sizeof(char*) * yymsp[-5].minor.yy204->nId);
+        for (int i = 0; i < yymsp[-5].minor.yy204->nId; ++i) {
+            insert->column_names[i] = sqlite3DbStrDup(pParse->db, yymsp[-5].minor.yy204->a[i].zName);
+        }
+    } else {
+        insert->column_count = yymsp[-2].minor.yy402->nExpr; // 如果没写列名，就默认所有列
+        insert->column_names = NULL;
+    }
+
+    // 值表达式
+    if (yymsp[-2].minor.yy402) {
+        insert->values = sqlite3MallocZero(sizeof(MiniExprList));
+        insert->values->count = yymsp[-2].minor.yy402->nExpr;
+        insert->values->items = sqlite3MallocZero(sizeof(MiniExpr*) * yymsp[-2].minor.yy402->nExpr);
+        for (int i = 0; i < yymsp[-2].minor.yy402->nExpr; ++i) {
+            insert->values->items[i] = convertExpr(yymsp[-2].minor.yy402->a[i].pExpr);
+        }
+    }
+
+    // 封装成 SQLStatement
+    SQLStatement* stmt = sqlite3MallocZero(sizeof(SQLStatement));
+    stmt->type = STMT_INSERT;
+    stmt->insert_stmt = insert;
+    pParse->pMiniPGStatement = stmt;
+}
+
+D)在源码sqlite编译sqlite3.C
+E) 拷贝sqlite.c到项目mini_pg/src/sqlite/
