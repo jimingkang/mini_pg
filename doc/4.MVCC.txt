@@ -1,0 +1,98 @@
+case分析:
+1)两个显示同时更新同一行bin/test_minidb(源代码test_users_thread.c)
+
+Transaction manager initialized. Next XID: 11, Oldest XID: 11,txmgr->committed_bitmap[2]:0
+
+Started transaction 11 (slot 0)
+
+                                                                                            Started transaction 12 (slot 1)
+                                                                                            get LSN offset:1232
+                                                                                            get LSN offset:1232
+                                                                                            [ thread:e26fd700,session.current_xid:12] session_begin_transaction
+                                                                                            [ thread:e26fd700,session.current_xid:12] Query found 2 tuples
+                                                                                            [ thread:e26fd700,session.current_xid:12] before update ,new Query returned 2 tuples:
+                                                                                            --------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 12
+                                                                                            Unknown (0): 1
+                                                                                            Unknown (3): "Tom"
+                                                                                            Unknown (0): 30
+
+                                                                                            Tuple OID: 2 xmin: 9, xmax: 0,Columns: 3,current_xid: 12
+                                                                                            Unknown (0): 2
+                                                                                            Unknown (3): "Jack"
+                                                                                            Unknown (0): 29
+
+[ thread:e2efe700,session.current_xid:11] session_begin_transaction
+[ thread:e2efe700,session.current_xid:11] Query found 2 tuples
+[ thread:e2efe700,session.current_xid:11] before update ,new Query returned 2 tuples:
+--------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 11
+  Unknown (0): 1
+  Unknown (3): "Tom"
+  Unknown (0): 30
+
+Tuple OID: 2 xmin: 9, xmax: 0,Columns: 3,current_xid: 11
+  Unknown (0): 2
+  Unknown (3): "Jack"
+  Unknown (0): 29
+
+eval_condition: tuple id=1, name=Tom
+eval_condition: tuple id=2, name=Jack
+                                                                                                xid=12,得到一个新锁
+                                                                                                eval_condition: tuple id=1, name=Tom
+                                                                                                eval_condition: tuple id=2, name=Jack
+xid=11 ,锁已被别人占用，sched_yield释放锁后重试
+                                                                                                [ thread:e26fd700,session.current_xid:12] Update success, age=98
+                                                                                                [ thread:e26fd700,session.current_xid:12] after update sleep 1 sec ,new Query returned 2 tuples:
+                                                                                                --------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 12
+                                                                                                Unknown (0): 1
+                                                                                                Unknown (3): "Tom"
+                                                                                                Unknown (0): 30
+
+                                                                                                Tuple OID: 2 xmin: 12, xmax: 0,Columns: 3,current_xid: 12
+                                                                                                Unknown (0): 2
+                                                                                                Unknown (3): "Jack"
+                                                                                                Unknown (0): 98
+
+                                                                                                SET_COMMITTED: xid=12, byte=1, bit=4
+                                                                                                txmgr->committed_bitmap[1] = 17
+xid=11,得到一个新锁
+get LSN offset:1264
+Committed transaction 12
+get LSN offset:1296
+[ thread:e2efe700,session.current_xid:11] Update success, age=67
+[ thread:e2efe700,session.current_xid:11] after update sleep 1 sec ,new Query returned 2 tuples:
+--------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 11
+  Unknown (0): 1
+  Unknown (3): "Tom"
+  Unknown (0): 30
+
+Tuple OID: 2 xmin: 11, xmax: 0,Columns: 3,current_xid: 11
+  Unknown (0): 2
+  Unknown (3): "Jack"
+  Unknown (0): 67
+
+SET_COMMITTED: xid=11, byte=1, bit=3
+txmgr->committed_bitmap[1] = 1f
+get LSN offset:1328
+Committed transaction 11
+Updated oldest XID to 13
+get LSN offset:1360
+0x7ffdaa009498
+Started transaction 13 (slot 0)
+get LSN offset:1392
+                                                        [main thread:-487590080,session.current_xid:13] after commit ,new Query returned 2 tuples:
+                                                        --------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 13
+                                                        Unknown (0): 1
+                                                        Unknown (3): "Tom"
+                                                        Unknown (0): 30
+
+                                                        Tuple OID: 2 xmin: 12, xmax: 0,Columns: 3,current_xid: 13
+                                                        Unknown (0): 2
+                                                        Unknown (3): "Jack"
+                                                        Unknown (0): 98
+
+                                                        SET_COMMITTED: xid=13, byte=1, bit=5
+                                                        txmgr->committed_bitmap[1] = 3f
+                                                        get LSN offset:1424
+                                                        Committed transaction 13
+                                                        Updated oldest XID to 14
+                                                        get LSN offset:1456

@@ -15,6 +15,8 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+#include "sqliteInt.h"
+
 
 
 // 页面ID类型
@@ -68,7 +70,7 @@ typedef union {
 typedef struct {
     DataType type;      // 数据类型
     ColumnValue value;  // 列值
-} Column;
+} OldColumn;
 
 // 列定义
 typedef struct {
@@ -83,7 +85,7 @@ typedef struct {
     uint32_t xmax;        // 删除/更新事务ID (MVCC)
     bool deleted;         // 逻辑删除标志
     uint8_t col_count;    // 列数量
-    Column* columns;      // 列数据数组
+    OldColumn* columns;      // 列数据数组
 } Tuple;
 
 
@@ -275,5 +277,15 @@ typedef struct {
     
 } Session;
 
+typedef enum {
+    OP_EQ,     // =
+    OP_LT,     // <
+    OP_GT,     // >
+    OP_LE,     // <=
+    OP_GE,     // >=
+    OP_NE,     // !=
+    OP_AND,    // AND
+    OP_OR      // OR
+} ExprOp;
 
 #endif // TYPES_H

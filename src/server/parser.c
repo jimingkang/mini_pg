@@ -20,7 +20,7 @@ bool parse_create_table(const char* sql, CreateTableStmt* stmt) {
     return true;
 }
 
-bool parse_insert(const char* sql, InsertStmt* stmt) {
+bool parse_insert(const char* sql, OldInsertStmt* stmt) {
     // 模拟解析: insert into users values (1, 'Tom')
     strcpy(stmt->table_name, "users");
     stmt->num_values = 3;
@@ -30,7 +30,7 @@ bool parse_insert(const char* sql, InsertStmt* stmt) {
     return true;
 }
 
-bool parse_select(const char* sql, SelectStmt* stmt) {
+bool parse_select(const char* sql, OldSelectStmt* stmt) {
     // 模拟解析: select id, name from users
     strcpy(stmt->table_name, "users");
     stmt->num_columns = 3;
@@ -40,7 +40,7 @@ bool parse_select(const char* sql, SelectStmt* stmt) {
     return true;
 }
 
-bool parse_update(const char* sql, UpdateStmt*stmt) {
+bool parse_update(const char* sql, OldUpdateStmt*stmt) {
   
     strcpy(stmt->table_name, "users");
     stmt->num_assignments = 1;

@@ -34,11 +34,17 @@ bool tuple_equals(const Tuple* t1, const Tuple* t2);
 
 // 计算元组的哈希值（用于索引）
 uint32_t tuple_hash(const Tuple* tuple);
-bool eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) ;
+//bool eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) ;
+//bool eval_condition(const MiniExpr* cond, const Tuple* t, const TableMeta* meta);
+bool eval_condition(const MiniExprList* cond, const Tuple* t, const TableMeta* meta);
 //bool has_newer_visible_version(TableMeta *meta, TransactionManager *txmgr, const Tuple *old_tuple, uint32_t current_xid);
 //bool has_newer_visible_version(TableMeta *meta, TransactionManager *txmgr, const Tuple *old_tuple, uint32_t current_xid,uint32_t snapshot_xmin);
 bool has_newer_visible_version(TableMeta *meta, TransactionManager *txmgr, const Tuple *old_tuple, uint32_t current_xid,const Snapshot *  snap) ;
 bool is_tuple_visible(TableMeta *meta, TransactionManager *txmgr, const Tuple *tuple, uint32_t current_xid, const Snapshot *snap);
+
+bool eval_expr(const MiniExpr* expr, const Tuple* t, const TableMeta* meta) ;
+
+bool convertToTuple(Tuple* tuple, TableMeta* meta, InsertStmt* insert) ;
 //bool is_tuple_visible(TransactionManager *txmgr,const Tuple* tuple, uint32_t current_xid) ;
 //bool is_tuple_visible(TableMeta * meta, TransactionManager *txmgr, const Tuple* tuple, uint32_t current_xid);
 //bool is_tuple_visible(TableMeta * meta, TransactionManager *txmgr, const Tuple* tuple, uint32_t current_xid,uint32_t snapshot_xmin);

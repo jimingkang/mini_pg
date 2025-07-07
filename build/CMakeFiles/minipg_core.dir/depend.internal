@@ -5,7 +5,23 @@ CMakeFiles/minipg_core.dir/src/catalog.c.o
  ../include/catalog.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
@@ -14,7 +30,23 @@ CMakeFiles/minipg_core.dir/src/checkpoint.c.o
  ../include/checkpoint.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/txmgr.h
  ../include/types.h
  ../include/wal.h
@@ -23,7 +55,23 @@ CMakeFiles/minipg_core.dir/src/lock.c.o
  ../include/lock.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/txmgr.h
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/lock.c
@@ -33,7 +81,23 @@ CMakeFiles/minipg_core.dir/src/minidb.c.o
  ../include/minidb.h
  ../include/page.h
  ../include/server/executor.h
+ ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
@@ -44,7 +108,23 @@ CMakeFiles/minipg_core.dir/src/page.c.o
  ../include/lock.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
@@ -54,7 +134,23 @@ CMakeFiles/minipg_core.dir/src/server/executor.c.o
  ../include/minidb.h
  ../include/page.h
  ../include/server/executor.h
+ ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
@@ -62,7 +158,23 @@ CMakeFiles/minipg_core.dir/src/server/executor.c.o
 CMakeFiles/minipg_core.dir/src/server/parser.c.o
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/txmgr.h
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/server/parser.c
@@ -71,7 +183,23 @@ CMakeFiles/minipg_core.dir/src/server/server.c.o
  ../include/minidb.h
  ../include/page.h
  ../include/server/executor.h
+ ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
@@ -81,29 +209,72 @@ CMakeFiles/minipg_core.dir/src/server/sql_exec.c.o
  ../include/minidb.h
  ../include/page.h
  ../include/server/executor.h
+ ../include/server/parse.h
  ../include/server/parser.h
  ../include/server/sql_exec.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/server/sql_exec.c
 CMakeFiles/minipg_core.dir/src/server/sql_parser.c.o
+ ../include/server/parse.h
  ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
+ ../include/types.h
  /home/rlk/Downloads/mini_pg/src/server/sql_parser.c
-CMakeFiles/minipg_core.dir/src/sqlite/build.c.o
- /home/rlk/Downloads/mini_pg/src/sqlite/build.c
 CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.o
+ ../include/server/sql_stmt.h
  ../include/sqlite/tclsqlite.h
  /home/rlk/Downloads/mini_pg/src/sqlite/sqlite3.c
-CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.o
- /home/rlk/Downloads/mini_pg/src/sqlite/tokenize.c
-CMakeFiles/minipg_core.dir/src/sqlite/util.c.o
- /home/rlk/Downloads/mini_pg/src/sqlite/util.c
 CMakeFiles/minipg_core.dir/src/tuple.c.o
  ../include/catalog.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
@@ -112,7 +283,23 @@ CMakeFiles/minipg_core.dir/src/txmgr.c.o
  ../include/lock.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/txmgr.h
  ../include/types.h
  /home/rlk/Downloads/mini_pg/src/txmgr.c
@@ -120,7 +307,23 @@ CMakeFiles/minipg_core.dir/src/wal.c.o
  ../include/catalog.h
  ../include/minidb.h
  ../include/page.h
+ ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h

@@ -101,6 +101,14 @@ stdarg.h
 -
 
 ../include/sqlite/sqliteInt.h
+unistd.h
+-
+sys/types.h
+-
+sys/mman.h
+-
+string.h
+-
 sql_stmt.h
 ../include/sqlite/sql_stmt.h
 msvc.h
@@ -211,6 +219,8 @@ pthread.h
 -
 semaphore.h
 -
+sqliteInt.h
+../include/sqliteInt.h
 
 /home/rlk/Downloads/mini_pg/src/main.c
 minidb.h
@@ -231,10 +241,6 @@ executor.h
 /home/rlk/Downloads/mini_pg/src/executor.h
 checkpoint.h
 /home/rlk/Downloads/mini_pg/src/checkpoint.h
-sqlite3.h
-/home/rlk/Downloads/mini_pg/src/sqlite3.h
-sql_stmt.h
-/home/rlk/Downloads/mini_pg/src/sql_stmt.h
-sqliteInt.h
-/home/rlk/Downloads/mini_pg/src/sqliteInt.h
+tuple.h
+/home/rlk/Downloads/mini_pg/src/tuple.h
 

@@ -655,29 +655,31 @@ bool back_is_tuple_visible(TableMeta *meta, TransactionManager *txmgr, const Tup
 }
 
 
-bool eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta) {
+bool eval_condition(const MiniExprList* cond, const Tuple* t, const TableMeta* meta) {
     fprintf(stderr, "eval_condition: tuple id=%d, name=%s\n",
             t->columns[0].value.int_val, t->columns[1].value.str_val);
 
     for (int i = 0; i < t->col_count; i++) {
         //fprintf(stderr, "Checking condition: target column='%s', condition column='%s'\n", meta->cols[i].name, cond->column);
 
-        if (strcmp(meta->cols[i].name, cond->column) == 0) {
+        if (strcmp(meta->cols[i].name, cond->items[0]->left->value) == 0) {
            // fprintf(stderr, "Column match found. Comparing with operator '%s'\n", cond->op);
 
-            if (strcmp(cond->op, "=") == 0) {
+           // if (strcmp(cond->items[0]->op, "=") == 0) {
+              if (cond->items[0]->op == OP_EQ) {  
                 if (meta->cols[i].type == TEXT_TYPE) {
-                //    fprintf(stderr, "Comparing TEXT: '%s' == '%s'\n",t->columns[i].value.str_val, cond->value);
-                    return strcmp(t->columns[i].value.str_val, cond->value) == 0;
+                    fprintf(stderr, "Comparing TEXT: '%s' == '%s'\n",t->columns[i].value.str_val, cond->items[0]->right->value);
+                   
+                    return strcmp(t->columns[i].value.str_val, cond->items[0]->right->value) == 0;
                 } else if (meta->cols[i].type == INT4_TYPE) {
-                    int cond_val = atoi(cond->value);
-                 //   fprintf(stderr, "Comparing INT: %d == %d\n", t->columns[i].value.int_val, cond_val);
+                    int cond_val = atoi(cond->items[0]->right->value);
+                    fprintf(stderr, "Comparing INT: %d == %d\n", t->columns[i].value.int_val, cond_val);
                     return t->columns[i].value.int_val == cond_val;
                 } else {
                     fprintf(stderr, "Unsupported column type: %d\n", meta->cols[i].type);
                 }
             } else {
-                fprintf(stderr, "Unsupported operator: '%s'\n", cond->op);
+                fprintf(stderr, "Unsupported operator: '%s'\n", cond->items[0]->op);
             }
         }
     }
@@ -685,3 +687,193 @@ bool eval_condition(const Condition* cond, const Tuple* t, const TableMeta* meta
     fprintf(stderr, "No matching column found for condition.\n");
     return false;
 }
+bool new_eval_expr(const MiniExpr* expr, const Tuple* t, const TableMeta* meta) {
+    if (!expr) return true;
+
+    switch (expr->type) {
+        case EXPR_LITERAL:
+        case EXPR_COLUMN:
+            return true; // 不单独使用，略过
+
+        case EXPR_BINARY: {
+            MiniExpr* left = expr->left;
+            MiniExpr* right = expr->right;
+
+            switch (expr->op) {
+                case OP_EQ:
+                case OP_GT:
+                case OP_LT: {
+                    if (!left || !right) return false;
+                    if (left->type != EXPR_COLUMN || right->type != EXPR_LITERAL) return false;
+
+                    const char* col_name = left->value;
+                    int col_idx = -1;
+                    for (int i = 0; i < meta->col_count; ++i) {
+                        if (strcmp(meta->cols[i].name, col_name) == 0) {
+                            col_idx = i;
+                            break;
+                        }
+                    }
+                    if (col_idx == -1) return false;
+
+                    DataType type = meta->cols[col_idx].type;
+                    const OldColumn* col = &t->columns[col_idx];
+                    const char* val_str = right->value;
+
+                    switch (expr->op) {
+                        case OP_EQ:
+                            return (type == INT4_TYPE)
+                                ? col->value.int_val == atoi(val_str)
+                                : strcmp(col->value.str_val, val_str) == 0;
+                        case OP_GT:
+                            return col->value.int_val > atoi(val_str);
+                        case OP_LT:
+                            return col->value.int_val < atoi(val_str);
+                    }
+                    break;
+                }
+
+                case OP_AND:
+                    return eval_expr(left, t, meta) && eval_expr(right, t, meta);
+                case OP_OR:
+                    return eval_expr(left, t, meta) || eval_expr(right, t, meta);
+                default:
+                    return false;
+            }
+        }
+
+        default:
+            return false;
+    }
+}
+
+
+bool eval_expr(const MiniExpr* expr, const Tuple* t, const TableMeta* meta) {
+    if (!expr) return true;
+
+    switch (expr->type) {
+        case EXPR_LITERAL:
+            // LITERAL 本身不能单独判断，只用于二元对比
+            return true;
+
+        case EXPR_COLUMN:
+            // COLUMN 也不能单独判断，只出现在二元左侧
+            return true;
+
+        case EXPR_BINARY: {
+            // 递归计算左右
+            const MiniExpr* left = expr->left;
+            const MiniExpr* right = expr->right;
+            if (!left || !right) return false;
+
+            // 左侧：字段名
+            if (left->type != EXPR_COLUMN) return false;
+            const char* col_name = left->value;
+            int col_idx = -1;
+            for (int i = 0; i < meta->col_count; ++i) {
+                if (strcmp(meta->cols[i].name, col_name) == 0) {
+                    col_idx = i;
+                    break;
+                }
+            }
+            if (col_idx == -1) return false;
+
+            DataType type = meta->cols[col_idx].type;
+            const OldColumn* col = &t->columns[col_idx];
+
+            // 右侧是字面值
+            const char* val_str = right->value;
+
+            // 做比较
+            switch (expr->op) {
+                case OP_EQ:
+                    if (type == INT4_TYPE)
+                        return col->value.int_val == atoi(val_str);
+                    else if (type == TEXT_TYPE)
+                        return strcmp(col->value.str_val, val_str) == 0;
+                    break;
+
+                case OP_GT:
+                    if (type == INT4_TYPE)
+                        return col->value.int_val > atoi(val_str);
+                    break;
+
+                case OP_LT:
+                    if (type == INT4_TYPE)
+                        return col->value.int_val < atoi(val_str);
+                    break;
+
+                case OP_AND:
+                    return eval_expr(left, t, meta) && eval_expr(right, t, meta);
+
+                case OP_OR:
+                    return eval_expr(left, t, meta) || eval_expr(right, t, meta);
+
+                default:
+                    return false;
+            }
+            return false;
+        }
+
+        default:
+            return false;
+    }
+}
+
+bool convertToTuple(Tuple* tuple, TableMeta* meta, InsertStmt* insert) {
+    if (!tuple || !meta || !insert) return false;
+
+    tuple->col_count = insert->column_count;
+    tuple->columns = (OldColumn*)malloc(sizeof(OldColumn) * tuple->col_count);
+    if (!tuple->columns) return false;
+
+    for (int i = 0; i < insert->column_count; ++i) {
+        const char* col_name = insert->column_names[i];
+        MiniExpr* val_expr = insert->values->items[i];
+
+       // if (!val_expr || val_expr->type != EXPR_LITERAL) {
+        if (!val_expr->value || val_expr->type != EXPR_LITERAL) {
+            fprintf(stderr, "[convertToTuple] 第 %d 列不是字面量，暂不支持表达式插入\n", i);
+            return false;
+        }
+
+        const char* val_str = val_expr->value;
+
+        // 在表元信息中找到列索引
+        int col_idx = -1;
+        for (int j = 0; j < meta->col_count; ++j) {
+            if (strcmp(meta->cols[j].name, col_name) == 0) {
+                col_idx = j;
+                break;
+            }
+        }
+
+        if (col_idx == -1) {
+            fprintf(stderr, "[convertToTuple] 列 '%s' 不存在于表 '%s'\n", col_name, meta->name);
+            return false;
+        }
+
+        // 按表定义的类型填充 tuple
+        DataType type = meta->cols[col_idx].type;
+        tuple->columns[i].type = type;
+
+        if (type == INT4_TYPE) {
+            tuple->columns[i].value.int_val = atoi(val_str);
+        } else if (type == TEXT_TYPE) {
+            tuple->columns[i].value.str_val = malloc(MAX_STRING_LEN);
+            if (!tuple->columns[i].value.str_val) {
+                fprintf(stderr, "malloc failed\n");
+                return false;
+            }
+            strncpy(tuple->columns[i].value.str_val, val_str, MAX_STRING_LEN - 1);
+            tuple->columns[i].value.str_val[MAX_STRING_LEN - 1] = '\0';
+           // strncpy(tuple->columns[i].value.str_val, val_str, MAX_STRING_LEN);
+        } else {
+            fprintf(stderr, "[convertToTuple] 不支持的类型列 '%s'\n", col_name);
+            return false;
+        }
+    }
+
+    return true;
+}
+

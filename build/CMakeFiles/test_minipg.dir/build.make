@@ -81,6 +81,7 @@ bin/test_minipg: CMakeFiles/test_minipg.dir/test/test_sqlite_parser.c.o
 bin/test_minipg: CMakeFiles/test_minipg.dir/build.make
 bin/test_minipg: lib/libminipg_core.a
 bin/test_minipg: /usr/lib/x86_64-linux-gnu/libz.so
+bin/test_minipg: /usr/lib/libsqlite3.so
 bin/test_minipg: CMakeFiles/test_minipg.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C executable bin/test_minipg"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/test_minipg.dir/link.txt --verbose=$(VERBOSE)

@@ -514,33 +514,6 @@ src/server/sql_parser.c.s:
 	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/server/sql_parser.c.s
 .PHONY : src/server/sql_parser.c.s
 
-src/sqlite/build.o: src/sqlite/build.c.o
-
-.PHONY : src/sqlite/build.o
-
-# target to build an object file
-src/sqlite/build.c.o:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/build.c.o
-.PHONY : src/sqlite/build.c.o
-
-src/sqlite/build.i: src/sqlite/build.c.i
-
-.PHONY : src/sqlite/build.i
-
-# target to preprocess a source file
-src/sqlite/build.c.i:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/build.c.i
-.PHONY : src/sqlite/build.c.i
-
-src/sqlite/build.s: src/sqlite/build.c.s
-
-.PHONY : src/sqlite/build.s
-
-# target to generate assembly for a file
-src/sqlite/build.c.s:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/build.c.s
-.PHONY : src/sqlite/build.c.s
-
 src/sqlite/sqlite3.o: src/sqlite/sqlite3.c.o
 
 .PHONY : src/sqlite/sqlite3.o
@@ -567,60 +540,6 @@ src/sqlite/sqlite3.s: src/sqlite/sqlite3.c.s
 src/sqlite/sqlite3.c.s:
 	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/sqlite3.c.s
 .PHONY : src/sqlite/sqlite3.c.s
-
-src/sqlite/tokenize.o: src/sqlite/tokenize.c.o
-
-.PHONY : src/sqlite/tokenize.o
-
-# target to build an object file
-src/sqlite/tokenize.c.o:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.o
-.PHONY : src/sqlite/tokenize.c.o
-
-src/sqlite/tokenize.i: src/sqlite/tokenize.c.i
-
-.PHONY : src/sqlite/tokenize.i
-
-# target to preprocess a source file
-src/sqlite/tokenize.c.i:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.i
-.PHONY : src/sqlite/tokenize.c.i
-
-src/sqlite/tokenize.s: src/sqlite/tokenize.c.s
-
-.PHONY : src/sqlite/tokenize.s
-
-# target to generate assembly for a file
-src/sqlite/tokenize.c.s:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/tokenize.c.s
-.PHONY : src/sqlite/tokenize.c.s
-
-src/sqlite/util.o: src/sqlite/util.c.o
-
-.PHONY : src/sqlite/util.o
-
-# target to build an object file
-src/sqlite/util.c.o:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/util.c.o
-.PHONY : src/sqlite/util.c.o
-
-src/sqlite/util.i: src/sqlite/util.c.i
-
-.PHONY : src/sqlite/util.i
-
-# target to preprocess a source file
-src/sqlite/util.c.i:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/util.c.i
-.PHONY : src/sqlite/util.c.i
-
-src/sqlite/util.s: src/sqlite/util.c.s
-
-.PHONY : src/sqlite/util.s
-
-# target to generate assembly for a file
-src/sqlite/util.c.s:
-	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/sqlite/util.c.s
-.PHONY : src/sqlite/util.c.s
 
 src/tuple.o: src/tuple.c.o
 
@@ -780,18 +699,9 @@ help:
 	@echo "... src/server/sql_parser.o"
 	@echo "... src/server/sql_parser.i"
 	@echo "... src/server/sql_parser.s"
-	@echo "... src/sqlite/build.o"
-	@echo "... src/sqlite/build.i"
-	@echo "... src/sqlite/build.s"
 	@echo "... src/sqlite/sqlite3.o"
 	@echo "... src/sqlite/sqlite3.i"
 	@echo "... src/sqlite/sqlite3.s"
-	@echo "... src/sqlite/tokenize.o"
-	@echo "... src/sqlite/tokenize.i"
-	@echo "... src/sqlite/tokenize.s"
-	@echo "... src/sqlite/util.o"
-	@echo "... src/sqlite/util.i"
-	@echo "... src/sqlite/util.s"
 	@echo "... src/tuple.o"
 	@echo "... src/tuple.i"
 	@echo "... src/tuple.s"

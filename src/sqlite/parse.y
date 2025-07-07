@@ -1,25 +1,9 @@
 %include {
-/*
-** 2001-09-15
-**
-** The author disclaims copyright to this source code.  In place of
-** a legal notice, here is a blessing:
-**
-**    May you do good and not evil.
-**    May you find forgiveness for yourself and forgive others.
-**    May you share freely, never taking more than you give.
-**
-*************************************************************************
-** This file contains SQLite's SQL parser.
-**
-** The canonical source code to this file ("parse.y") is a Lemon grammar 
-** file that specifies the input grammar and actions to take while parsing.
-** That input file is processed by Lemon to generate a C-language 
-** implementation of a parser for the given grammar.  You might be reading
-** this comment as part of the translated C-code.  Edits should be made
-** to the original parse.y sources.
-*/
+
 }
+//jimmy add
+
+// add jimmy
 
 // Function used to enlarge the parser stack, if needed
 %realloc parserStackRealloc
@@ -529,7 +513,7 @@ cmd ::= select(X).  {
   sstmt->column_count = n;
   sstmt->column_names = sqlite3MallocZero(sizeof(char*) * n);
   for (int i = 0; i < n; ++i) {
-    sstmt->column_names[i] = sqlite3DbStrDup(pParse->db, X->pEList->a[i].zName);
+    sstmt->column_names[i] = sqlite3DbStrDup(pParse->db, X->pEList->a[i].zEName);
   }
 
   if (X->pSrc && X->pSrc->nSrc > 0) {
@@ -1027,21 +1011,44 @@ cmd ::= with UPDATE orconf(R) xfullname(X) indexed_opt(I) SET setlist(Y) from(F)
 %else
 cmd ::= with UPDATE orconf(R) xfullname(X) indexed_opt(I) SET setlist(Y) from(F)
         where_opt_ret(W). {
-  sqlite3SrcListIndexedBy(pParse, X, &I);
-  sqlite3ExprListCheckLength(pParse,Y,"set list"); 
-  if( F ){
-    SrcList *pFromClause = F;
-    if( pFromClause->nSrc>1 ){
-      Select *pSubquery;
-      Token as;
-      pSubquery = sqlite3SelectNew(pParse,0,pFromClause,0,0,0,0,SF_NestedFrom,0);
-      as.n = 0;
-      as.z = 0;
-      pFromClause = sqlite3SrcListAppendFromTerm(pParse,0,0,0,&as,pSubquery,0);
-    }
-    X = sqlite3SrcListAppendList(pParse, X, pFromClause);
+  //sqlite3SrcListIndexedBy(pParse, X, &I);
+  //sqlite3ExprListCheckLength(pParse,Y,"set list"); 
+  //if( F ){
+   // SrcList *pFromClause = F;
+   // if( pFromClause->nSrc>1 ){
+   //   Select *pSubquery;
+   //   Token as;
+    //  pSubquery = sqlite3SelectNew(pParse,0,pFromClause,0,0,0,0,SF_NestedFrom,0);
+   //   as.n = 0;
+   //   as.z = 0;
+   //   pFromClause = sqlite3SrcListAppendFromTerm(pParse,0,0,0,&as,pSubquery,0);
+   // }
+    //X = sqlite3SrcListAppendList(pParse, X, pFromClause);
+ //}
+ // sqlite3Update(pParse,X,Y,W,R,0,0,0);
+ // 构建 UpdateStmt 节点
+  UpdateStmt* update = sqlite3MallocZero(sizeof(UpdateStmt));
+  update->table_name = sqlite3DbStrDup(pParse->db, X->a[0].zName); // 表名
+
+  update->set_count = Y->nExpr;
+  update->columns = sqlite3MallocZero(sizeof(char*) * Y->nExpr);
+  update->values = sqlite3MallocZero(sizeof(MiniExpr*) * Y->nExpr);
+
+  for (int i = 0; i < Y->nExpr; ++i) {
+    update->columns[i] = sqlite3DbStrDup(pParse->db, Y->a[i].zEName);
+    update->values[i] = convertExpr(Y->a[i].pExpr);
   }
-  sqlite3Update(pParse,X,Y,W,R,0,0,0);
+
+  if (W) {
+    update->where_expr = convertExpr(W);
+  }
+
+  // 构建语句顶层 SQLStatement
+  SQLStatement* stmt = sqlite3MallocZero(sizeof(SQLStatement));
+  stmt->type = STMT_UPDATE;
+  stmt->update_stmt = update;
+
+  pParse->pMiniPGStatement = stmt;
 }
 %endif
 
@@ -1069,28 +1076,50 @@ setlist(A) ::= LP idlist(X) RP EQ expr(Y). {
 //
 cmd ::= with insert_cmd(R) INTO xfullname(X) idlist_opt(F) select(S)
         upsert(U). {
-  //sqlite3Insert(pParse, X, S, F, R, U);
-  InsertStmt* istmt = sqlite3MallocZero(sizeof(InsertStmt));
-  istmt->table_name = sqlite3DbStrDup(pParse->db, X->z);
-
-  istmt->column_count = Y->nExpr;
-  istmt->column_names = sqlite3MallocZero(sizeof(char*) * istmt->column_count);
-  for (int i = 0; i < istmt->column_count; ++i) {
-    istmt->column_names[i] = sqlite3DbStrDup(pParse->db, Y->a[i].zName);
-  }
-
-  istmt->values = convertExprList(Z);
-
-  SQLStatement* stmt = sqlite3MallocZero(sizeof(SQLStatement));
-  stmt->type = STMT_INSERT;
-  stmt->insert_stmt = istmt;
-
-  pParse->pMiniPGStatement = stmt;
+  sqlite3Insert(pParse, X, S, F, R, U);
+ 
 }
-cmd ::= with insert_cmd(R) INTO xfullname(X) idlist_opt(F) DEFAULT VALUES returning.
+
+cmd ::= insert_cmd(A) INTO xfullname(B) idlist_opt(C) VALUES LP exprlist(D) RP SEMI.
 {
-  sqlite3Insert(pParse, X, 0, F, R, 0);
+  
+    InsertStmt* insert = sqlite3MallocZero(sizeof(InsertStmt));
+    insert->table_name = sqlite3DbStrDup(pParse->db, A->zName);
+
+    if (B) {
+        insert->column_count = B->nId;
+        insert->column_names = sqlite3MallocZero(sizeof(char*) * B->nId);
+        for (int i = 0; i < B->nId; ++i) {
+            insert->column_names[i] = sqlite3DbStrDup(pParse->db, B->a[i].zName);
+        }
+    }
+
+    if (C) {
+        insert->values = sqlite3MallocZero(sizeof(MiniExprList));
+        insert->values->count = C->nExpr;
+        insert->values->items = sqlite3MallocZero(sizeof(MiniExpr*) * C->nExpr);
+        for (int i = 0; i < C->nExpr; ++i) {
+            insert->values->items[i] = convertExpr(C->a[i].pExpr);
+        }
+    }
+      if (D) {
+    insert->values = sqlite3MallocZero(sizeof(MiniExprList));
+    insert->values->count = D->nExpr;
+    insert->values->items = sqlite3MallocZero(sizeof(MiniExpr*) * D->nExpr);
+    for (int i = 0; i < D->nExpr; ++i) {
+      insert->values->items[i] = convertExpr(D->a[i].pExpr);
+    }
+  }
+    SQLStatement* stmt = sqlite3MallocZero(sizeof(SQLStatement));
+    stmt->type = STMT_INSERT;
+    stmt->insert_stmt = insert;
+    pParse->pMiniPGStatement = stmt;
+
 }
+
+
+
+
 
 %type upsert {Upsert*}
 

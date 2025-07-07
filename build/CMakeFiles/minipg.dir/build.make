@@ -81,6 +81,7 @@ bin/minipg: CMakeFiles/minipg.dir/src/main.c.o
 bin/minipg: CMakeFiles/minipg.dir/build.make
 bin/minipg: lib/libminipg_core.a
 bin/minipg: /usr/lib/x86_64-linux-gnu/libz.so
+bin/minipg: /usr/lib/libsqlite3.so
 bin/minipg: CMakeFiles/minipg.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C executable bin/minipg"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/minipg.dir/link.txt --verbose=$(VERBOSE)

@@ -1,6 +1,7 @@
 一个简易版postgres的实现.采用cmake管理
-  include为头文件
-   src为源代码
+   include为头文件
+    src为源代码
+   doc为文档
 
 编译方式:
 mkdir build
@@ -11,129 +12,9 @@ build>make
 >./bin/test_minidb (多线程更新数据)
 
 
-
-
 A)所有数据类型都在type.h中,
 ------------------------------------------------
-对于数据行结构,及页结构,有如下定义:
-// 数据类型枚举
-typedef enum {
-    INT4_TYPE,      // 4字节整数
-    FLOAT_TYPE,     // 4字节浮点数
-    BOOL_TYPE,      // 1字节布尔值
-    TEXT_TYPE,      // 变长字符串
-    DATE_TYPE,      // 4字节日期（时间戳）
-    // 可扩展更多类型...
-} DataType;
-// 列值联合体
-typedef union {
-    int32_t int_val;    // 整数值
-    float float_val;    // 浮点数值
-    bool bool_val;      // 布尔值
-    char* str_val;      // 字符串值（动态分配）
-} ColumnValue;
 
-// 列结构
-typedef struct {
-    DataType type;      // 数据类型
-    ColumnValue value;  // 列值
-} Column;
-
-// 列定义
-typedef struct {
-    char name[MAX_NAME_LEN];
-    DataType type;
-} ColumnDef;
-
-// 元组结构
-typedef struct {
-    uint32_t oid;         // 元组唯一ID
-    uint32_t xmin;        // 创建事务ID (MVCC)
-    uint32_t xmax;        // 删除/更新事务ID (MVCC)
-    bool deleted;         // 逻辑删除标志
-    uint8_t col_count;    // 列数量
-    Column* columns;      // 列数据数组
-} Tuple;
-
-typedef struct PageHeader {
-    uint32_t checksum;
-    PageID page_id;
-    uint32_t lsn;
-    uint16_t free_start;     // 数据区当前偏移
-        uint16_t free_end;     // 数据区当前偏移
-
-    uint16_t free_space;     // 剩余空间
-    uint16_t tuple_count;    // 有效元组数量
-    uint16_t slot_count;     // 槽位使用数量
-    PageID next_page;
-    PageID prev_page;
-} PageHeader;
-// 页面结构
-
-typedef struct Slot {
-    uint16_t offset;        // 数据区偏移
-    uint16_t length;        // 数据长度
-    uint16_t tuple_size;    // 原始元组大小
-    uint8_t status;         // 槽位状态: SLOT_FREE, SLOT_USED, SLOT_DELETED
-    uint8_t flags;      // 状态标志 (OCCUPIED/DELETED)
-} Slot;
-
-typedef struct Page {
-    PageHeader header;
-    Slot slots[MAX_SLOTS];          // 槽位数组
-    uint8_t data[PAGE_DATA_SIZE];   // 数据区
-       // ✅ 每页一个锁
-    LWLock lock;
-} Page;
-
-hexdump -C users.tbl
-00000000  00 00 00 00 00 00 00 00  00 00 00 00 84 00 e0 0f  |................|
-00000010  00 00 04 00 04 00 00 00  ff ff ff ff ff ff ff ff  |................|
-00000020  00 00 1e 00 00 00 00 01  1e 00 1f 00 00 00 00 01  |................|
-00000030  3d 00 1f 00 00 00 00 01  5c 00 28 00 00 00 00 01  |=.......\.(.....|
-00000040  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-*
-00000220  01 00 00 00 02 00 00 00  00 00 00 00 00 03 00 01  |................|
-00000230  00 00 00 03 03 00 54 6f  6d 00 1e 00 00 00 02 00  |......Tom.......|
-00000240  00 00 02 00 00 00 04 00  00 00 00 03 00 02 00 00  |................|
-00000250  00 03 04 00 4a 61 63 6b  00 19 00 00 00 02 00 00  |....Jack........|
-00000260  00 04 00 00 00 00 00 00  00 00 03 00 02 00 00 00  |................|
-00000270  03 04 00 4a 61 63 6b 00  c8 01 00 00 03 00 00 00  |...Jack.........|
-00000280  06 00 00 00 00 00 00 00  00 03 00 03 00 00 00 03  |................|
-00000290  0d 00 52 6f 6c 6c 62 61  63 6b 5f 75 73 65 72 00  |..Rollback_user.|
-000002a0  23 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |#...............|
-000002b0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-
-
-00 00 00 00     -> checksum: 0
-00 00 00 00     -> page_id: 0
-84 00 e0 0f     -> lsn: 0x0fe00084 （log sequence number）
-00 00           -> free_start: 0x0000
-04 00           -> free_end: 0x0004
-04 00           -> free_space: 4
-00 00           -> tuple_count: 0
-ff ff           -> slot_count: 0xffff （65535，明显不对，推测此字段未初始化或损坏）
-ff ff ff ff     -> next_page: -1（0xffffffff）
-00 00 1e 00     -> prev_page: 0x001e0000（推测字节对齐或错误读取）
-
-00000230: 00 00 00 03   // OID = 3
-03 00 54 6f 6d         // TEXT = "Tom"（长度3，内容Tom）
-00 1e 00 00 00         // TEXT后面疑似是长度/类型信息？
-02 00 00 00           // col_count = 2（？）
-
-
-|<-------------------- PAGE_SIZE = 4096 -------------------->|
-+------------------------+-----------------------------------+
-| PageHeader (32B)       |                                   |
-+------------------------+         Tuple Data Area           |
-|                        |   ← free_start     ↑free_end      |
-|                        |       ↑            ↓              |
-|                        |      Tuple 1    Tuple 2 ...       |
-|                        |                                   |
-+------------------------+-----------------------------------+
-|               Slot Directory（从页面底部往上）            |
-|        [slot 0][slot 1]...[slot N]（每个slot占8字节）       |
-+------------------------------------------------------------+
 
 // 表元数据
 typedef struct {
@@ -146,42 +27,11 @@ typedef struct {
 PageID last_page;    // 表的最后一个页面ID
   // ✅ 新增：元组的最大 OID
     uint32_t max_row_oid;
-
     LWLock fsm_lock;
     LWLock extension_lock;
 } TableMeta;
 
------------------------------------------------------
-对于事务有如下定义:
-// 事务状态
-typedef enum {
-    TRANS_NONE,           //       0
-    TRANS_ACTIVE,     // 事务进行中 1
-    TRANS_COMMITTED,  // 事务已提交  2
-    TRANS_ABORTED     // 事务已中止  3
-} TransactionState;
-typedef struct {
-    uint32_t xid;                 // 事务ID
-    TransactionState state;      // 状态：进行中、已提交、已中止
-    uint64_t start_time;         // 开始时间
-    uint32_t snapshot;           // 快照
-    uint32_t lsn;                // 日志序列号
-    bool holding_exclusive_lock; // 是否持有排他锁
-    bool holding_shared_lock;    // 是否持有共享锁
-} Transaction;
-typedef struct {
-    uint8_t committed_flags[MAX_XID];  // xid => 1 表示已提交，0 表示未提交或不存在
-} CommitLog;
 
-
-// 事务管理器
-typedef struct {
-    Transaction transactions[MAX_CONCURRENT_TRANS]; // 事务数组
-    uint32_t next_xid;         // 下一个可用事务ID
-    uint32_t oldest_xid;       // 最老活动事务ID
-   //uint8_t committed_flags[MAX_XID];  // 标志事务是否已提交 ,
-    uint8_t committed_bitmap[COMMIT_BITMAP_SIZE];  // 替代原来的 committed_flags
-} TransactionManager;
 
 对于系统目录,有如下定义,类似于pg的information表
 typedef struct {
@@ -207,17 +57,6 @@ char* db_name;          // 数据库名称
 char* db_path;          // 数据库路径
 } MiniDB;
 
-对于页缓冲管理,有如下定义:typedef struct PageCacheEntry {
-    uint32_t oid;            // 页面所在行的 OID（或对应的唯一页标识符）=page_id
-    Page page;              // 缓存的页面内容
-    bool dirty;             // 是否被修改过，需写回磁盘
-    bool valid;             // 是否为有效缓存
-} PageCacheEntry;
-
-typedef struct PageCache {
-    PageCacheEntry entries[PAGE_CACHE_SIZE];
-    LWLock lock;    // 多线程访问保护
-} PageCache;
 
 B)数据文件包含.meta和.tbl
 每一张表一个meta文件保存元数据,一个.tbl保存具体数据
@@ -247,101 +86,3 @@ test_users_thread.c实现了多线程update测试
 
 
 
-case分析:
-1)两个显示同时更新同一行bin/test_minidb(源代码test_users_thread.c)
-
-Transaction manager initialized. Next XID: 11, Oldest XID: 11,txmgr->committed_bitmap[2]:0
-
-Started transaction 11 (slot 0)
-
-                                                                                            Started transaction 12 (slot 1)
-                                                                                            get LSN offset:1232
-                                                                                            get LSN offset:1232
-                                                                                            [ thread:e26fd700,session.current_xid:12] session_begin_transaction
-                                                                                            [ thread:e26fd700,session.current_xid:12] Query found 2 tuples
-                                                                                            [ thread:e26fd700,session.current_xid:12] before update ,new Query returned 2 tuples:
-                                                                                            --------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 12
-                                                                                            Unknown (0): 1
-                                                                                            Unknown (3): "Tom"
-                                                                                            Unknown (0): 30
-
-                                                                                            Tuple OID: 2 xmin: 9, xmax: 0,Columns: 3,current_xid: 12
-                                                                                            Unknown (0): 2
-                                                                                            Unknown (3): "Jack"
-                                                                                            Unknown (0): 29
-
-[ thread:e2efe700,session.current_xid:11] session_begin_transaction
-[ thread:e2efe700,session.current_xid:11] Query found 2 tuples
-[ thread:e2efe700,session.current_xid:11] before update ,new Query returned 2 tuples:
---------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 11
-  Unknown (0): 1
-  Unknown (3): "Tom"
-  Unknown (0): 30
-
-Tuple OID: 2 xmin: 9, xmax: 0,Columns: 3,current_xid: 11
-  Unknown (0): 2
-  Unknown (3): "Jack"
-  Unknown (0): 29
-
-eval_condition: tuple id=1, name=Tom
-eval_condition: tuple id=2, name=Jack
-                                                                                                xid=12,得到一个新锁
-                                                                                                eval_condition: tuple id=1, name=Tom
-                                                                                                eval_condition: tuple id=2, name=Jack
-xid=11 ,锁已被别人占用，sched_yield释放锁后重试
-                                                                                                [ thread:e26fd700,session.current_xid:12] Update success, age=98
-                                                                                                [ thread:e26fd700,session.current_xid:12] after update sleep 1 sec ,new Query returned 2 tuples:
-                                                                                                --------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 12
-                                                                                                Unknown (0): 1
-                                                                                                Unknown (3): "Tom"
-                                                                                                Unknown (0): 30
-
-                                                                                                Tuple OID: 2 xmin: 12, xmax: 0,Columns: 3,current_xid: 12
-                                                                                                Unknown (0): 2
-                                                                                                Unknown (3): "Jack"
-                                                                                                Unknown (0): 98
-
-                                                                                                SET_COMMITTED: xid=12, byte=1, bit=4
-                                                                                                txmgr->committed_bitmap[1] = 17
-xid=11,得到一个新锁
-get LSN offset:1264
-Committed transaction 12
-get LSN offset:1296
-[ thread:e2efe700,session.current_xid:11] Update success, age=67
-[ thread:e2efe700,session.current_xid:11] after update sleep 1 sec ,new Query returned 2 tuples:
---------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 11
-  Unknown (0): 1
-  Unknown (3): "Tom"
-  Unknown (0): 30
-
-Tuple OID: 2 xmin: 11, xmax: 0,Columns: 3,current_xid: 11
-  Unknown (0): 2
-  Unknown (3): "Jack"
-  Unknown (0): 67
-
-SET_COMMITTED: xid=11, byte=1, bit=3
-txmgr->committed_bitmap[1] = 1f
-get LSN offset:1328
-Committed transaction 11
-Updated oldest XID to 13
-get LSN offset:1360
-0x7ffdaa009498
-Started transaction 13 (slot 0)
-get LSN offset:1392
-                                                        [main thread:-487590080,session.current_xid:13] after commit ,new Query returned 2 tuples:
-                                                        --------Tuple OID: 1 xmin: 2, xmax: 0,Columns: 3,current_xid: 13
-                                                        Unknown (0): 1
-                                                        Unknown (3): "Tom"
-                                                        Unknown (0): 30
-
-                                                        Tuple OID: 2 xmin: 12, xmax: 0,Columns: 3,current_xid: 13
-                                                        Unknown (0): 2
-                                                        Unknown (3): "Jack"
-                                                        Unknown (0): 98
-
-                                                        SET_COMMITTED: xid=13, byte=1, bit=5
-                                                        txmgr->committed_bitmap[1] = 3f
-                                                        get LSN offset:1424
-                                                        Committed transaction 13
-                                                        Updated oldest XID to 14
-                                                        get LSN offset:1456

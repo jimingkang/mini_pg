@@ -1,1 +1,1 @@
-/usr/bin/cc -g   CMakeFiles/test_minipg.dir/test/test_sqlite_parser.c.o  -o bin/test_minipg  lib/libminipg_core.a -ldl -lpthread /usr/lib/x86_64-linux-gnu/libz.so -ldl -lpthread 
+/usr/bin/cc -g   CMakeFiles/test_minipg.dir/test/test_sqlite_parser.c.o  -o bin/test_minipg  lib/libminipg_core.a -ldl -lpthread /usr/lib/x86_64-linux-gnu/libz.so -lsqlite3 -ldl -lpthread 

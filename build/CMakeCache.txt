@@ -244,7 +244,7 @@ DOXYGEN_EXECUTABLE:FILEPATH=DOXYGEN_EXECUTABLE-NOTFOUND
 SQLite3_INCLUDE_DIR:PATH=/usr/include
 
 //Path to a library.
-SQLite3_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libsqlite3.so
+SQLite3_LIBRARY:FILEPATH=/usr/lib/libsqlite3.so
 
 //Path to a file.
 ZLIB_INCLUDE_DIR:PATH=/usr/include
@@ -262,10 +262,7 @@ minidb_BINARY_DIR:STATIC=/home/rlk/Downloads/mini_pg/build
 minidb_SOURCE_DIR:STATIC=/home/rlk/Downloads/mini_pg
 
 //Dependencies for the target
-minidb_core_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libz.so;general;pthread;
-
-//Dependencies for the target
-minipg_core_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libz.so;general;dl;general;pthread;
+minipg_core_LIB_DEPENDS:STATIC=general;/usr/lib/x86_64-linux-gnu/libz.so;general;/usr/lib/libsqlite3.so;general;dl;general;pthread;
 
 
 ########################
@@ -436,7 +433,7 @@ DOXYGEN_DOT_EXECUTABLE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: DOXYGEN_EXECUTABLE
 DOXYGEN_EXECUTABLE-ADVANCED:INTERNAL=1
 //Details about finding SQLite3
-FIND_PACKAGE_MESSAGE_DETAILS_SQLite3:INTERNAL=[/usr/include][/usr/lib/x86_64-linux-gnu/libsqlite3.so][v3.31.1()]
+FIND_PACKAGE_MESSAGE_DETAILS_SQLite3:INTERNAL=[/usr/include][/usr/lib/libsqlite3.so][v3.31.1()]
 //Details about finding ZLIB
 FIND_PACKAGE_MESSAGE_DETAILS_ZLIB:INTERNAL=[/usr/lib/x86_64-linux-gnu/libz.so][/usr/include][v1.2.11()]
 //ADVANCED property for variable: SQLite3_INCLUDE_DIR

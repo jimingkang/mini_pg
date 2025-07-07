@@ -8,19 +8,19 @@
 
 
 
-bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result, Session session) {
+bool db_select(  ResultSet* result, Session session,SelectStmt * stmt) {
     int count = 0;
-    printf("[debug] select %d columns from table %s\n", stmt->num_columns, stmt->table_name);
-    Tuple** tuples = db_query(db, stmt->table_name, &count,session);
+    printf("[debug] select %d columns from table %s\n", stmt->where_expr->count, stmt->table_name);
+    Tuple** tuples = db_query( stmt->table_name, &count,session,stmt);
     if (!tuples || count == 0) return false;
 
     //TableMeta* meta = find_table_meta(db, stmt->table_name);
-     int idx= find_table(&db->catalog, stmt->table_name);
+     int idx= find_table(&session.db->catalog, stmt->table_name);
       printf("[debug] find_table[%d]  \n",idx);
-    TableMeta *meta =&(db->catalog.tables[idx]);
+    TableMeta *meta =&(session.db->catalog.tables[idx]);
     if (!meta) return false;
 
-    result->num_cols = stmt->num_columns;
+    result->num_cols = stmt->column_count;
     result->num_rows = count;
     result->rows = malloc(sizeof(char**) * count);
 
@@ -30,7 +30,7 @@ bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result, Session se
         Tuple* t = tuples[i];
         char** row = malloc(sizeof(char*) * result->num_cols);
         for (int j = 0; j < result->num_cols; j++) {
-            const char* colname = stmt->columns[j];
+            const char* colname = stmt->column_names[j];
 
             // 查找列索引
             int col_index = -1;
@@ -45,7 +45,7 @@ bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result, Session se
                 continue;
             }
 
-            Column* col = &t->columns[col_index];
+            OldColumn* col = &t->columns[col_index];
             char buf[128];
             switch (col->type) {
                 case INT4_TYPE: snprintf(buf, sizeof(buf), "%d", col->value.int_val); break;
@@ -65,12 +65,12 @@ bool db_select(MiniDB* db, const SelectStmt* stmt, ResultSet* result, Session se
     }
 
     free(tuples);
-      save_tx_state(&db->tx_mgr, db->data_dir);
+      save_tx_state(&session.db->tx_mgr, session.db->data_dir);
     return true;
 }
 
-
-int db_update(MiniDB *db, const UpdateStmt *stmt, Session session) {
+int db_update(const UpdateStmt* stmt, Session session) {
+    MiniDB *db=session.db;
     if (!db || !stmt->table_name || session.current_xid == INVALID_XID) {
         fprintf(stderr, "Invalid input or no active transaction\n");
         return false;
@@ -120,7 +120,7 @@ strcpy(meta->fillpath,fullpath);
 
          
 
-            if (!eval_condition(&(stmt->where), t, meta)) {
+            if (!eval_condition(stmt->where_expr, t, meta)) {
 
                 free_tuple(t);
                 continue;
@@ -154,9 +154,16 @@ strcpy(meta->fillpath,fullpath);
 
 
             for (int j = 0; j < meta->col_count; j++) {
-                for (int k = 0; k < stmt->num_assignments; k++) {
-                    if (strcmp(meta->cols[j].name, stmt->columns[k]) == 0) {
-                        set_column_value(&new_t.columns[j], stmt->values[k]);
+                for (int k = 0; k < stmt->column_count; k++) {
+                    if (strcmp(meta->cols[j].name, stmt->column_names[k]) == 0) {
+                       // printf("[DEBUG] stmt->values[%d] = '%s'\n",k, stmt->values[k] ? stmt->values[k] : "NULL");
+                       // set_column_value(&new_t.columns[j], stmt->values[k]);
+                       MiniExpr* expr = stmt->values[k];
+                        if (expr && expr->type == EXPR_LITERAL && expr->value) {
+                            set_column_value_from_expr(&new_t.columns[j], expr);
+                        } else {
+                            fprintf(stderr, "暂不支持复杂表达式或空值更新：列 %s\n", stmt->column_names[k]);
+                        }
                     }
                 }
             }
@@ -179,9 +186,14 @@ strcpy(meta->fillpath,fullpath);
     return result_count;
 }
 
-void set_column_value(Column* column, const char* new_value) {
-    if (!column || !new_value) return;
+void set_column_value(OldColumn* column, const char* new_value) {
 
+   // if (!column || !new_value) return;
+   if (!column || !new_value || strlen(new_value) == 0) {
+        fprintf(stderr, "[set_column_value] 警告：参数非法或空字符串 new_value='%s'\n",
+                new_value ? new_value : "NULL");
+        return;
+    }
     switch (column->type) {
         case INT4_TYPE:
             column->value.int_val = atoi(new_value);
@@ -195,3 +207,27 @@ void set_column_value(Column* column, const char* new_value) {
             break;
     }
 }
+
+void set_column_value_from_expr(OldColumn* column, MiniExpr* expr) {
+    if (!column || !expr || expr->type != EXPR_LITERAL || !expr->value) {
+        fprintf(stderr, "[set_column_value] 非法表达式，必须是字面量\n");
+        return;
+    }
+
+    switch (column->type) {
+        case INT4_TYPE:
+            column->value.int_val = atoi(expr->value);
+            break;
+        case TEXT_TYPE:
+            if (!column->value.str_val) {
+                column->value.str_val = malloc(MAX_TEXT_LEN);
+            }
+            strncpy(column->value.str_val, expr->value, MAX_TEXT_LEN - 1);
+            column->value.str_val[MAX_TEXT_LEN - 1] = '\0';
+            break;
+        default:
+            fprintf(stderr, "Unsupported column type in set_column_value\n");
+            break;
+    }
+}
+

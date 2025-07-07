@@ -22,13 +22,13 @@ typedef struct {
     char table_name[MAX_TABLE_NAME];
     int num_values;
     const char* values[MAX_VALUES];  // 直接字符串数组
-} InsertStmt;
+} OldInsertStmt;
 
 typedef struct {
     char table_name[MAX_TABLE_NAME];
     char columns[MAX_COLUMNS][MAX_COLUMN_NAME_LEN];
     int num_columns;
-} SelectStmt;
+} OldSelectStmt;
 
 // 表达式结构，可根据你已有的 SELECT/WHERE 支持扩展
 typedef struct {
@@ -46,10 +46,10 @@ typedef struct {
   //char values[MAX_COLS][MAX_TEXT_LEN];
     Condition where;                    // WHERE 子句条件（只支持一个简单条件）
     bool has_where;                     // 是否指定了 WHERE 子句
-} UpdateStmt;
+} OldUpdateStmt;
 
 bool parse_create_table(const char* sql, CreateTableStmt* stmt);
-bool parse_insert(const char* sql, InsertStmt* stmt);
-bool parse_select(const char* sql, SelectStmt* stmt);
-bool parse_update(const char* sql, UpdateStmt* stmt) ;
+bool parse_insert(const char* sql, OldInsertStmt* stmt);
+bool parse_select(const char* sql, OldSelectStmt* stmt);
+bool parse_update(const char* sql, OldUpdateStmt* stmt) ;
 #endif

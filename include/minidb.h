@@ -69,8 +69,11 @@ bool db_insert(MiniDB *db, const char *table_name,   const Tuple * values,Sessio
 //bool db_update(MiniDB *db, const char *table_name,const UpdateStmt* stmt, int *result_count, Session session);
 
 //int db_query(MiniDB *db, const char *table_name, Tuple *results, int max_results);
-Tuple** db_query(MiniDB *db, const char *table_name, int *result_count,Session session);
+//Tuple** db_query(MiniDB *db, const char *table_name, int *result_count,Session session);
+Tuple** db_query(const char *table_name, int *result_count, Session session,SelectStmt* selectStmt);
 void db_create_checkpoint(MiniDB *db);
 void print_db_status(const MiniDB *db);
+
+SQLStatement* mini_pg_parse_sql(sqlite3* db, const char* zSql) ;
 
 #endif // MINIDB_H

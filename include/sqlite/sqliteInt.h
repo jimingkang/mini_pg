@@ -14,6 +14,12 @@
 */
 #ifndef SQLITEINT_H
 #define SQLITEINT_H
+
+#define _GNU_SOURCE
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <string.h>
 #include "sql_stmt.h"
 
 /* Special Comments:
@@ -3991,8 +3997,15 @@ struct Parse {
 #ifndef SQLITE_OMIT_ALTERTABLE
   RenameToken *pRename;     /* Tokens subject to renaming by ALTER TABLE */
 #endif
+
+union {
+    Select *pSelect;
+    Insert *pInsert;
+  } uResult;
+  int stmtType; // 用于指示当前保存的是哪种语句（SELECT或INSERT）
 SQLStatement* pMiniPGStatement;
 };
+
 
 /* Allowed values for Parse.eParseMode
 */

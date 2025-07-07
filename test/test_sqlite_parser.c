@@ -2,39 +2,20 @@
 #include <sqlite3.h>
 #include "sql_stmt.h"
 #include "sqliteInt.h"
+#include "types.h"
+#include "minidb.h"
 
-// 声明解析函数（你应在 .h 文件里添加）：
-// 提供封装函数：仅用于解析语法树，不执行 SQL
-SQLStatement* mini_pg_parse_sql(sqlite3* db, const char* zSql) {
-    Parse sParse;
-    memset(&sParse, 0, sizeof(Parse));
-    sParse.db = db;
 
-    // 调用 SQLite 的语法解析器
-    sqlite3RunParser(&sParse, zSql);
-
-    // 判断是否出错
-    if (sParse.rc != SQLITE_OK || sParse.nErr > 0) {
-        if (sParse.zErrMsg) {
-            fprintf(stderr, "SQL parse error: %s\n", sParse.zErrMsg);
-            sqlite3DbFree(db, sParse.zErrMsg);
-        } else {
-            fprintf(stderr, "Unknown SQL parse error\n");
-        }
-        return NULL;
-    }
-
-    // 由你在 parse.y 中挂载的结构体
-    return sParse.pMiniPGStatement;
-}
 
 int main() {
-    sqlite3* db = NULL;
-    sqlite3_open(":memory:", &db);  // 初始化 SQLite 内部状态
+       MiniDB mini_db;
+    init_db(&mini_db, "/home/rlk/Downloads/mini_pg/build");
+    sqlite3* sqlite_db = NULL;
+    sqlite3_open(":memory:", &sqlite_db);  // 初始化 SQLite 内部状态
 
-  //  const char* sql = "SELECT name FROM users WHERE age > 18;";
-     const char* sql =  "CREATE TABLE users (id INT, name TEXT);";
-    SQLStatement* stmt = mini_pg_parse_sql(db, sql);
+   const char* sql = "SELECT name FROM users WHERE age > 18 ;";
+  //   const char* sql =  "CREATE TABLE users (id INT, name TEXT);";
+    SQLStatement* stmt = mini_pg_parse_sql(sqlite_db, sql);
 
     if (!stmt) {
         printf("解析失败。\n");
@@ -49,9 +30,45 @@ int main() {
             printf("%s ", sel->column_names[i]);
         }
         printf("\n");
-        if (sel->where_expr) {
-            printf("WHERE 条件：%s\n", sel->where_expr->value);
+       if (sel->where_expr) {
+        printf("WHERE 条件：");
+       // print_expr(sel->where_expr);
+        printf("\n");
+        } else {
+            printf("WHERE 条件：(null)\n");
         }
+    Session session = {.db = &mini_db, .client_fd = 0};
+    
+    // 开始新事务
+    uint32_t tx5 = session_begin_transaction(&session);
+        session.current_xid=tx5;
+    if (tx5 == INVALID_XID) {
+        fprintf(stderr, "Error: Failed to start transaction\n");
+        return 1;
+    }
+    printf("Started transaction %u\n", tx5);
+  
+    int cnt=0;
+    Tuple**  new_results = db_query("users",&cnt,session,stmt->select_stmt);
+    if (new_results) {
+
+            printf("Query returned %d tuples:\n", cnt);
+
+            int idx = find_table(&session.db->catalog, "users");
+            TableMeta *meta = &(session.db->catalog.tables[idx]);
+
+        for (int i = 0; i < cnt; i++) {
+            print_tuple(new_results[i], meta,session.current_xid);
+        }
+    }
+
+    
+    // 提交事务
+    if (session_commit_transaction(session.db,&session)) {
+        fprintf(stderr, "Error: Failed to commit transaction %u\n", tx5);
+        return 1;
+    }
+
     } else if (stmt->type == STMT_INSERT) {
         InsertStmt* ins = stmt->insert_stmt;
         printf("INSERT 语句，表名：%s\n", ins->table_name);
@@ -62,6 +79,43 @@ int main() {
         }
     }
 
-    sqlite3_close(db);
+    sqlite3_close(sqlite_db);
     return 0;
 }
+const char* op_to_string(int op) {
+    switch (op) {
+        case TK_EQ: return "=";
+        case TK_GT: return ">";
+        case TK_LT: return "<";
+        case TK_GE: return ">=";
+        case TK_LE: return "<=";
+        case TK_NE: return "!=";
+        case TK_AND: return "AND";
+        case TK_OR: return "OR";
+        default: return "?";
+    }
+}
+
+void print_expr(MiniExpr* expr) {
+    if (!expr) return;
+
+    switch (expr->type) {
+        case EXPR_LITERAL:
+        case EXPR_COLUMN:
+            printf("%s", expr->value);
+            break;
+
+        case EXPR_BINARY:
+            printf("(");
+            print_expr(expr->left);
+            printf(" %s ", op_to_string(expr->op));
+            print_expr(expr->right);
+            printf(")");
+            break;
+
+        default:
+            printf("<未知表达式>");
+            break;
+    }
+}
+

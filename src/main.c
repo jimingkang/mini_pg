@@ -7,13 +7,17 @@
 #include <parser.h>
 #include "executor.h"
 #include "checkpoint.h"
+#include "tuple.h"
+
 // 示例程序
 int main() {
     MiniDB db;
-    
     // 初始化数据库
     printf("Initializing database...\n");
     init_db(&db, "/home/rlk/Downloads/mini_pg/build");
+
+    sqlite3* sqlite_db = NULL;
+    sqlite3_open(":memory:", &sqlite_db);  // 初始化 SQLite 内部状态
 
    // print_db_status(&db);
     Session session;
@@ -22,7 +26,7 @@ int main() {
     //session.client_fd = client_fd;
     session.db = &db;
     session.current_xid = INVALID_XID;
-    /*      */
+    /*      
     // ================== 事务 1 ==================
     printf("\n===== Transaction 1: Create Table =====\n");
     
@@ -59,7 +63,10 @@ int main() {
         return 1;
     }
     printf("Committed transaction %u\n", tx1);
-
+ */
+   
+/*
+ 
     // ================== 事务 2 ==================
     printf("\n===== Transaction 2: Insert Data =====\n");
     
@@ -71,35 +78,31 @@ int main() {
         return 1;
     }
     printf("Started transaction %u\n", tx2);
-    
-    // 插入用户1
-    Tuple user1 = {0};
-    uint8_t col_count = 3;
-    user1.col_count = col_count;
-    user1.columns = (Column *)malloc(col_count * sizeof(Column));
+        
+    const char* sql = "insert into users(id,name,age) values(1,'Mesi',20);";
+    SQLStatement* stmt = mini_pg_parse_sql(sqlite_db, sql);
+    InsertStmt* insert = stmt->insert_stmt;
+
+    int idx = find_table(&session.db->catalog, insert->table_name);
+    TableMeta *meta = &session.db->catalog.tables[idx];
+    if (!meta) return false;
 
 
-    user1.columns[0].type = INT4_TYPE; user1.columns[0].value.int_val = 1;
-    user1.columns[1].type = TEXT_TYPE; user1.columns[1].value.str_val = strdup("Tom");
-    user1.columns[2].type = INT4_TYPE; user1.columns[2].value.int_val = 30;
-
-    if (db_insert(&db, "users", &user1,session) < 0) {
-        fprintf(stderr, "Error: Failed to insert user1\n");
-        session_rollback_transaction(&db,&session);
-        return 1;
-    }
-    printf("Inserted user1\n");
-    free(user1.columns[1].value.str_val);
-    free(user1.columns);
-  
-    // 插入用户2
+    Tuple user = {0};
+    bool flag=convertToTuple(&user,  meta,insert) ;
+    if (db_insert(&db, "users", &user,session) < 0) {
+            fprintf(stderr, "Error: Failed to insert user1\n");
+            session_rollback_transaction(&db,&session);
+            return 1;
+        }
+        printf("Inserted user1\n");
+        
+     sql = "insert into users(id,name,age) values(1,'Tom',40) ;";
+     
     Tuple user2 = {0};
-    user2.col_count = col_count;
-    user2.columns = (Column *)malloc(col_count * sizeof(Column));
-    user2.columns[0].type = INT4_TYPE; user2.columns[0].value.int_val = 2;
-    user2.columns[1].type = TEXT_TYPE; strcpy(user2.columns[1].value.str_val, "Jack");
-    user2.columns[2].type = INT4_TYPE; user2.columns[2].value.int_val = 25;
-    
+    stmt = mini_pg_parse_sql(sqlite_db, sql);
+        insert = stmt->insert_stmt;
+    flag=convertToTuple(&user2,  meta,insert) ;
     if (db_insert(&db, "users", &user2,session) < 0) {
         fprintf(stderr, "Error: Failed to insert user2\n");
         session_rollback_transaction(&db,&session);
@@ -119,6 +122,7 @@ int main() {
         return 1;
     }
     printf("Committed transaction %u\n", tx2);
+   */
  
     // ================== 事务 3 ==================
     printf("\n===== Transaction 3: Query Data =====\n");
@@ -131,10 +135,15 @@ int main() {
         return 1;
     }
     printf("Started Query Data transaction %u\n", tx3);
+
     
     // 查询数据
+   // SelectStmt stmt;
+     const char* sql2 = "SELECT name FROM users WHERE age > 18 ;";
+  //   const char* sql =  "CREATE TABLE users (id INT, name TEXT);";
+     SQLStatement *stmt2= mini_pg_parse_sql(sqlite_db, sql2);
     int cnt;
-     Tuple**  new_results = db_query(&db, "users",&cnt,session);
+     Tuple**  new_results = db_query("users",&cnt,session,stmt2->select_stmt);
     if (new_results) {
 
             printf("Query returned %d tuples:\n", cnt);
@@ -143,6 +152,9 @@ int main() {
             print_tuple(new_results[i], find_table(&db.catalog, "users"),session.current_xid);
         }
     }
+
+     
+    
     
     // 提交事务
     if (session_commit_transaction(&db,&session)) {
@@ -158,20 +170,9 @@ int main() {
     uint32_t tx4= session_begin_transaction(&session);
     session.current_xid=tx4;
     // Step 6: 构造并执行 UPDATE 操作
-    UpdateStmt stmt;
-    memset(&stmt, 0, sizeof(UpdateStmt));
-    strcpy(stmt.table_name, "users");
-
-    stmt.num_assignments = 1;
-     strcpy(stmt.columns[0], "age");
-stmt.values[0]=strdup("456");
-
-
-    
-    strcpy(stmt.where.column, "name");
-     strcpy(stmt.where.op, "=");
-    strcpy(stmt.where.value, "Jack");
-    int ret=db_update(&db, &stmt,session);
+   const char * sql = "update users set age=17 WHERE name = 'Tom' ;";
+   SQLStatement * stmt = mini_pg_parse_sql(sqlite_db, sql);
+    int ret=db_update( stmt->update_stmt,session);
     if (!ret==1) {
         printf("Update failed\n");
        // return;
@@ -185,6 +186,7 @@ stmt.values[0]=strdup("456");
     }
     printf("Committed Updatetransaction %u\n", tx4);
 
+    /**/
     // ================== 事务 5 ==================
     printf("\n===== Transaction 5: Query Data =====\n");
     
@@ -196,18 +198,19 @@ stmt.values[0]=strdup("456");
         return 1;
     }
     printf("Started transaction %u\n", tx3);
-    
-    // 查询数据
-
-      new_results = db_query(&db, "users",&cnt,session);
+       const char* sql3 = "SELECT name FROM users WHERE age > 18 ;";
+ 
+    SQLStatement* stmt3 = mini_pg_parse_sql(sqlite_db, sql3);
+      new_results = db_query("users",&cnt,session,stmt3->select_stmt);
     if (new_results) {
 
-            printf("new Query returned %d tuples:\n", cnt);
+            printf("Query returned %d tuples:\n", cnt);
 
         for (int i = 0; i < cnt; i++) {
             print_tuple(new_results[i], find_table(&db.catalog, "users"),session.current_xid);
         }
     }
+
     
     // 提交事务
     if (session_commit_transaction(&db,&session)) {

@@ -198,7 +198,8 @@ int db_create_table(MiniDB *db, const char *table_name, ColumnDef *columns, uint
     
     return oid;
 }
-Tuple** db_query(MiniDB *db, const char *table_name, int *result_count, Session session) {
+Tuple** db_query(const char *table_name, int *result_count, Session session,SelectStmt* selectStmt) {
+    MiniDB *db=session.db;
     if (!db || !table_name || !result_count) return NULL;
 
     *result_count = 0;
@@ -210,7 +211,7 @@ Tuple** db_query(MiniDB *db, const char *table_name, int *result_count, Session 
 
     char fullpath[256];
     snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
-strcpy(meta->fillpath,fullpath);
+    strcpy(meta->fillpath,fullpath);
     Tuple** results = malloc(MAX_RESULTS * sizeof(Tuple*));
     if (!results) return NULL;
 
@@ -243,6 +244,14 @@ strcpy(meta->fillpath,fullpath);
             bool visible = is_tuple_visible(meta,&db->tx_mgr, t, session.current_xid,&(session.snap));
             if (visible) {
                 if (total_tuples < MAX_RESULTS) {
+                    if (selectStmt && selectStmt->where_expr) {
+                        if (!eval_expr(selectStmt->where_expr, t, meta)) {
+                            free_tuple(t);
+                            continue;
+                        }
+                    }
+
+                 
                     results[total_tuples++] = t;
                 } else {
                     free_tuple(t);
@@ -250,6 +259,7 @@ strcpy(meta->fillpath,fullpath);
             } else {
                 free_tuple(t);
             }
+            
         }
     }
 
@@ -261,6 +271,10 @@ strcpy(meta->fillpath,fullpath);
         if (tmp) results = tmp;
     }
     *result_count = total_tuples;
+
+    for (int i = 0; i < total_tuples; i++) {
+            print_tuple(results[i], meta,session.current_xid);
+        }
     return results;
 }
 
@@ -390,4 +404,29 @@ void print_db_status(const MiniDB *db) {
     
     // 打印事务管理器状态
     txmgr_print_status(&db->tx_mgr);
+}
+
+
+// 提供封装函数：仅用于解析语法树，不执行 SQL
+SQLStatement* mini_pg_parse_sql(sqlite3* db, const char* zSql) {
+    Parse sParse;
+    memset(&sParse, 0, sizeof(Parse));
+    sParse.db = db;
+
+    // 调用 SQLite 的语法解析器
+    sqlite3RunParser(&sParse, zSql);
+
+    // 判断是否出错
+    if (sParse.rc != SQLITE_OK || sParse.nErr > 0) {
+        if (sParse.zErrMsg) {
+            fprintf(stderr, "SQL parse error: %s\n", sParse.zErrMsg);
+            sqlite3DbFree(db, sParse.zErrMsg);
+        } else {
+           // fprintf(stderr, "Unknown SQL parse \n");
+        }
+      //  return NULL;
+    }
+
+    // 由你在 parse.y 中挂载的结构体
+    return sParse.pMiniPGStatement;
 }
