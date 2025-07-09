@@ -8,13 +8,20 @@
 #include "executor.h"
 #include "checkpoint.h"
 #include "tuple.h"
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <pthread.h>
+#include "xid_info.h"
+
+extern XidInfo* xid_info;
+extern int xid_shmid;
 
 // 示例程序
 int main() {
     MiniDB db;
     // 初始化数据库
     printf("Initializing database...\n");
-    init_db(&db, "/home/rlk/Downloads/mini_pg/build");
+    tcp_init_db(&db, "/home/rlk/Downloads/mini_pg/build");
 
     sqlite3* sqlite_db = NULL;
     sqlite3_open(":memory:", &sqlite_db);  // 初始化 SQLite 内部状态
@@ -26,12 +33,12 @@ int main() {
     //session.client_fd = client_fd;
     session.db = &db;
     session.current_xid = INVALID_XID;
-    /*      
+    /*     */  
     // ================== 事务 1 ==================
     printf("\n===== Transaction 1: Create Table =====\n");
     
     // 开始事务
-    uint32_t tx1 =session_begin_transaction(&session);
+    uint32_t tx1 =tcp_session_begin_transaction(&session);
     session.current_xid =tx1;
     if (tx1 == INVALID_XID) {
         fprintf(stderr, "Error: Failed to start transaction\n");
@@ -58,20 +65,20 @@ int main() {
    // print_db_status(&db);
     
     // 提交事务
-    if (session_commit_transaction(session.db,&session) ){
+    if (tcp_session_commit_transaction(session.db,&session) ){
         fprintf(stderr, "Error: Failed to commit transaction %u\n", tx1);
         return 1;
     }
     printf("Committed transaction %u\n", tx1);
- */
+
    
-/*
+/*   */
  
     // ================== 事务 2 ==================
     printf("\n===== Transaction 2: Insert Data =====\n");
     
     // 开始新事务
-    uint32_t tx2 = session_begin_transaction(&session);
+    uint32_t tx2 = tcp_session_begin_transaction(&session);
         session.current_xid =tx2;
     if (tx2 == INVALID_XID) {
         fprintf(stderr, "Error: Failed to start transaction\n");
@@ -117,18 +124,18 @@ int main() {
  //   print_db_status(&db);
      
     // 提交事务
-    if (session_commit_transaction(&db,&session)) {
+    if (tcp_session_commit_transaction(&db,&session)) {
         fprintf(stderr, "Error: Failed to commit transaction %u\n", tx2);
         return 1;
     }
     printf("Committed transaction %u\n", tx2);
-   */
+
  
     // ================== 事务 3 ==================
     printf("\n===== Transaction 3: Query Data =====\n");
     
     // 开始新事务
-    uint32_t tx3 = session_begin_transaction(&session);
+    uint32_t tx3 = tcp_session_begin_transaction(&session);
         session.current_xid=tx3;
     if (tx3 == INVALID_XID) {
         fprintf(stderr, "Error: Failed to start transaction\n");
@@ -157,7 +164,7 @@ int main() {
     
     
     // 提交事务
-    if (session_commit_transaction(&db,&session)) {
+    if (tcp_session_commit_transaction(&db,&session)) {
         fprintf(stderr, "Error: Failed to commit transaction %u\n", tx3);
         return 1;
     }
@@ -167,11 +174,13 @@ int main() {
   //  wal_log_checkpoint(&db);
  
     // 开始新事务
-    uint32_t tx4= session_begin_transaction(&session);
+    uint32_t tx4= tcp_session_begin_transaction(&session);
     session.current_xid=tx4;
     // Step 6: 构造并执行 UPDATE 操作
-   const char * sql = "update users set age=17 WHERE name = 'Tom' ;";
-   SQLStatement * stmt = mini_pg_parse_sql(sqlite_db, sql);
+   //const char *
+    sql = "update users set age=123 WHERE name = 'Tom' ;";
+ //  SQLStatement *
+    stmt = mini_pg_parse_sql(sqlite_db, sql);
     int ret=db_update( stmt->update_stmt,session);
     if (!ret==1) {
         printf("Update failed\n");
@@ -180,7 +189,7 @@ int main() {
         printf("Update executed successfully\n");
     }
         // 提交事务
-    if (session_commit_transaction(&db,&session)) {
+    if (tcp_session_commit_transaction(&db,&session)) {
         fprintf(stderr, "Error: Failed to commit transaction %u\n", tx4);
         return 1;
     }
@@ -191,7 +200,7 @@ int main() {
     printf("\n===== Transaction 5: Query Data =====\n");
     
     // 开始新事务
-    uint32_t tx5 = session_begin_transaction(&session);
+    uint32_t tx5 = tcp_session_begin_transaction(&session);
         session.current_xid=tx5;
     if (tx3 == INVALID_XID) {
         fprintf(stderr, "Error: Failed to start transaction\n");
@@ -213,7 +222,7 @@ int main() {
 
     
     // 提交事务
-    if (session_commit_transaction(&db,&session)) {
+    if (tcp_session_commit_transaction(&db,&session)) {
         fprintf(stderr, "Error: Failed to commit transaction %u\n", tx5);
         return 1;
     }

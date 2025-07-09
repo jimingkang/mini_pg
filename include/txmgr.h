@@ -94,4 +94,11 @@ bool save_tx_state(const TransactionManager* txmgr, const char* db_path) ;
 bool load_tx_state(TransactionManager* txmgr, const char* db_path);
 //uint32_t compute_snapshot_xmin(TransactionManager* txmgr);
 void compute_snapshot(TransactionManager *txmgr, uint32_t current_xid, Snapshot *snap);
+
+
+uint32_t tcp_txmgr_start_transaction(MiniDB *db, Session* session);
+void tcp_txmgr_commit_transaction(MiniDB *db, uint32_t xid) ;
+bool tcp_load_tx_state(TransactionManager* txmgr, const char* db_path);
+  bool tcp_save_tx_state(const TransactionManager* txmgr, const char* db_path, uint32_t external_next_xid);
+
 #endif // TRANSACTION_MANAGER_H

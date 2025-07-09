@@ -40,6 +40,7 @@ add_library(minipg_core STATIC
    src/tuple.c
     src/lock.c
     src/checkpoint.c
+    src/xid_info.c
    src/server/server.c
    src/server/executor.c
    src/server/sql_exec.c
@@ -56,8 +57,8 @@ target_link_libraries(minipg_core ${ZLIB_LIBRARIES}  ${SQLite3_LIBRARIES} dl pth
 
 # ================== 主程序 ==================
 add_executable(minipg
-    #src/main.c
-      src/server/server.c
+ #  src/main.c
+  src/server/server.c
 )
 
 target_link_libraries(minipg minipg_core )

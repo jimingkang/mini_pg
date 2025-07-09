@@ -7,6 +7,7 @@ CMakeFiles/minipg.dir/src/server/server.c.o: ../include/page.h
 CMakeFiles/minipg.dir/src/server/server.c.o: ../include/server/executor.h
 CMakeFiles/minipg.dir/src/server/server.c.o: ../include/server/parse.h
 CMakeFiles/minipg.dir/src/server/server.c.o: ../include/server/parser.h
+CMakeFiles/minipg.dir/src/server/server.c.o: ../include/server/sql_exec.h
 CMakeFiles/minipg.dir/src/server/server.c.o: ../include/server/sql_stmt.h
 CMakeFiles/minipg.dir/src/server/server.c.o: ../include/sqlite/btree.h
 CMakeFiles/minipg.dir/src/server/server.c.o: ../include/sqlite/hash.h
@@ -25,5 +26,6 @@ CMakeFiles/minipg.dir/src/server/server.c.o: ../include/sqlite/vxworks.h
 CMakeFiles/minipg.dir/src/server/server.c.o: ../include/tuple.h
 CMakeFiles/minipg.dir/src/server/server.c.o: ../include/txmgr.h
 CMakeFiles/minipg.dir/src/server/server.c.o: ../include/types.h
+CMakeFiles/minipg.dir/src/server/server.c.o: ../include/xid_info.h
 CMakeFiles/minipg.dir/src/server/server.c.o: ../src/server/server.c
 

@@ -443,7 +443,7 @@ Page* page_cache_load_or_fetch(uint32_t page_id, TableMeta * meta) {
     }
     FILE* fp = fopen(meta->fillpath, "r+b");
     if (!fp) {
-        perror("fopen failed");
+        perror("  page_cache_load_or_fetch fopen failed");
         LWLockRelease(&global_page_cache.lock);
         return NULL;
     }
@@ -510,8 +510,33 @@ bool page_cache_flush(uint32_t page_id, const char* filename) {
     LWLockRelease(&global_page_cache.lock);
     return false;
 }
+void page_cache_invalidate(uint32_t page_id) {
+    LWLockAcquireExclusive(&global_page_cache.lock);
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        if (global_page_cache.entries[i].valid && global_page_cache.entries[i].page_id == page_id) {
+            global_page_cache.entries[i].valid = false;
+            global_page_cache.entries[i].dirty = false;
+            break;
+        }
+    }
+    LWLockRelease(&global_page_cache.lock);
+}
 
+void page_cache_invalidate_all_dirty() {
+    LWLockAcquireExclusive(&global_page_cache.lock);
+    for (int i = 0; i < PAGE_CACHE_SIZE; i++) {
+        if (global_page_cache.entries[i].valid &&
+            global_page_cache.entries[i].dirty) {
 
+            printf("[page_cache] invalidate page_id=%u (was dirty)\n", 
+                   global_page_cache.entries[i].page_id);
+
+            global_page_cache.entries[i].valid = false;
+            global_page_cache.entries[i].dirty = false;
+        }
+    }
+    LWLockRelease(&global_page_cache.lock);
+}
 Page* old_page_cache_load_or_fetch(uint32_t oid, const char* filename) {
     //pthread_mutex_lock(&global_page_cache.lock);
     LWLockAcquireExclusive(&global_page_cache.lock);

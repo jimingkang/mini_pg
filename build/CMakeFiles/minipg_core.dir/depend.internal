@@ -102,6 +102,7 @@ CMakeFiles/minipg_core.dir/src/minidb.c.o
  ../include/txmgr.h
  ../include/types.h
  ../include/wal.h
+ ../include/xid_info.h
  /home/rlk/Downloads/mini_pg/src/minidb.c
 CMakeFiles/minipg_core.dir/src/page.c.o
  ../include/catalog.h
@@ -185,6 +186,7 @@ CMakeFiles/minipg_core.dir/src/server/server.c.o
  ../include/server/executor.h
  ../include/server/parse.h
  ../include/server/parser.h
+ ../include/server/sql_exec.h
  ../include/server/sql_stmt.h
  ../include/sqlite/btree.h
  ../include/sqlite/hash.h
@@ -203,6 +205,7 @@ CMakeFiles/minipg_core.dir/src/server/server.c.o
  ../include/tuple.h
  ../include/txmgr.h
  ../include/types.h
+ ../include/xid_info.h
  /home/rlk/Downloads/mini_pg/src/server/server.c
 CMakeFiles/minipg_core.dir/src/server/sql_exec.c.o
  ../include/catalog.h
@@ -302,6 +305,7 @@ CMakeFiles/minipg_core.dir/src/txmgr.c.o
  ../include/sqlite/vxworks.h
  ../include/txmgr.h
  ../include/types.h
+ ../include/xid_info.h
  /home/rlk/Downloads/mini_pg/src/txmgr.c
 CMakeFiles/minipg_core.dir/src/wal.c.o
  ../include/catalog.h
@@ -329,3 +333,23 @@ CMakeFiles/minipg_core.dir/src/wal.c.o
  ../include/types.h
  ../include/wal.h
  /home/rlk/Downloads/mini_pg/src/wal.c
+CMakeFiles/minipg_core.dir/src/xid_info.c.o
+ ../include/server/parse.h
+ ../include/server/sql_stmt.h
+ ../include/sqlite/btree.h
+ ../include/sqlite/hash.h
+ ../include/sqlite/msvc.h
+ ../include/sqlite/mutex.h
+ ../include/sqlite/opcodes.h
+ ../include/sqlite/os.h
+ ../include/sqlite/os_setup.h
+ ../include/sqlite/pager.h
+ ../include/sqlite/pcache.h
+ ../include/sqlite/sqlite3.h
+ ../include/sqlite/sqliteInt.h
+ ../include/sqlite/sqliteLimit.h
+ ../include/sqlite/vdbe.h
+ ../include/sqlite/vxworks.h
+ ../include/types.h
+ ../include/xid_info.h
+ /home/rlk/Downloads/mini_pg/src/xid_info.c

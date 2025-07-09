@@ -6,13 +6,9 @@
 
 #IncludeRegexTransform: 
 
-../include/catalog.h
-stdint.h
--
-minidb.h
-../include/minidb.h
-tuple.h
-../include/tuple.h
+../include/lock.h
+types.h
+../include/types.h
 
 ../include/minidb.h
 stdio.h
@@ -49,14 +45,6 @@ stddef.h
 -
 types.h
 ../include/types.h
-
-../include/server/executor.h
-stdbool.h
--
-minidb.h
-../include/server/minidb.h
-tuple.h
-../include/server/tuple.h
 
 ../include/server/parse.h
 
@@ -174,16 +162,6 @@ vxWorks.h
 pthread.h
 -
 
-../include/tuple.h
-catalog.h
-../include/catalog.h
-stdint.h
--
-stdbool.h
--
-types.h
-../include/types.h
-
 ../include/txmgr.h
 stdint.h
 -
@@ -218,29 +196,51 @@ semaphore.h
 sqliteInt.h
 ../include/sqliteInt.h
 
-/home/rlk/Downloads/mini_pg/src/server/server.c
+../include/xid_info.h
+stdint.h
+-
+stdbool.h
+-
+pthread.h
+-
+types.h
+../include/types.h
+
+/home/rlk/Downloads/mini_pg/src/txmgr.c
+minidb.h
+/home/rlk/Downloads/mini_pg/src/minidb.h
+txmgr.h
+/home/rlk/Downloads/mini_pg/src/txmgr.h
+lock.h
+/home/rlk/Downloads/mini_pg/src/lock.h
 stdio.h
 -
 stdlib.h
 -
 string.h
 -
+time.h
+-
+limits.h
+-
+xid_info.h
+/home/rlk/Downloads/mini_pg/src/xid_info.h
+
+/home/rlk/Downloads/mini_pg/src/xid_info.c
+xid_info.h
+/home/rlk/Downloads/mini_pg/src/xid_info.h
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+sys/ipc.h
+-
+sys/shm.h
+-
 unistd.h
 -
-netinet/in.h
+types.h
 -
-sys/socket.h
--
-sys/types.h
--
-sys/wait.h
--
-signal.h
--
-minidb.h
-/home/rlk/Downloads/mini_pg/src/server/minidb.h
-server/parser.h
-/home/rlk/Downloads/mini_pg/src/server/server/parser.h
-server/executor.h
-/home/rlk/Downloads/mini_pg/src/server/server/executor.h
 

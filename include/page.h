@@ -51,4 +51,6 @@ Page* page_cache_get(uint32_t oid, TableMeta* meta, FILE* table_file) ;
 bool page_cache_flush(uint32_t oid, const char* filename);
 void page_cache_mark_dirty(uint32_t oid);
 void flush_all_dirty_pages(MiniDB *db);
+void page_cache_invalidate(uint32_t page_id);
+void page_cache_invalidate_all_dirty();
 #endif // PAGE_H

@@ -65,7 +65,7 @@ bool db_select(  ResultSet* result, Session session,SelectStmt * stmt) {
     }
 
     free(tuples);
-      save_tx_state(&session.db->tx_mgr, session.db->data_dir);
+      save_tx_state(session.db->tx_mgr, session.db->data_dir);
     return true;
 }
 
@@ -88,7 +88,7 @@ int db_update(const UpdateStmt* stmt, Session session) {
 
     char fullpath[256];
     snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
-strcpy(meta->fillpath,fullpath);
+    strcpy(meta->fillpath,fullpath);
     int result_count = 0;
 
     //for (PageID page_id = 0; page_id < db->next_page_id; page_id++) {
@@ -106,9 +106,9 @@ strcpy(meta->fillpath,fullpath);
 
             Tuple *t = page_get_tuple(page, i, meta);
 
-            //printf("[visible] xid=%u checks tuple {xmin=%u, xmax=%u}, committed(xmin)=%d, session.snap.xmin=%u\n", session.current_xid, t->xmin, t->xmax,
-           // txmgr_is_committed(&db->tx_mgr, t->xmin),session.snap.xmin);
-            if (!t || !is_tuple_visible(meta,&db->tx_mgr,t, session.current_xid,&session.snap)) {
+            printf("[visible] xid=%u checks tuple {xmin=%u, xmax=%u}, committed(xmin)=%d, session.snap.xmin=%u\n", session.current_xid, t->xmin, t->xmax,
+            txmgr_is_committed(db->tx_mgr, t->xmin),session.snap.xmin);
+            if (!t || !is_tuple_visible(meta,db->tx_mgr,t, session.current_xid,&session.snap)) {
                 free_tuple(t);
                 continue;
             }
@@ -172,7 +172,6 @@ strcpy(meta->fillpath,fullpath);
             if (page_insert_tuple(page, &new_t, &new_slot_idx)) {
                 result_count++;
             }
-           
 
             unlock_row(meta->name, new_t.oid, session.current_xid);
         }
@@ -182,7 +181,7 @@ strcpy(meta->fillpath,fullpath);
         //LWLockRelease(&page->lock);
     }
 
-   // save_tx_state(&db->tx_mgr, db->data_dir);
+   // save_tx_state(db->tx_mgr, db->data_dir);
     return result_count;
 }
 

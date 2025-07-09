@@ -18,6 +18,7 @@ set(CMAKE_DEPENDS_CHECK_C
   "/home/rlk/Downloads/mini_pg/src/tuple.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minipg_core.dir/src/tuple.c.o"
   "/home/rlk/Downloads/mini_pg/src/txmgr.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minipg_core.dir/src/txmgr.c.o"
   "/home/rlk/Downloads/mini_pg/src/wal.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minipg_core.dir/src/wal.c.o"
+  "/home/rlk/Downloads/mini_pg/src/xid_info.c" "/home/rlk/Downloads/mini_pg/build/CMakeFiles/minipg_core.dir/src/xid_info.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 

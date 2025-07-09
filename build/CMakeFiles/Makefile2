@@ -78,12 +78,12 @@ clean: CMakeFiles/minipg_core.dir/clean
 CMakeFiles/test_minipg.dir/all: CMakeFiles/minipg_core.dir/all
 	$(MAKE) -f CMakeFiles/test_minipg.dir/build.make CMakeFiles/test_minipg.dir/depend
 	$(MAKE) -f CMakeFiles/test_minipg.dir/build.make CMakeFiles/test_minipg.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=18,19 "Built target test_minipg"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=19,20 "Built target test_minipg"
 .PHONY : CMakeFiles/test_minipg.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/test_minipg.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 17
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 18
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/test_minipg.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 0
 .PHONY : CMakeFiles/test_minipg.dir/rule
@@ -110,7 +110,7 @@ CMakeFiles/minipg.dir/all: CMakeFiles/minipg_core.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/minipg.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 17
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 18
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/minipg.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 0
 .PHONY : CMakeFiles/minipg.dir/rule
@@ -132,12 +132,12 @@ CMakeFiles/minipg.dir/clean:
 CMakeFiles/minipg_core.dir/all:
 	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/depend
 	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=3,4,5,6,7,8,9,10,11,12,13,14,15,16,17 "Built target minipg_core"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rlk/Downloads/mini_pg/build/CMakeFiles --progress-num=3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18 "Built target minipg_core"
 .PHONY : CMakeFiles/minipg_core.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/minipg_core.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 15
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 16
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/minipg_core.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/rlk/Downloads/mini_pg/build/CMakeFiles 0
 .PHONY : CMakeFiles/minipg_core.dir/rule

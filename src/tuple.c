@@ -524,14 +524,25 @@ bool has_newer_visible_version(TableMeta *meta, TransactionManager *txmgr, const
             if (t->oid != old_tuple->oid) continue;
 
             // 3. 如果是更“新的版本”，并且对当前事务可见
+           // if (t->xmin > old_tuple->xmin &&
+           //     is_tuple_visible(meta,txmgr, t, current_xid,snap)) {
+           //     return true; // ✅ 找到更新版本
+           // }
+
+           // 是更新版本，且插入事务已提交
             if (t->xmin > old_tuple->xmin &&
-                is_tuple_visible(meta,txmgr, t, current_xid,snap)) {
-                return true; // ✅ 找到更新版本
+                txmgr_is_committed(txmgr, t->xmin)) {
+                return true;
             }
         }
     }
 
     return false; // ❌ 没有更可见的新版本
+}
+bool is_visible_by_snapshot(uint32_t xid, const Snapshot* snap) {
+    return xid >= snap->xmin &&
+           xid < snap->xmax &&
+           !is_in_snapshot(xid, snap);
 }
 bool is_tuple_visible(TableMeta *meta, TransactionManager *txmgr, const Tuple *tuple, uint32_t current_xid, const Snapshot *snap) {
 
@@ -542,11 +553,18 @@ bool is_tuple_visible(TableMeta *meta, TransactionManager *txmgr, const Tuple *t
 
     // 2. 插入事务未提交 → 不可见
     if (!txmgr_is_committed(txmgr, tuple->xmin))
+    {
+        printf("  → return false: reason : 插入事务未提交 → 不可见\n"); 
         return false;
+        }
+
 
     // 3. 插入事务正在进行中或比当前快照还新 → 不可见
     if ( tuple->xmin >= snap->xmax || is_in_snapshot(tuple->xmin, snap) )
+           {
+        printf("  → return false: reason :3. 插入事务正在进行中或比当前快照还新 → 不可见\n"); 
         return false;
+        }
 
     // 到这里说明该 tuple 的插入事务是 "可见的"
 
@@ -569,9 +587,15 @@ bool is_tuple_visible(TableMeta *meta, TransactionManager *txmgr, const Tuple *t
     }
 
     // 7. 删除事务在快照中或快照之后才提交 → 不可见
-    if (is_in_snapshot(tuple->xmax, snap) || tuple->xmax >= snap->xmax)
-        return false;
+    //if ( tuple->xmax >= snap->xmax||is_in_snapshot(tuple->xmax, snap) )
+     //   return false;
+    // if (is_visible_by_snapshot(tuple->xmax, snap)) {
+   // return true;  // 删除事务已经提交且不在 snapshot 中 → 可见
+//}
 
+ if (is_visible_by_snapshot(tuple->xmax, snap)) {
+    return false;   // 删除事务在 snapshot 活跃区间 → 不可见
+}
     // 8. 删除事务已提交，且早于 snapshot → 不可见
     if (tuple->xmax < snap->xmin)
         return false;

@@ -14,7 +14,7 @@
 #include "txmgr.h"
 #include "page.h"
 #include "types.h"
-#include "parser.h"'
+#include "parser.h"
 
 // 数据库常量
 //#define PAGE_SIZE 8192
@@ -52,14 +52,21 @@ typedef struct {
 
 // 数据库操作函数
 void init_db(MiniDB *db, const char *data_dir);
+void tcp_init_db(MiniDB *db, const char *data_dir) ;
 
 uint32_t begin_transaction(MiniDB *db);
 int commit_transaction(MiniDB *db);
 int rollback_transaction(MiniDB *db);
 
-int session_commit_transaction(MiniDB *db,Session* session) ;
+
 uint32_t session_begin_transaction(Session* session); 
+uint32_t tcp_session_begin_transaction(Session* session) ;
+
+int session_commit_transaction(MiniDB *db,Session* session) ;
+int tcp_session_commit_transaction(MiniDB *db,Session* session);
+
 int session_rollback_transaction(MiniDB *db,Session* session);
+int tcp_session_rollback_transaction(MiniDB *db, Session* session) ;
 
 int db_create_table(MiniDB *db, const char *table_name, ColumnDef *columns, uint8_t col_count,Session session);
 

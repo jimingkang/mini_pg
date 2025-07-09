@@ -101,6 +101,7 @@ CMakeFiles/minipg_core.dir/src/minidb.c.o: ../include/tuple.h
 CMakeFiles/minipg_core.dir/src/minidb.c.o: ../include/txmgr.h
 CMakeFiles/minipg_core.dir/src/minidb.c.o: ../include/types.h
 CMakeFiles/minipg_core.dir/src/minidb.c.o: ../include/wal.h
+CMakeFiles/minipg_core.dir/src/minidb.c.o: ../include/xid_info.h
 CMakeFiles/minipg_core.dir/src/minidb.c.o: ../src/minidb.c
 
 CMakeFiles/minipg_core.dir/src/page.c.o: ../include/catalog.h
@@ -184,6 +185,7 @@ CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/page.h
 CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/server/executor.h
 CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/server/parse.h
 CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/server/parser.h
+CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/server/sql_exec.h
 CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/server/sql_stmt.h
 CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/sqlite/btree.h
 CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/sqlite/hash.h
@@ -202,6 +204,7 @@ CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/sqlite/vxworks.h
 CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/tuple.h
 CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/txmgr.h
 CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/types.h
+CMakeFiles/minipg_core.dir/src/server/server.c.o: ../include/xid_info.h
 CMakeFiles/minipg_core.dir/src/server/server.c.o: ../src/server/server.c
 
 CMakeFiles/minipg_core.dir/src/server/sql_exec.c.o: ../include/catalog.h
@@ -301,6 +304,7 @@ CMakeFiles/minipg_core.dir/src/txmgr.c.o: ../include/sqlite/vdbe.h
 CMakeFiles/minipg_core.dir/src/txmgr.c.o: ../include/sqlite/vxworks.h
 CMakeFiles/minipg_core.dir/src/txmgr.c.o: ../include/txmgr.h
 CMakeFiles/minipg_core.dir/src/txmgr.c.o: ../include/types.h
+CMakeFiles/minipg_core.dir/src/txmgr.c.o: ../include/xid_info.h
 CMakeFiles/minipg_core.dir/src/txmgr.c.o: ../src/txmgr.c
 
 CMakeFiles/minipg_core.dir/src/wal.c.o: ../include/catalog.h
@@ -328,4 +332,24 @@ CMakeFiles/minipg_core.dir/src/wal.c.o: ../include/txmgr.h
 CMakeFiles/minipg_core.dir/src/wal.c.o: ../include/types.h
 CMakeFiles/minipg_core.dir/src/wal.c.o: ../include/wal.h
 CMakeFiles/minipg_core.dir/src/wal.c.o: ../src/wal.c
+
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/server/parse.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/server/sql_stmt.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/btree.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/hash.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/msvc.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/mutex.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/opcodes.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/os.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/os_setup.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/pager.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/pcache.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/sqlite3.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/sqliteInt.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/sqliteLimit.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/vdbe.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/sqlite/vxworks.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/types.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../include/xid_info.h
+CMakeFiles/minipg_core.dir/src/xid_info.c.o: ../src/xid_info.c
 

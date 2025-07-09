@@ -14,8 +14,8 @@ bool execute_create_table(sqlite3* sqlite_db, const char* sql,Session session) {
         fprintf(stderr, "[create] parse error\n");
         return false;
     }
-     int ok = db_create_table(session.db, stmt.table_name, stmt.columns, stmt.num_columns, session);
-    return ok == 0;  // 假设返回 0 表示成功
+     int oid = db_create_table(session.db, stmt.table_name, stmt.columns, stmt.num_columns, session);
+    return oid>0;  // 假设返回 0 表示成功
 }
 
 bool execute_insert(sqlite3* sqlite_db, const char* sql,Session session) {
@@ -41,6 +41,12 @@ bool execute_insert(sqlite3* sqlite_db, const char* sql,Session session) {
 }
 
 int execute_select_to_string(sqlite3* sqlite_db, const char* sql,Session session,char * ret) {
+
+        printf(" execute_select_to_string snapshot: xmin=%u, xmax=%u, active_xids = [", session.snap.xmin, session.snap.xmax);
+for (int i = 0; i < session.snap.active_count; i++) {
+    printf("%u,", session.snap.active_xids[i]);
+}
+printf("]\n");
 
     SQLStatement* stmt3 = mini_pg_parse_sql(sqlite_db, sql);
     int cnt=0;
@@ -71,10 +77,10 @@ if (new_results) {
 
  
 }
-int execute_update_to_string(sqlite3* sqlite_db, const char* sql, Session session, char* output) {
+int execute_update(sqlite3* sqlite_db, const char* sql, Session session) {
  SQLStatement * stmt = mini_pg_parse_sql(sqlite_db, sql);
     int ret=db_update( stmt->update_stmt,session);
-    if (!ret==1) {
+    if (!ret<1) {
         printf("Update failed\n");
        // return;
     } else {

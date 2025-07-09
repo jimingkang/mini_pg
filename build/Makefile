@@ -598,6 +598,33 @@ src/wal.c.s:
 	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/wal.c.s
 .PHONY : src/wal.c.s
 
+src/xid_info.o: src/xid_info.c.o
+
+.PHONY : src/xid_info.o
+
+# target to build an object file
+src/xid_info.c.o:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/xid_info.c.o
+.PHONY : src/xid_info.c.o
+
+src/xid_info.i: src/xid_info.c.i
+
+.PHONY : src/xid_info.i
+
+# target to preprocess a source file
+src/xid_info.c.i:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/xid_info.c.i
+.PHONY : src/xid_info.c.i
+
+src/xid_info.s: src/xid_info.c.s
+
+.PHONY : src/xid_info.s
+
+# target to generate assembly for a file
+src/xid_info.c.s:
+	$(MAKE) -f CMakeFiles/minipg_core.dir/build.make CMakeFiles/minipg_core.dir/src/xid_info.c.s
+.PHONY : src/xid_info.c.s
+
 test/test_sqlite_parser.o: test/test_sqlite_parser.c.o
 
 .PHONY : test/test_sqlite_parser.o
@@ -684,6 +711,9 @@ help:
 	@echo "... src/wal.o"
 	@echo "... src/wal.i"
 	@echo "... src/wal.s"
+	@echo "... src/xid_info.o"
+	@echo "... src/xid_info.i"
+	@echo "... src/xid_info.s"
 	@echo "... test/test_sqlite_parser.o"
 	@echo "... test/test_sqlite_parser.i"
 	@echo "... test/test_sqlite_parser.s"

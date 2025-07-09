@@ -11,6 +11,7 @@
 #include "lock.h"
 #include "executor.h"
 #include "txmgr.h"
+#include "xid_info.h"
 
 
 const char *DATADIR=NULL;
@@ -25,8 +26,38 @@ void init_db(MiniDB *db, const char *data_dir) {
     init_system_catalog(&db->catalog,db->data_dir);
     
     // 初始化事务管理器
-    txmgr_init(&db->tx_mgr);
+    txmgr_init(db->tx_mgr);
     load_tx_state(&(db->tx_mgr), data_dir);
+    //init_xid_info_shared(db);
+    // 初始无活动事务
+    db->current_xid = INVALID_XID;
+    db->next_page_id = 0;  // 如果是新数据库
+    
+    init_page_cache();
+    init_row_lock_table();
+    // 初始化WAL
+    init_wal();
+    
+    // 从WAL恢复
+   // recover_from_wal(db);
+}
+
+void tcp_init_db(MiniDB *db, const char *data_dir) {
+    // 设置数据目录
+    strncpy(db->data_dir, data_dir, sizeof(db->data_dir));
+    mkdir(data_dir, 0755);
+    DATADIR=data_dir;
+    
+    // 初始化系统目录
+    init_system_catalog(&db->catalog,db->data_dir);
+    
+    // 初始化事务管理器
+    init_tx_mgr_shared(db);
+    init_xid_info_shared(db);
+
+
+
+    
     // 初始无活动事务
     db->current_xid = INVALID_XID;
     db->next_page_id = 0;  // 如果是新数据库
@@ -64,7 +95,7 @@ int commit_transaction(MiniDB *db) {
     wal_log_commit(db->current_xid);
     db->current_xid = INVALID_XID;
 
-   // save_tx_state(&db->tx_mgr, db->data_dir);
+   // save_tx_state(db->tx_mgr, db->data_dir);
     return 0;
 }
 
@@ -78,7 +109,7 @@ int rollback_transaction(MiniDB *db) {
     txmgr_abort_transaction(db, db->current_xid);
     wal_log_abort(db->current_xid);
     db->current_xid = INVALID_XID;
-   // save_tx_state(&db->tx_mgr, db->data_dir);
+   // save_tx_state(db->tx_mgr, db->data_dir);
     return 0;
 }
 */
@@ -95,6 +126,19 @@ uint32_t session_begin_transaction(Session* session) {
     return session->current_xid;
 }
 
+uint32_t tcp_session_begin_transaction(Session* session) {
+    if (session->current_xid != INVALID_XID) {
+        fprintf(stderr, "Error: transaction already started\n");
+        return INVALID_XID;
+    }
+
+    session->current_xid = tcp_txmgr_start_transaction(session->db,session);
+   // session->snapshot_xmin = session->db->tx_mgr.next_xid - 1;  // 只看到 <= 这个XID的提交数据
+   // session->snapshot_xmin =c(&session->db->tx_mgr);
+   compute_snapshot(session->db->tx_mgr,session->current_xid,&(session->snap));
+    return session->current_xid;
+}
+
 int session_commit_transaction(MiniDB *db,Session* session) {
     if (session->current_xid == INVALID_XID) {
         fprintf(stderr, "Error: no active transaction\n");
@@ -105,8 +149,21 @@ int session_commit_transaction(MiniDB *db,Session* session) {
     wal_log_commit(session->current_xid);
     //unlock_all_rows_for_xid(session->current_xid); // ✅ 显式释放所有行锁
     session->current_xid = INVALID_XID;
+    return 0;
+}
 
-    //save_tx_state(&db->tx_mgr, db->data_dir);
+int tcp_session_commit_transaction(MiniDB *db,Session* session) {
+    if (session->current_xid == INVALID_XID) {
+        fprintf(stderr, "Error: no active transaction\n");
+        return -1;
+    }
+
+    tcp_txmgr_commit_transaction(db, session->current_xid);
+    wal_log_commit(session->current_xid);
+    //unlock_all_rows_for_xid(session->current_xid); // ✅ 显式释放所有行锁
+   // page_cache_invalidate(session->db->next_page_id);
+   page_cache_invalidate_all_dirty();
+    session->current_xid = INVALID_XID;
     return 0;
 }
 
@@ -156,6 +213,54 @@ int session_rollback_transaction(MiniDB *db, Session* session) {
     session->current_xid = INVALID_XID;
    // save_tx_state(&db->tx_mgr, db->data_dir);
     printf("[session] Rolled back transaction %u\n", xid);
+    return 0;
+}
+
+int tcp_session_rollback_transaction(MiniDB *db, Session* session) {
+    if (!session || session->current_xid == INVALID_XID) {
+        fprintf(stderr, "[session] No active transaction to rollback\n");
+        return -1;
+    }
+
+    uint32_t xid = session->current_xid;
+
+    for (int i = 0; i < db->catalog.table_count; i++) {
+        TableMeta* meta = &db->catalog.tables[i];
+        char fullpath[256];
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+
+        for (PageID page_id = 0; page_id < db->next_page_id; page_id++) {
+            Page* page = page_cache_load_or_fetch(page_id, meta);
+            if (!page) continue;
+
+            int modified = 0;
+            LWLockAcquireExclusive(&page->lock);
+            for (int j = 0; j < page->header.slot_count; j++) {
+                Tuple* tuple = page_get_tuple(page, j, meta);
+                if (!tuple) continue;
+
+                if (tuple->xmin == xid) {
+                    page_delete_tuple(page, j);
+                    modified = 1;
+                    printf("[rollback] Removed tuple with oid=%u from table '%s'\n",
+                           tuple->oid, meta->name);
+                }
+
+                free_tuple(tuple);
+            }
+            LWLockRelease(&page->lock);
+
+            if (modified) {
+                page_cache_mark_dirty(page_id);
+                page_cache_flush(page_id, fullpath);
+            }
+        }
+    }
+
+    tcp_txmgr_abort_transaction(db, xid);
+    session->current_xid = INVALID_XID;
+   // save_tx_state(&db->tx_mgr, db->data_dir);
+    printf("[tcp session] Rolled back transaction %u\n", xid);
     return 0;
 }
 
@@ -211,7 +316,9 @@ Tuple** db_query(const char *table_name, int *result_count, Session session,Sele
 
     char fullpath[256];
     snprintf(fullpath, sizeof(fullpath), "%s/%s", db->data_dir, meta->filename);
+   
     strcpy(meta->fillpath,fullpath);
+     printf("db_query meta->fillpath=%s\n",meta->fillpath);
     Tuple** results = malloc(MAX_RESULTS * sizeof(Tuple*));
     if (!results) return NULL;
 
@@ -241,7 +348,7 @@ Tuple** db_query(const char *table_name, int *result_count, Session session,Sele
             if (!t) continue;
 
             // MVCC 可见性判断
-            bool visible = is_tuple_visible(meta,&db->tx_mgr, t, session.current_xid,&(session.snap));
+            bool visible = is_tuple_visible(meta,db->tx_mgr, t, session.current_xid,&(session.snap));
             if (visible) {
                 if (total_tuples < MAX_RESULTS) {
                     if (selectStmt && selectStmt->where_expr) {
@@ -403,7 +510,7 @@ void print_db_status(const MiniDB *db) {
     }
     
     // 打印事务管理器状态
-    txmgr_print_status(&db->tx_mgr);
+    txmgr_print_status(db->tx_mgr);
 }
 
 

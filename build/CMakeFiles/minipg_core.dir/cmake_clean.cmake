@@ -13,6 +13,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/minipg_core.dir/src/tuple.c.o"
   "CMakeFiles/minipg_core.dir/src/txmgr.c.o"
   "CMakeFiles/minipg_core.dir/src/wal.c.o"
+  "CMakeFiles/minipg_core.dir/src/xid_info.c.o"
   "lib/libminipg_core.a"
   "lib/libminipg_core.pdb"
 )

@@ -66,6 +66,12 @@ stdbool.h
 minidb.h
 ../include/server/minidb.h
 
+../include/server/sql_exec.h
+stdbool.h
+-
+minidb.h
+../include/server/minidb.h
+
 ../include/server/sql_stmt.h
 stdlib.h
 -
@@ -218,6 +224,16 @@ semaphore.h
 sqliteInt.h
 ../include/sqliteInt.h
 
+../include/xid_info.h
+stdint.h
+-
+stdbool.h
+-
+pthread.h
+-
+types.h
+../include/types.h
+
 /home/rlk/Downloads/mini_pg/src/server/server.c
 stdio.h
 -
@@ -243,4 +259,14 @@ server/parser.h
 /home/rlk/Downloads/mini_pg/src/server/server/parser.h
 server/executor.h
 /home/rlk/Downloads/mini_pg/src/server/server/executor.h
+server/sql_exec.h
+/home/rlk/Downloads/mini_pg/src/server/server/sql_exec.h
+sys/ipc.h
+-
+sys/shm.h
+-
+pthread.h
+-
+xid_info.h
+/home/rlk/Downloads/mini_pg/src/server/xid_info.h
 

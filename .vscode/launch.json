@@ -6,7 +6,7 @@
       "type": "lldb",
       "request": "attach",
       "name": "Attach to minipg",
-      "program":"/home/rlk/Downloads/mini_pg/build/bin/minidb",
+      "program":"/home/rlk/Downloads/mini_pg/build/bin/minipg",
       "processId":"${command:pickProcess}",
       "MIMode": "gdb",
     //  "target": "[PID]",

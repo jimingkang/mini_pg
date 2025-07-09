@@ -5,7 +5,7 @@ const char* shared_table = "users";
 void* insert_thread(void* arg) {
     MiniDB* db = (MiniDB*)arg;
     Session session = {.db = db, .client_fd = 0};
-    session.current_xid = txmgr_start_transaction(&db->tx_mgr);
+    session.current_xid = txmgr_start_transaction(db->tx_mgr);
 
     char insert_sql[128];
     snprintf(insert_sql, sizeof(insert_sql), "insert into %s values (1, 'insert', 20)", shared_table);
@@ -15,7 +15,7 @@ void* insert_thread(void* arg) {
         printf("[Insert Thread] Insert successful\n");
     }
 
-    txmgr_commit_transaction(&db->tx_mgr, session.current_xid);
+    txmgr_commit_transaction(db->tx_mgr, session.current_xid);
     return NULL;
 }
 

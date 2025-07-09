@@ -48,7 +48,7 @@ int commit_transaction(MiniDB *db) {
         return -1;
     }
     
-    txmgr_commit_transaction(&db->tx_mgr, db->current_xid);
+    txmgr_commit_transaction(db->tx_mgr, db->current_xid);
     wal_log_commit(db->current_xid);
     db->current_xid = INVALID_XID;
     return 0;
@@ -61,7 +61,7 @@ int rollback_transaction(MiniDB *db) {
         return -1;
     }
     
-    txmgr_abort_transaction(&db->tx_mgr, db->current_xid);
+    txmgr_abort_transaction(db->tx_mgr, db->current_xid);
     wal_log_abort(db->current_xid);
     db->current_xid = INVALID_XID;
     return 0;

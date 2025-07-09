@@ -238,6 +238,7 @@ typedef struct Snapshot {
 
 // 事务管理器
 typedef struct {
+      pthread_mutex_t lock;
     Transaction transactions[MAX_CONCURRENT_TRANS]; // 事务数组
     uint32_t next_xid;         // 下一个可用事务ID
     uint32_t oldest_xid;       // 最老活动事务ID
@@ -256,7 +257,7 @@ typedef struct {
 // 数据库状态
 typedef struct {
     SystemCatalog catalog;   // 系统目录
-    TransactionManager tx_mgr; // 事务管理器
+    TransactionManager *tx_mgr; // 事务管理器
     char data_dir[256];      // 数据目录
     uint32_t current_xid;    // 当前活动事务ID
     PageID next_page_id; // 用于分配新页面ID
@@ -276,6 +277,8 @@ typedef struct {
     Snapshot snap;
     
 } Session;
+
+
 
 typedef enum {
     OP_EQ,     // =
